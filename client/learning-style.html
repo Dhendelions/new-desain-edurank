@@ -1,0 +1,393 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Tes Gaya Belajar - EduRank</title>
+<!-- Tailwind CSS CDN with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="custom-layout">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+    }
+
+    /* Subtle grid background pattern like SCREEN_7 */
+    .edu-blueprint-grid {
+      background-size: 28px 28px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    }
+
+    /* Custom smooth scrollbar for questions column */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between antialiased selection:bg-blue-100 selection:text-blue-900">
+<!-- BEGIN: MainContainer -->
+<main class="w-full flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8" data-purpose="page-wrapper">
+<div class="w-full max-w-6xl bg-white rounded-3xl lg:rounded-[28px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] border border-slate-100 overflow-hidden flex flex-col lg:flex-row">
+<!-- BEGIN: LeftInfoPanel -->
+<section class="lg:w-5/12 bg-[#2563eb] text-white p-7 sm:p-9 lg:p-10 flex flex-col justify-between relative edu-blueprint-grid" data-purpose="banner-sidebar">
+<div>
+<!-- Logo Header Area -->
+<div class="flex items-center gap-3.5 mb-8">
+
+
+</div>
+<!-- Feature Badge -->
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-xs font-semibold tracking-wide mb-6">
+<span class="text-amber-300">✨</span> Personalisasi Pembelajaran
+          </div>
+<!-- Title & Overview -->
+<h1 class="text-2xl lg:text-[28px] font-bold leading-tight tracking-tight mb-4">
+            Kenali Potensi Belajar Terbaikmu di EduRank 🎯
+          </h1>
+<p class="text-blue-100/90 text-sm leading-relaxed mb-8">
+            Setiap pelajar memiliki gaya belajar unik. Dengan mengetahui kecenderungan belajarmu, rekomendasi materi, latihan soal, dan metode rangkuman akan disesuaikan otomatis.
+          </p>
+<!-- 3 Learning Styles Feature Cards -->
+<div class="space-y-3.5">
+<!-- Card 1: Visual -->
+<div class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all duration-200 flex items-start gap-3.5">
+<div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0 mt-0.5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h3 class="font-bold text-sm text-white">Gaya Belajar Visual</h3>
+<p class="text-xs text-blue-100/80 leading-relaxed mt-0.5">
+                  Pemahaman lebih cepat melalui diagram, grafik, peta konsep, dan video interaktif.
+                </p>
+</div>
+</div>
+<!-- Card 2: Kinestetik -->
+<div class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all duration-200 flex items-start gap-3.5">
+<div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0 mt-0.5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h3 class="font-bold text-sm text-white">Gaya Belajar Kinestetik</h3>
+<p class="text-xs text-blue-100/80 leading-relaxed mt-0.5">
+                  Efektif melalui simulasi praktikum, latihan studi kasus, dan interaksi langsung.
+                </p>
+</div>
+</div>
+<!-- Card 3: Read / Write -->
+<div class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all duration-200 flex items-start gap-3.5">
+<div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0 mt-0.5">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h3 class="font-bold text-sm text-white">Gaya Belajar Read/Write</h3>
+<p class="text-xs text-blue-100/80 leading-relaxed mt-0.5">
+                  Penguasaan materi mendalam dengan mencatat intisari, artikel referensi, dan teks analitis.
+                </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Footer Status -->
+<div class="pt-8 mt-6 border-t border-white/15 flex items-center justify-between text-xs text-blue-100/90 font-medium">
+<span class="flex items-center gap-1.5">
+<svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            5 Pertanyaan Singkat
+          </span>
+<span class="inline-block px-2.5 py-1 rounded-md bg-white/15 text-[11px] font-semibold">
+            Estimasi ~3 Menit
+          </span>
+</div>
+</section>
+<!-- END: LeftInfoPanel -->
+<!-- BEGIN: RightQuizContent -->
+<section class="lg:w-7/12 p-6 sm:p-9 lg:p-10 flex flex-col justify-between bg-white" data-purpose="quiz-form-area">
+<form class="flex flex-col h-full justify-between" id="learning-style-form">
+<!-- Top Header Section of Quiz -->
+<div class="mb-6">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-2.5">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
+                Visual • Kinestetik • Read/Write
+              </span>
+<span class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full" id="progress-indicator-text">
+                0 dari 5 Terjawab
+              </span>
+</div>
+<h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
+              Tes Gaya Belajar
+            </h2>
+<p class="text-slate-500 text-sm font-medium">
+              Temukan cara belajar yang paling cocok untukmu.
+            </p>
+<p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Pilih jawaban yang paling menggambarkan kebiasaanmu. Hasilnya akan disimpan ke profil belajar EduRank.
+            </p>
+<!-- Progress Bar -->
+<div class="w-full bg-slate-100 rounded-full h-1.5 mt-4 overflow-hidden">
+<div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300 ease-out" id="quiz-progress-bar" style="width: 0%;"></div>
+</div>
+</div>
+<!-- Questions Scrollable List -->
+<div class="space-y-6 max-h-[520px] overflow-y-auto pr-2 custom-scrollbar" data-purpose="questions-container">
+<!-- Pertanyaan 1 -->
+<fieldset class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 transition hover:border-slate-300">
+<legend class="font-bold text-slate-800 text-sm sm:text-base mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span>
+                Saat mempelajari cara baru, Anda lebih suka...
+              </legend>
+<div class="space-y-2.5 pt-1">
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q1" onchange="updateProgress()" type="radio" value="visual">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Membaca instruksi atau melihat diagram</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q1" onchange="updateProgress()" type="radio" value="kinestetik">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Langsung mencoba atau mempraktikkannya</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q1" onchange="updateProgress()" type="radio" value="readwrite">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Mencatat ulang langkah penting dengan bahasa sendiri</span>
+</label>
+</div>
+</fieldset>
+<!-- Pertanyaan 2 -->
+<fieldset class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 transition hover:border-slate-300">
+<legend class="font-bold text-slate-800 text-sm sm:text-base mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span>
+                Saat berkonsentrasi atau belajar, Anda biasanya...
+              </legend>
+<div class="space-y-2.5 pt-1">
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q2" onchange="updateProgress()" type="radio" value="visual">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Suka suasana tenang dan fokus pada bacaan atau gambar</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q2" onchange="updateProgress()" type="radio" value="kinestetik">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Suka mencoret-coret, bergerak, atau berjalan-jalan</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q2" onchange="updateProgress()" type="radio" value="readwrite">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Suka membuat rangkuman, tabel, atau daftar rumus</span>
+</label>
+</div>
+</fieldset>
+<!-- Pertanyaan 3 -->
+<fieldset class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 transition hover:border-slate-300">
+<legend class="font-bold text-slate-800 text-sm sm:text-base mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span>
+                Apa yang paling Anda ingat dari seseorang?
+              </legend>
+<div class="space-y-2.5 pt-1">
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q3" onchange="updateProgress()" type="radio" value="visual">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Wajah atau gaya pakaiannya</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q3" onchange="updateProgress()" type="radio" value="kinestetik">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Perasaan atau kesan saat bersamanya</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q3" onchange="updateProgress()" type="radio" value="readwrite">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Catatan, nama, atau detail yang pernah Anda tulis</span>
+</label>
+</div>
+</fieldset>
+<!-- Pertanyaan 4 -->
+<fieldset class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 transition hover:border-slate-300">
+<legend class="font-bold text-slate-800 text-sm sm:text-base mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span>
+                Saat bingung, apa yang paling membantu?
+              </legend>
+<div class="space-y-2.5 pt-1">
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q4" onchange="updateProgress()" type="radio" value="visual">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Membuat peta konsep atau coretan visual</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q4" onchange="updateProgress()" type="radio" value="kinestetik">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Menggerakkan tubuh atau mencoba langsung</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q4" onchange="updateProgress()" type="radio" value="readwrite">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Membaca ulang teori lalu menulis langkah penyelesaian</span>
+</label>
+</div>
+</fieldset>
+<!-- Pertanyaan 5 -->
+<fieldset class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 transition hover:border-slate-300">
+<legend class="font-bold text-slate-800 text-sm sm:text-base mb-3 flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-blue-600 text-white text-xs flex items-center justify-center font-bold">5</span>
+                Ketika pergi ke tempat baru, Anda lebih suka...
+              </legend>
+<div class="space-y-2.5 pt-1">
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q5" onchange="updateProgress()" type="radio" value="visual">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Melihat peta</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q5" onchange="updateProgress()" type="radio" value="kinestetik">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Langsung berjalan dan merasakannya</span>
+</label>
+<label class="group flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+<input class="mt-1 text-blue-600 focus:ring-blue-500 border-slate-300" name="q5" onchange="updateProgress()" type="radio" value="readwrite">
+<span class="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-blue-900">Membaca petunjuk tertulis atau membuat daftar rute</span>
+</label>
+</div>
+</fieldset>
+</div>
+<!-- Bottom Action Buttons -->
+<div class="pt-6 mt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+<!-- Left: Reset Button -->
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition" onclick="resetForm()" type="button">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+              Reset Jawaban
+            </button>
+<!-- Right: Action Buttons Group -->
+<div class="w-full sm:w-auto flex items-center gap-3">
+<button class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/60 text-xs font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition" type="button">
+                Lihat Hasil
+              </button>
+<!-- Primary CTA Button matching SCREEN_7 style -->
+<button class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 active:scale-[0.99] transition" type="submit">
+<span class="">Lanjut ke Web</span>
+<span class="text-[10px] uppercase font-semibold bg-white/20 px-1.5 py-0.5 rounded tracking-wider">ENTER ↵</span>
+<svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+</form>
+</section>
+<!-- END: RightQuizContent -->
+</div>
+</main>
+<!-- END: MainContainer -->
+<!-- BEGIN: SecurityGuaranteesAndFooter -->
+<footer class="w-full max-w-6xl mx-auto px-4 sm:px-6 pb-6 pt-2" data-purpose="bottom-bar">
+<!-- Security Badges -->
+<div class="flex items-center justify-center gap-6 text-xs text-slate-500 font-medium mb-4">
+<div class="flex items-center gap-1.5">
+<svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+</svg>
+<span class="">100% Bebas Iklan Komersial</span>
+</div>
+<div class="flex items-center gap-1.5">
+<svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+</svg>
+<span class="">Bebas Malware</span>
+</div>
+</div>
+<!-- Legal Bar -->
+<div class="pt-4 border-t border-slate-200/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+<div class="flex items-center gap-1.5 text-center md:text-left">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="">Portal Autentikasi Akademik Terakreditasi © 2025 EduRank Indonesia.</span>
+</div>
+<div class="flex items-center gap-5 font-medium">
+<a class="hover:text-blue-600 transition" href="#ketentuan">Ketentuan Layanan</a>
+<a class="hover:text-blue-600 transition" href="#privasi">Kebijakan Privasi Data Mahasiswa</a>
+<a class="hover:text-blue-600 transition" href="#panduan">Bantuan &amp; Panduan</a>
+</div>
+</div>
+</footer>
+<!-- END: SecurityGuaranteesAndFooter -->
+<!-- BEGIN: QuizInteractivityScript -->
+<script data-purpose="quiz-progress-handlers">
+    function updateProgress() {
+      const questions = ['q1', 'q2', 'q3', 'q4', 'q5'];
+      let answeredCount = 0;
+
+      questions.forEach(qName => {
+        const checked = document.querySelector(`input[name="${qName}"]:checked`);
+        if (checked) {
+          answeredCount++;
+        }
+      });
+
+      const percentage = (answeredCount / questions.length) * 100;
+      
+      const progressBar = document.getElementById('quiz-progress-bar');
+      const progressText = document.getElementById('progress-indicator-text');
+
+      if (progressBar) {
+        progressBar.style.width = percentage + '%';
+      }
+
+      if (progressText) {
+        progressText.innerText = `${answeredCount} dari 5 Terjawab`;
+        if (answeredCount === 5) {
+          progressText.classList.remove('bg-slate-100', 'text-slate-500');
+          progressText.classList.add('bg-emerald-50', 'text-emerald-700');
+        } else {
+          progressText.classList.add('bg-slate-100', 'text-slate-500');
+          progressText.classList.remove('bg-emerald-50', 'text-emerald-700');
+        }
+      }
+    }
+
+    function resetForm() {
+      const form = document.getElementById('learning-style-form');
+      if (form) {
+        form.reset();
+        updateProgress();
+      }
+    }
+  </script>
+<!-- END: QuizInteractivityScript -->
+
+
+<script src="./js/app.js"></script></body></html>
