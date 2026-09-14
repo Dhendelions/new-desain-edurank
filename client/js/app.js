@@ -304,13 +304,14 @@ function initAuth() {
   const registerForm = document.querySelector('#studentRegistrationForm, #register-form');
 
   if (registerForm) {
-    const handleRegister = (event) => {
+    const handleRegister = async (event) => {
       if (event) event.preventDefault();
       const data = new FormData(registerForm);
       const name = sanitizeName(data.get('fullName') || data.get('name') || document.querySelector('#fullName')?.value || document.querySelector('#name')?.value);
       const email = String(data.get('studentEmail') || data.get('email') || document.querySelector('#studentEmail')?.value || document.querySelector('#email')?.value || '').trim().toLowerCase();
       const password = String(data.get('password') || document.querySelector('#password')?.value || document.querySelector('#studentPassword')?.value || '');
       const confirmPassword = String(data.get('confirmPassword') || document.querySelector('#confirmPassword')?.value || document.querySelector('#studentConfirmPassword')?.value || '');
+      const phoneNumber = String(data.get('phoneNumber') || document.querySelector('#phoneNumber')?.value || '').trim();
 
       if (!name) {
         setNotice('Nama lengkap wajib diisi.');
@@ -329,12 +330,32 @@ function initAuth() {
         return;
       }
 
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, phoneNumber })
+        });
+        const result = await response.json().catch(() => null);
+        if (response.ok && result && result.success && result.user) {
+          saveUser(result.user);
+          setUserSession(result.user);
+          if (result.token) localStorage.setItem('edurank-token', result.token);
+          window.location.href = 'learning-style.html';
+          return;
+        } else if (response.status === 400 && result && result.message) {
+          setNotice(result.message);
+          return;
+        }
+      } catch (err) {
+        console.warn('API server connection offline, falling back to local mode:', err);
+      }
+
       const existingUsers = readUsers();
       if (existingUsers.some((user) => String(user.email).toLowerCase() === email)) {
         setNotice('Email ini sudah terdaftar.');
         return;
       }
-
       const newUser = saveUser({
         id: makeUserId(email),
         name,
@@ -352,7 +373,6 @@ function initAuth() {
         friends: [],
         notifications: []
       });
-
       setUserSession(newUser);
       window.location.href = 'learning-style.html';
     };
@@ -361,7 +381,7 @@ function initAuth() {
   }
 
   if (loginForm) {
-    const handleLogin = (event) => {
+    const handleLogin = async (event) => {
       if (event) event.preventDefault();
       const data = new FormData(loginForm);
       const email = String(data.get('email') || data.get('studentEmail') || document.querySelector('#studentEmail')?.value || document.querySelector('#email')?.value || '').trim().toLowerCase();
@@ -372,18 +392,36 @@ function initAuth() {
         return;
       }
 
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const result = await response.json().catch(() => null);
+        if (response.ok && result && result.success && result.user) {
+          saveUser(result.user);
+          setUserSession(result.user);
+          if (result.token) localStorage.setItem('edurank-token', result.token);
+          window.location.href = 'learning-style.html';
+          return;
+        } else if (response.status === 401 && result && result.message) {
+          setNotice(result.message);
+          return;
+        }
+      } catch (err) {
+        console.warn('API server connection offline, falling back to local mode:', err);
+      }
+
       const users = readUsers();
       const matchedUser = users.find((user) => String(user.email).toLowerCase() === email && user.password === password);
-
       if (!matchedUser) {
         setNotice('Email atau password salah.');
         return;
       }
-
       const normalized = normalizeUser(matchedUser);
       saveUser(normalized);
       setUserSession(normalized);
-
       window.location.href = 'learning-style.html';
     };
 
@@ -467,14 +505,6 @@ function initLearningStyle() {
     radio.addEventListener('change', showResultUI);
   });
 
-  const lihatHasilBtn = document.querySelector('button:contains("Lihat Hasil"), [data-lihat-hasil]');
-  if (lihatHasilBtn) {
-    lihatHasilBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      showResultUI();
-    });
-  }
-
   const handleSaveStyle = (event) => {
     if (event) event.preventDefault();
     const { displayStyle } = calculateResult();
@@ -487,10 +517,15 @@ function initLearningStyle() {
   };
 
   form.addEventListener('submit', handleSaveStyle);
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if (submitBtn) {
-    submitBtn.addEventListener('click', handleSaveStyle);
-  }
+
+  // Enter key support: pressing Enter anywhere in the form triggers submit
+  form.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.click();
+    }
+  });
 }
 
 function renderHeaderAndFooter() {
@@ -559,16 +594,16 @@ function renderHeaderAndFooter() {
 
   const footer = document.querySelector('footer');
   if (footer) {
-    footer.className = 'w-full bg-surface-container-low border-t border-outline-variant/20 py-6 mt-auto';
+    footer.className = 'relative z-10 w-full bg-surface-container-lowest/80 backdrop-blur-md shadow-[0_-1px_6px_rgba(0,0,0,0.02)] py-6 mt-auto border-t border-outline-variant/20';
     footer.innerHTML = `
-      <div class="max-w-7xl mx-auto px-margin flex flex-col sm:flex-row items-center justify-between gap-4 font-body-sm text-body-sm text-on-surface-variant">
-        <div>
-          <span>© EduRank</span>
+      <div class="w-full max-w-[1360px] mx-auto px-margin flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+          <span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
+          <span>© 2025 EduRank Indonesia. All rights reserved.</span>
         </div>
-        <div class="flex flex-wrap items-center gap-6">
-          <a href="feedback.html" class="hover:text-on-surface font-semibold text-primary transition-colors">Feedback</a>
+        <div class="flex items-center gap-6 text-on-surface-variant font-label-sm text-label-sm">
           <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-tertiary">shield</span>Bebas Malware</span>
-          <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">verified</span>Terintegrasi Kurikulum Merdeka</span>
+          <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">verified</span>100% Bebas Iklan Komersial</span>
         </div>
       </div>
     `;
