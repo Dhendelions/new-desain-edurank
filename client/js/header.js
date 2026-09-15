@@ -34,7 +34,23 @@ class Header {
   getCurrentPage() {
     const path = window.location.pathname;
     const filename = path.split(/[\\/]/).pop() || 'home.html';
-    return filename.toLowerCase().replace('.html', '');
+    let page = filename.toLowerCase().replace('.html', '');
+    if (!page || page === 'index') page = 'home';
+
+    const battlePages = [
+      'battle', 'classic_lobby', 'custom_lobby', 'ranked_lobby',
+      'classic_battle', 'ranked_battle', 'custom_battle',
+      'classic_kalah', 'classic_menang', 'ranked_kalah', 'ranked_menang', 'custom_kalah', 'custom_menang'
+    ];
+    if (battlePages.includes(page)) return 'battle';
+
+    const hash = window.location.hash;
+    if (page === 'home' && hash) {
+      if (hash.includes('curriculum') || hash.includes('materi')) return 'materi';
+      if (hash.includes('arena') || hash.includes('battle')) return 'battle';
+    }
+
+    return page;
   }
 
   updateActiveNavigation() {
@@ -59,15 +75,16 @@ class Header {
   }
 
   render() {
-    const header = document.querySelector('header nav');
+    const header = document.querySelector('header nav') || document.querySelector('#main-nav');
     if (!header) return;
 
-    // Navigation items - Feedback removed from main menu
+    // Direct page navigation items
     const navItems = [
       { path: 'home', label: 'Home', href: 'home.html' },
       { path: 'materi', label: 'Materi', href: 'materi.html' },
       { path: 'battle', label: 'Battle', href: 'battle.html' },
-      { path: 'leaderboard', label: 'Leaderboard', href: 'leaderboard.html' }
+      { path: 'leaderboard', label: 'Leaderboard', href: 'leaderboard.html' },
+      { path: 'feedback', label: 'Feedback', href: 'feedback.html' }
     ];
 
     header.innerHTML = navItems.map(item => {

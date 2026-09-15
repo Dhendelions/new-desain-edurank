@@ -6,7 +6,7 @@ const DEFAULT_ELO = 100;
 const PAGE_ROUTES = {
   home: 'home.html',
   materi: 'materi.html',
-  battle: 'classic_lobby.html',
+  battle: 'battle.html',
   leaderboard: 'leaderboard.html',
   feedback: 'feedback.html',
   profile: 'profile.html',
@@ -307,133 +307,221 @@ function initAuth() {
   const registerForm = document.querySelector('#studentRegistrationForm, #register-form');
 
   if (registerForm) {
+    let isSubmitting = false;
+    
     const handleRegister = async (event) => {
       if (event) event.preventDefault();
-      const data = new FormData(registerForm);
-      const name = sanitizeName(data.get('fullName') || data.get('name') || document.querySelector('#fullName')?.value || document.querySelector('#name')?.value);
-      const email = String(data.get('studentEmail') || data.get('email') || document.querySelector('#studentEmail')?.value || document.querySelector('#email')?.value || '').trim().toLowerCase();
-      const password = String(data.get('password') || document.querySelector('#password')?.value || document.querySelector('#studentPassword')?.value || '');
-      const confirmPassword = String(data.get('confirmPassword') || document.querySelector('#confirmPassword')?.value || document.querySelector('#studentConfirmPassword')?.value || '');
-      const phoneNumber = String(data.get('phoneNumber') || document.querySelector('#phoneNumber')?.value || '').trim();
-
-      if (!name) {
-        setNotice('Nama lengkap wajib diisi.');
-        return;
+      
+      // Prevent double-submit
+      if (isSubmitting) return;
+      isSubmitting = true;
+      
+      const submitBtn = registerForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Memproses...';
       }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setNotice('Format email tidak valid.');
-        return;
-      }
-      if (!password || password.length < 6) {
-        setNotice('Kata sandi minimal 6 karakter.');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setNotice('Konfirmasi kata sandi tidak cocok.');
-        return;
-      }
-
+      
+      const resetFormState = () => {
+        isSubmitting = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Daftar & Mulai Belajar Sekarang';
+        }
+      };
+      
+      let shouldRedirect = false;
+      
       try {
-        const response = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, phoneNumber })
-        });
-        const result = await response.json().catch(() => null);
-        if (response.ok && result && result.success && result.user) {
-          saveUser(result.user);
-          setUserSession(result.user);
-          if (result.token) localStorage.setItem('edurank-token', result.token);
-          window.location.href = 'learning-style.html';
-          return;
-        } else if (response.status === 400 && result && result.message) {
-          setNotice(result.message);
+        const data = new FormData(registerForm);
+        const name = sanitizeName(data.get('fullName') || data.get('name') || document.querySelector('#fullName')?.value || document.querySelector('#name')?.value);
+        const email = String(data.get('studentEmail') || data.get('email') || document.querySelector('#studentEmail')?.value || document.querySelector('#email')?.value || '').trim().toLowerCase();
+        const password = String(data.get('password') || document.querySelector('#password')?.value || document.querySelector('#studentPassword')?.value || '');
+        const confirmPassword = String(data.get('confirmPassword') || document.querySelector('#confirmPassword')?.value || document.querySelector('#studentConfirmPassword')?.value || '');
+        const phoneNumber = String(data.get('phoneNumber') || document.querySelector('#phoneNumber')?.value || '').trim();
+
+        // Validation
+        if (!name) {
+          setNotice('Nama lengkap wajib diisi.');
+          resetFormState();
           return;
         }
-      } catch (err) {
-        console.warn('API server connection offline, falling back to local mode:', err);
-      }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setNotice('Format email tidak valid.');
+          resetFormState();
+          return;
+        }
+        if (!password || password.length < 6) {
+          setNotice('Kata sandi minimal 6 karakter.');
+          resetFormState();
+          return;
+        }
+        if (password !== confirmPassword) {
+          setNotice('Konfirmasi kata sandi tidak cocok.');
+          resetFormState();
+          return;
+        }
 
-      const existingUsers = readUsers();
-      if (existingUsers.some((user) => String(user.email).toLowerCase() === email)) {
-        setNotice('Email ini sudah terdaftar.');
-        return;
+        try {
+          const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, phoneNumber })
+          });
+          const result = await response.json().catch(() => null);
+          if (response.ok && result && result.success && result.user) {
+            saveUser(result.user);
+            setUserSession(result.user);
+            if (result.token) localStorage.setItem('edurank-token', result.token);
+            setNotice('Registrasi berhasil! Mengarahkan ke learning style...', true);
+            shouldRedirect = true;
+            setTimeout(() => {
+              window.location.href = 'learning-style.html';
+            }, 500);
+            return;
+          } else if (response.status === 400 && result && result.message) {
+            setNotice(result.message);
+            resetFormState();
+            return;
+          }
+        } catch (err) {
+          console.warn('API server connection offline, falling back to local mode:', err);
+        }
+
+        const existingUsers = readUsers();
+        if (existingUsers.some((user) => String(user.email).toLowerCase() === email)) {
+          setNotice('Email ini sudah terdaftar.');
+          resetFormState();
+          return;
+        }
+        const newUser = saveUser({
+          id: makeUserId(email),
+          name,
+          email,
+          password,
+          learningStyle: '',
+          elo: DEFAULT_ELO,
+          xp: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          totalBattles: 0,
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          friends: [],
+          notifications: []
+        });
+        setUserSession(newUser);
+        setNotice('Registrasi berhasil! Mengarahkan ke learning style...', true);
+        shouldRedirect = true;
+        setTimeout(() => {
+          window.location.href = 'learning-style.html';
+        }, 500);
+      } catch (error) {
+        console.error('Registration error:', error);
+        setNotice('Terjadi kesalahan saat registrasi. Silakan coba lagi.');
+        resetFormState();
+      } finally {
+        // Only reset if we're not about to redirect
+        if (!shouldRedirect) {
+          resetFormState();
+        }
       }
-      const newUser = saveUser({
-        id: makeUserId(email),
-        name,
-        email,
-        password,
-        learningStyle: '',
-        elo: DEFAULT_ELO,
-        xp: 0,
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        totalBattles: 0,
-        correctAnswers: 0,
-        incorrectAnswers: 0,
-        friends: [],
-        notifications: []
-      });
-      setUserSession(newUser);
-      window.location.href = 'learning-style.html';
     };
 
     registerForm.addEventListener('submit', handleRegister);
   }
 
   if (loginForm) {
+    let isSubmitting = false;
+    
     const handleLogin = async (event) => {
       if (event) event.preventDefault();
-      const data = new FormData(loginForm);
-      const email = String(data.get('email') || data.get('studentEmail') || document.querySelector('#studentEmail')?.value || document.querySelector('#email')?.value || '').trim().toLowerCase();
-      const password = String(data.get('password') || document.querySelector('#studentPassword')?.value || document.querySelector('#password')?.value || '');
-
-      if (!email || !password) {
-        setNotice('Email dan kata sandi wajib diisi.');
-        return;
+      
+      // Prevent double-submit
+      if (isSubmitting) return;
+      isSubmitting = true;
+      
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Memproses...';
       }
-
+      
+      const resetFormState = () => {
+        isSubmitting = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Masuk ke Dashboard';
+        }
+      };
+      
+      let shouldRedirect = false;
+      
       try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const result = await response.json().catch(() => null);
-        if (response.ok && result && result.success && result.user) {
-          saveUser(result.user);
-          setUserSession(result.user);
-          if (result.token) localStorage.setItem('edurank-token', result.token);
-          // Check if user already has learning style
-          if (result.user.learningStyle) {
-            window.location.href = 'home.html';
-          } else {
-            window.location.href = 'learning-style.html';
-          }
-          return;
-        } else if (response.status === 401 && result && result.message) {
-          setNotice(result.message);
+        const data = new FormData(loginForm);
+        const email = String(data.get('email') || data.get('studentEmail') || document.querySelector('#studentEmail')?.value || document.querySelector('#email')?.value || '').trim().toLowerCase();
+        const password = String(data.get('password') || document.querySelector('#studentPassword')?.value || document.querySelector('#password')?.value || '');
+
+        if (!email || !password) {
+          setNotice('Email dan kata sandi wajib diisi.');
+          resetFormState();
           return;
         }
-      } catch (err) {
-        console.warn('API server connection offline, falling back to local mode:', err);
-      }
 
-      const users = readUsers();
-      const matchedUser = users.find((user) => String(user.email).toLowerCase() === email && user.password === password);
-      if (!matchedUser) {
-        setNotice('Email atau password salah.');
-        return;
-      }
-      const normalized = normalizeUser(matchedUser);
-      saveUser(normalized);
-      setUserSession(normalized);
-      if (normalized.learningStyle) {
-        window.location.href = 'home.html';
-      } else {
-        window.location.href = 'learning-style.html';
+        try {
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const result = await response.json().catch(() => null);
+          if (response.ok && result && result.success && result.user) {
+            saveUser(result.user);
+            setUserSession(result.user);
+            if (result.token) localStorage.setItem('edurank-token', result.token);
+            setNotice('Login berhasil! Mengarahkan ke dashboard...', true);
+            // Check if user already has learning style
+            const targetPage = result.user.learningStyle ? 'home.html' : 'learning-style.html';
+            shouldRedirect = true;
+            setTimeout(() => {
+              window.location.href = targetPage;
+            }, 500);
+            return;
+          } else if (response.status === 401 && result && result.message) {
+            setNotice(result.message);
+            resetFormState();
+            return;
+          }
+        } catch (err) {
+          console.warn('API server connection offline, falling back to local mode:', err);
+        }
+
+        const users = readUsers();
+        const matchedUser = users.find((user) => String(user.email).toLowerCase() === email && user.password === password);
+        if (!matchedUser) {
+          setNotice('Email atau password salah.');
+          resetFormState();
+          return;
+        }
+        const normalized = normalizeUser(matchedUser);
+        saveUser(normalized);
+        setUserSession(normalized);
+        setNotice('Login berhasil! Mengarahkan ke dashboard...', true);
+        const targetPage = normalized.learningStyle ? 'home.html' : 'learning-style.html';
+        shouldRedirect = true;
+        setTimeout(() => {
+          window.location.href = targetPage;
+        }, 500);
+      } catch (error) {
+        console.error('Login error:', error);
+        setNotice('Terjadi kesalahan saat login. Silakan coba lagi.');
+        resetFormState();
+      } finally {
+        // Only reset if we're not about to redirect
+        if (!shouldRedirect) {
+          resetFormState();
+        }
       }
     };
 
@@ -551,15 +639,6 @@ function initLearningStyle() {
   };
 
   form.addEventListener('submit', handleSaveStyle);
-
-  // Enter key support: pressing Enter anywhere in the form triggers submit
-  form.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.click();
-    }
-  });
 }
 
 function renderHeaderAndFooter() {
@@ -595,151 +674,7 @@ function renderHeaderAndFooter() {
 // });
 
 function initMateriWorkspace() {
-  const materiContainer = document.querySelector('main .max-w-\\[1440px\\], main .max-w-7xl');
-  if (!materiContainer || !window.location.pathname.includes('materi.html')) return;
-
-  let state = {
-    selectedSubject: null,
-    selectedSubchapter: null
-  };
-
-  const renderMateriUI = () => {
-    if (!state.selectedSubject) {
-      materiContainer.innerHTML = `
-        <div class="flex flex-col gap-space-lg w-full py-4">
-          <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20">
-            <h1 class="font-headline-lg text-display-lg font-bold text-on-surface tracking-tight mb-2">Pilih Mata Pelajaran</h1>
-            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-              Pilih salah satu mata pelajaran terstandar Kurikulum Merdeka di bawah ini untuk membuka silabus dan topik materi lengkap.
-            </p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
-            ${MATERI_DATA.map((subject) => `
-              <div class="materi-subject-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group" data-subject-id="${subject.id}">
-                <div>
-                  <div class="w-12 h-12 rounded-xl ${subject.color} flex items-center justify-center mb-space-md shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-[26px]">${subject.icon}</span>
-                  </div>
-                  <h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">${subject.name}</h3>
-                  <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-4">${subject.desc}</p>
-                </div>
-                <div class="pt-space-sm border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md text-label-md font-bold">
-                  <span>${subject.subchapters.length} Sub-Bab Materi</span>
-                  <span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-
-      materiContainer.querySelectorAll('.materi-subject-card').forEach((card) => {
-        card.addEventListener('click', () => {
-          const id = card.dataset.subjectId;
-          state.selectedSubject = MATERI_DATA.find((s) => s.id === id);
-          state.selectedSubchapter = null;
-          renderMateriUI();
-        });
-      });
-      return;
-    }
-
-    if (!state.selectedSubchapter) {
-      const subject = state.selectedSubject;
-      materiContainer.innerHTML = `
-        <div class="flex flex-col gap-space-lg w-full py-4">
-          <div class="flex items-center justify-between bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/20">
-            <div>
-              <button id="btn-back-subjects" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low text-primary font-label-md text-label-md font-bold mb-3 hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-[18px]">arrow_back</span> Kembali ke Mata Pelajaran
-              </button>
-              <h1 class="font-headline-lg text-display-lg font-bold text-on-surface tracking-tight">${subject.name}</h1>
-              <p class="font-body-md text-body-md text-on-surface-variant">${subject.desc}</p>
-            </div>
-          </div>
-          <h2 class="font-headline-md text-headline-md font-bold text-on-surface mt-2">Daftar Sub-Bab Silabus</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
-            ${subject.subchapters.map((sub) => `
-              <div class="materi-sub-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group" data-sub-id="${sub.id}">
-                <div>
-                  <div class="flex items-center gap-2 mb-2">
-                    <span class="px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm font-bold">Sub-Bab</span>
-                    <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${sub.name}</h3>
-                  </div>
-                  <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-4">${sub.desc}</p>
-                </div>
-                <div class="pt-space-sm border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md text-label-md font-bold">
-                  <span>Pelajari Sub-Bab Ini</span>
-                  <span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-
-      document.getElementById('btn-back-subjects')?.addEventListener('click', () => {
-        state.selectedSubject = null;
-        state.selectedSubchapter = null;
-        renderMateriUI();
-      });
-
-      materiContainer.querySelectorAll('.materi-sub-card').forEach((card) => {
-        card.addEventListener('click', () => {
-          const subId = card.dataset.subId;
-          state.selectedSubchapter = subject.subchapters.find((sub) => sub.id === subId);
-          renderMateriUI();
-        });
-      });
-      return;
-    }
-
-    const subject = state.selectedSubject;
-    const sub = state.selectedSubchapter;
-
-    materiContainer.innerHTML = `
-      <div class="flex flex-col gap-space-lg w-full py-4">
-        <div class="flex flex-wrap items-center justify-between gap- space-md bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/20">
-          <div class="flex items-center gap-2">
-            <button id="btn-back-subchapters" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low text-primary font-label-md text-label-md font-bold hover:bg-surface-container transition-colors">
-              <span class="material-symbols-outlined text-[18px]">arrow_back</span> Ke Sub-Bab
-            </button>
-            <button id="btn-back-subjects-root" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors">
-              Mata Pelajaran: ${subject.name}
-            </button>
-          </div>
-        </div>
-        <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 space-y-space-lg">
-          <div class="border-b border-outline-variant/20 pb-space-md">
-            <span class="text-secondary font-label-md text-label-md font-bold uppercase tracking-wider">${subject.name} • Sub-Bab</span>
-            <h1 class="font-headline-lg text-display-lg font-extrabold text-on-surface mt-1">${sub.name}</h1>
-            <p class="font-body-md text-body-md text-on-surface-variant mt-1">${sub.desc}</p>
-          </div>
-          <div class="space-y-space-lg">
-            ${sub.topics.map((t) => `
-              <div class="p-space-lg rounded-xl bg-surface-container-low/60 border border-outline-variant/20 space-y-2">
-                <h3 class="font-title-md text-title-md font-bold text-on-surface">${t.title}</h3>
-                <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed whitespace-pre-line">${t.content}</p>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('btn-back-subchapters')?.addEventListener('click', () => {
-      state.selectedSubchapter = null;
-      renderMateriUI();
-    });
-
-    document.getElementById('btn-back-subjects-root')?.addEventListener('click', () => {
-      state.selectedSubject = null;
-      state.selectedSubchapter = null;
-      renderMateriUI();
-    });
-  };
-
-  renderMateriUI();
+  // Deprecated in favor of initPdfMaterialBrowser which connects directly to /api/materials
 }
 
 function initClassicLobbyWorkspace() {
@@ -777,47 +712,206 @@ function initClassicLobbyWorkspace() {
   });
 }
 
-// Real material browser. Its hierarchy is supplied by the backend catalog built
-// from materi/, so this never falls back to the old sample lesson data.
+// Real material browser powered by /api/materials catalog built from materi/ directory.
 async function initPdfMaterialBrowser() {
   if (!window.location.pathname.includes('materi.html')) return;
   const host = document.getElementById('materi-container');
   if (!host) return;
-  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const escapeHtml = (val) => String(val || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   let catalog;
   try {
-    const response = await fetch('/api/materials'); const data = await response.json();
-    if (!response.ok || !data.success) throw new Error(); catalog = data.materials || {};
+    const response = await fetch('/api/materials');
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error();
+    catalog = data.materials || {};
   } catch {
-    host.innerHTML = '<div class="p-10 text-center text-on-surface-variant">Materi belum dapat dimuat. Silakan coba lagi.</div>';
+    host.innerHTML = `
+      <div class="p-12 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm">
+        <span class="material-symbols-outlined text-4xl text-outline mb-2">cloud_off</span>
+        <h3 class="font-title-md font-bold text-on-surface">Materi Belum Dapat Dimuat</h3>
+        <p class="text-body-sm text-on-surface-variant mt-1">Pastikan koneksi terhubung dan coba muat ulang halaman.</p>
+      </div>
+    `;
     return;
   }
+
   let level = null, subject = null, subchapter = null;
-  const card = (title, desc, action) => `<button type="button" ${action} class="text-left bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/30 transition-all"><h3 class="font-title-md text-title-md font-bold text-on-surface">${escapeHtml(title)}</h3><p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">${escapeHtml(desc)}</p></button>`;
+
+  const getSubjectIcon = (name) => {
+    if (/fisika/i.test(name)) return 'science';
+    if (/matematika/i.test(name)) return 'calculate';
+    if (/inggris/i.test(name)) return 'translate';
+    if (/informatika/i.test(name)) return 'code';
+    return 'menu_book';
+  };
+
+  const getCardColor = (name) => {
+    if (/fisika/i.test(name)) return 'bg-tertiary-container text-on-tertiary';
+    if (/matematika/i.test(name)) return 'bg-primary text-on-primary';
+    if (/inggris/i.test(name)) return 'bg-primary-fixed text-primary';
+    if (/informatika/i.test(name)) return 'bg-secondary-container text-on-secondary-container';
+    return 'bg-surface-container-high text-on-surface';
+  };
+
   const render = async (materialId) => {
     if (materialId) {
-      host.innerHTML = '<div class="p-10 text-center text-on-surface-variant">Membuka materi...</div>';
+      host.innerHTML = `
+        <div class="p-12 text-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-4xl text-primary animate-spin mb-2">hourglass_empty</span>
+          <p class="font-semibold">Membuka materi...</p>
+        </div>
+      `;
       try {
-        const response = await fetch(`/api/materials/${encodeURIComponent(materialId)}`); const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(); const m = data.material;
-        host.innerHTML = `<section class="space-y-space-lg"><button id="material-back" class="px-3 py-2 rounded-lg bg-surface-container-low text-primary font-semibold">← Kembali</button><article class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20"><p class="text-secondary font-label-md font-bold">KELAS ${m.classLevel} · ${escapeHtml(m.subject)}</p><h1 class="mt-2 font-headline-lg text-display-lg font-bold text-on-surface">${escapeHtml(m.title)}</h1><p class="mt-2 text-on-surface-variant">${escapeHtml(m.subchapter)}</p><div class="mt-6 pt-6 border-t border-outline-variant/20 whitespace-pre-wrap leading-relaxed text-on-surface">${escapeHtml(m.content)}</div></article></section>`;
+        const response = await fetch(`/api/materials/${encodeURIComponent(materialId)}`);
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error();
+        const m = data.material;
+        host.innerHTML = `
+          <section class="space-y-space-lg">
+            <div class="flex items-center justify-between">
+              <button id="material-back" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container-low text-primary font-label-md font-bold hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span> Kembali ke Sub-Bab
+              </button>
+              <div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
+                <span class="material-symbols-outlined text-primary text-[18px]">description</span>
+                <span>Dokumen ${m.type || 'PDF'}</span>
+              </div>
+            </div>
+            <article class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 space-y-4">
+              <div class="border-b border-outline-variant/20 pb-4">
+                <span class="text-secondary font-label-md font-bold uppercase tracking-wider">KELAS ${m.classLevel} • ${escapeHtml(m.subject)}</span>
+                <h1 class="mt-1 font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">${escapeHtml(m.title)}</h1>
+                <p class="mt-1 font-body-md text-on-surface-variant">${escapeHtml(m.subchapter)}</p>
+              </div>
+              <div class="pt-2 whitespace-pre-wrap leading-relaxed font-body-md text-on-surface max-w-none">
+                ${escapeHtml(m.content)}
+              </div>
+            </article>
+          </section>
+        `;
         document.getElementById('material-back').onclick = () => render();
-      } catch { host.innerHTML = '<div class="p-10 text-center text-on-surface-variant">Materi belum dapat dibuka.</div>'; }
+      } catch {
+        host.innerHTML = `
+          <div class="p-12 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
+            <span class="material-symbols-outlined text-4xl text-error mb-2">error</span>
+            <p class="font-semibold text-on-surface">Materi belum dapat dibuka.</p>
+            <button id="material-error-back" class="mt-4 px-4 py-2 rounded-xl bg-surface-container-low text-primary font-label-md font-bold">Kembali</button>
+          </div>
+        `;
+        document.getElementById('material-error-back').onclick = () => render();
+      }
       return;
     }
-    let heading = 'Pilih Kelas', description = 'Pilih tingkat kelas untuk melihat mata pelajaran dan materi yang tersedia.', items = Object.keys(catalog).sort();
-    if (level && !subject) { heading = 'Pilih Mata Pelajaran'; description = level; items = Object.keys(catalog[level] || {}); }
-    if (level && subject && !subchapter) { heading = 'Pilih Sub Bab'; description = `${level} · ${subject}`; items = Object.keys(catalog[level]?.[subject] || {}); }
-    if (level && subject && subchapter) { heading = 'Pilih Materi'; description = `${level} · ${subject} · ${subchapter}`; items = catalog[level]?.[subject]?.[subchapter] || []; }
-    
-    const contentHtml = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">${items.length ? items.map((item) => typeof item === 'string' ? card(item, 'Buka pilihan berikutnya', `data-choice="${escapeHtml(item)}"`) : card(item.title, item.type, `data-material="${item.id}"`)).join('') : '<p class="text-on-surface-variant col-span-full text-center py-8">Materi belum tersedia.</p>'}</div>`;
-    
-    host.innerHTML = `<section class="space-y-space-lg"><div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20"><button id="material-nav-back" class="${level ? '' : 'hidden'} mb-3 px-3 py-2 rounded-lg bg-surface-container-low text-primary font-semibold">← Kembali</button><h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">${heading}</h1><p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">${escapeHtml(description)}</p></div>${contentHtml}</section>`;
-    
-    document.getElementById('material-nav-back').onclick = () => { if (subchapter) subchapter = null; else if (subject) subject = null; else level = null; render(); };
-    host.querySelectorAll('[data-choice]').forEach((el) => el.onclick = () => { const value = el.dataset.choice; if (!level) level = value; else if (!subject) subject = value; else subchapter = value; render(); });
-    host.querySelectorAll('[data-material]').forEach((el) => el.onclick = () => render(el.dataset.material));
+
+    let heading = 'Pilih Kelas';
+    let description = 'Pilih tingkat kelas untuk melihat mata pelajaran dan materi Kurikulum Merdeka yang tersedia.';
+    let items = Object.keys(catalog).sort();
+
+    if (level && !subject) {
+      heading = `Mata Pelajaran ${level}`;
+      description = `Pilih mata pelajaran untuk ${level}.`;
+      items = Object.keys(catalog[level] || {});
+    } else if (level && subject && !subchapter) {
+      heading = `Sub-Bab ${subject}`;
+      description = `${level} • ${subject}`;
+      items = Object.keys(catalog[level]?.[subject] || {});
+    } else if (level && subject && subchapter) {
+      heading = `Daftar Dokumen Materi`;
+      description = `${level} • ${subject} • ${subchapter}`;
+      items = catalog[level]?.[subject]?.[subchapter] || [];
+    }
+
+    const breadcrumbs = [];
+    breadcrumbs.push(`<button type="button" class="text-primary font-bold hover:underline" data-crumb="root">Kelas</button>`);
+    if (level) breadcrumbs.push(`<span class="text-outline">/</span> <button type="button" class="text-primary font-bold hover:underline" data-crumb="level">${escapeHtml(level)}</button>`);
+    if (subject) breadcrumbs.push(`<span class="text-outline">/</span> <button type="button" class="text-primary font-bold hover:underline" data-crumb="subject">${escapeHtml(subject)}</button>`);
+    if (subchapter) breadcrumbs.push(`<span class="text-outline">/</span> <span class="text-on-surface font-semibold">${escapeHtml(subchapter)}</span>`);
+
+    let contentCardsHtml = '';
+    if (!items.length) {
+      contentCardsHtml = '<p class="text-on-surface-variant col-span-full text-center py-10">Materi belum tersedia untuk kategori ini.</p>';
+    } else {
+      contentCardsHtml = items.map((item) => {
+        if (typeof item === 'string') {
+          const icon = getSubjectIcon(item);
+          const iconBg = getCardColor(item);
+          return `
+            <button type="button" data-choice="${escapeHtml(item)}" class="text-left bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
+              <div>
+                <div class="w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                  <span class="material-symbols-outlined text-[24px]">${icon}</span>
+                </div>
+                <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors">${escapeHtml(item)}</h3>
+                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Klik untuk membuka silabus dan dokumen materi</p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md font-bold">
+                <span>Pilih</span>
+                <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          `;
+        } else {
+          return `
+            <button type="button" data-material="${item.id}" class="text-left bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
+              <div>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm font-bold uppercase">${escapeHtml(item.type || 'PDF')}</span>
+                  <span class="font-label-sm text-on-surface-variant">Dokumen Resmi</span>
+                </div>
+                <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${escapeHtml(item.title)}</h3>
+              </div>
+              <div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md font-bold">
+                <span>Baca Materi</span>
+                <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          `;
+        }
+      }).join('');
+    }
+
+    host.innerHTML = `
+      <section class="space-y-space-lg">
+        <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 space-y-2">
+          <div class="flex items-center gap-2 text-body-sm font-body-sm mb-1">
+            ${breadcrumbs.join(' ')}
+          </div>
+          <h1 class="font-headline-lg text-headline-lg font-extrabold text-on-surface tracking-tight">${escapeHtml(heading)}</h1>
+          <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">${escapeHtml(description)}</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+          ${contentCardsHtml}
+        </div>
+      </section>
+    `;
+
+    host.querySelectorAll('[data-crumb]').forEach((el) => {
+      el.onclick = () => {
+        const crumb = el.dataset.crumb;
+        if (crumb === 'root') { level = null; subject = null; subchapter = null; }
+        else if (crumb === 'level') { subject = null; subchapter = null; }
+        else if (crumb === 'subject') { subchapter = null; }
+        render();
+      };
+    });
+
+    host.querySelectorAll('[data-choice]').forEach((el) => {
+      el.onclick = () => {
+        const val = el.dataset.choice;
+        if (!level) level = val;
+        else if (!subject) subject = val;
+        else subchapter = val;
+        render();
+      };
+    });
+
+    host.querySelectorAll('[data-material]').forEach((el) => {
+      el.onclick = () => render(el.dataset.material);
+    });
   };
+
   render();
 }
 
@@ -833,19 +927,6 @@ function initRealtimeBattle() {
   socket.on('connect_error', () => say('Koneksi terputus. Mencoba menghubungkan kembali...'));
   socket.on('matchmaking_waiting', () => say('Mencari lawan… Menunggu pemain lain untuk bergabung.'));
   socket.on('match_found', (room) => { sessionStorage.setItem('edurank-room', room.roomId); say('Lawan ditemukan. Siapkan diri di lobi.'); });
-}
-
-// Initialize all page-specific functions
-document.addEventListener('DOMContentLoaded', () => {
-  initAuth();
-  initLearningStyle();
-  initMateriWorkspace();
-  initClassicLobbyWorkspace();
-  initRealtimeBattle();
-  
-  // initPdfMaterialBrowser is called separately in materi.html
-  // to avoid conflicts with other page initializations
-});
   socket.on('lobby_update', (room) => { sessionStorage.setItem('edurank-room', room.roomId); say(`Custom Lobby · ${room.subject} · ${room.players.length}/2 pemain`); });
   socket.on('battle_start', (room) => { sessionStorage.setItem('edurank-room', room.roomId); window.location.href = file.includes('custom') ? 'custom_battle.html' : 'classic_battle.html'; });
   socket.on('opponent_disconnected', () => say('Lawan terputus.'));

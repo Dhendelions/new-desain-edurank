@@ -53,7 +53,7 @@ function renderProfile(user, subjectsData) {
   if (profileBio) {
     profileBio.textContent = user.learningStyle 
       ? `Gaya belajar: ${user.learningStyle}. Bergabung sejak ${user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'belum diketahui'}.`
-      : 'Belum ada bio';
+      : 'Belum ada bio. Selesaikan tes gaya belajar untuk melihat informasi gaya belajar kamu.';
   }
   if (profileId) profileId.textContent = user.id || 'Belum ada ID';
 
@@ -61,13 +61,26 @@ function renderProfile(user, subjectsData) {
   if (progressEl) {
     const xp = Math.max(0, Number(user.xp) || 0);
     const level = Math.floor(xp / 100) + 1;
+    const nextLevelXp = level * 100;
+    const currentLevelXp = (level - 1) * 100;
+    const progress = ((xp - currentLevelXp) / 100) * 100;
+    
     progressEl.innerHTML = `
-      <span class="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-1 font-label-sm text-secondary">
-        <span class="material-symbols-outlined text-[15px]">bolt</span>${xp.toLocaleString('id-ID')} XP
-      </span>
-      <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 font-label-sm text-primary">
-        <span class="material-symbols-outlined text-[15px]">workspace_premium</span>Level ${level}
-      </span>`;
+      <div class="flex flex-col gap-1 w-full max-w-xs">
+        <div class="flex items-center justify-between">
+          <span class="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-1 font-label-sm text-secondary">
+            <span class="material-symbols-outlined text-[15px]">bolt</span>${xp.toLocaleString('id-ID')} XP
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 font-label-sm text-primary">
+            <span class="material-symbols-outlined text-[15px]">workspace_premium</span>Level ${level}
+          </span>
+        </div>
+        <div class="w-full bg-surface-container rounded-full h-2">
+          <div class="bg-secondary rounded-full h-2 transition-all" style="width: ${Math.min(100, Math.max(0, progress))}%"></div>
+        </div>
+        <span class="text-xs text-on-surface-variant">${xp.toLocaleString('id-ID')} / ${nextLevelXp.toLocaleString('id-ID')} XP</span>
+      </div>
+    `;
   }
 
   // Quick Stats Pills

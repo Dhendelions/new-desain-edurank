@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     uniqueSubjects.forEach(s => {
       const icon = icons[s.name] || 'menu_book';
+      // Don't show Matematika Lanjut separately (merged with Matematika)
+      if (s.name === 'Matematika Lanjut') return;
       html += `
         <button class="subject-tab" data-subject-id="${s.id}">
           <span class="material-symbols-outlined text-[16px]">${icon}</span>
