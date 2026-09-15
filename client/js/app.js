@@ -201,6 +201,7 @@ function makeUserId(email) {
 
 function calculateRank(elo) {
   const value = Math.max(0, Number(elo) || 0);
+  if (value >= 1600) return 'Profesor';
   if (value >= 1101) return 'Master';
   if (value >= 701) return 'Diamond';
   if (value >= 401) return 'Gold';
@@ -293,7 +294,9 @@ function redirectIfLoggedOut() {
   const file = window.location.pathname.split(/[\\/]/).pop() || 'home.html';
   const publicPages = ['index.html', 'login.html', 'register.html'];
   if (!publicPages.includes(file.toLowerCase())) {
-    if (!getCurrentUser()) {
+    const hasToken = !!localStorage.getItem('edurank-token');
+    const hasSession = !!getCurrentUser();
+    if (!hasToken && !hasSession) {
       window.location.href = 'login.html';
     }
   }
@@ -403,7 +406,12 @@ function initAuth() {
           saveUser(result.user);
           setUserSession(result.user);
           if (result.token) localStorage.setItem('edurank-token', result.token);
-          window.location.href = 'learning-style.html';
+          // Check if user already has learning style
+          if (result.user.learningStyle) {
+            window.location.href = 'home.html';
+          } else {
+            window.location.href = 'learning-style.html';
+          }
           return;
         } else if (response.status === 401 && result && result.message) {
           setNotice(result.message);
@@ -422,7 +430,11 @@ function initAuth() {
       const normalized = normalizeUser(matchedUser);
       saveUser(normalized);
       setUserSession(normalized);
-      window.location.href = 'learning-style.html';
+      if (normalized.learningStyle) {
+        window.location.href = 'home.html';
+      } else {
+        window.location.href = 'learning-style.html';
+      }
     };
 
     loginForm.addEventListener('submit', handleLogin);
@@ -432,13 +444,18 @@ function initAuth() {
 function initLearningStyle() {
   const form = document.querySelector('#learning-style-form, #learning-form');
   if (!form) return;
+
+  // Check auth: accept either localStorage session OR JWT token
   const user = getCurrentUser();
-  if (!user) {
+  const hasToken = !!localStorage.getItem('edurank-token');
+  if (!user && !hasToken) {
     window.location.href = 'login.html';
     return;
   }
 
-  if (user.learningStyle) {
+  // If user already has learning style and arrived here from normal navigation (not register),
+  // let them stay to view/update their learning style (don't force redirect)
+  if (user && user.learningStyle) {
     const matchingRadio = form.querySelector(`input[value="${user.learningStyle.toLowerCase()}"]`);
     if (matchingRadio) matchingRadio.checked = true;
   }
@@ -505,13 +522,30 @@ function initLearningStyle() {
     radio.addEventListener('change', showResultUI);
   });
 
-  const handleSaveStyle = (event) => {
+  const handleSaveStyle = async (event) => {
     if (event) event.preventDefault();
     const { displayStyle } = calculateResult();
 
-    const updatedUser = { ...user, learningStyle: displayStyle };
-    saveUser(updatedUser);
+    // Save locally
+    if (user) {
+      const updatedUser = { ...user, learningStyle: displayStyle };
+      saveUser(updatedUser);
+    }
     localStorage.setItem(LEARNING_KEY, displayStyle);
+
+    // Also save to backend API so database persists the learning style
+    try {
+      const email = user ? user.email : '';
+      if (email) {
+        await fetch('/api/user/update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, learningStyle: displayStyle })
+        });
+      }
+    } catch (err) {
+      console.warn('Could not save learning style to API:', err);
+    }
 
     window.location.href = 'home.html';
   };
@@ -531,19 +565,39 @@ function initLearningStyle() {
 function renderHeaderAndFooter() {
   const file = window.location.pathname.split(/[\\/]/).pop() || 'home.html';
   const current = file.toLowerCase().replace('.html', '');
+  
+  // Handle hash for Materi and Battle sections
+  const hash = window.location.hash.replace('#', '');
+  let activePath = current;
+  if (current === 'home' && hash === 'home-curriculum-section') {
+    activePath = 'materi';
+  } else if (current === 'home' && hash === 'home-arena-section') {
+    activePath = 'battle';
+  }
 
   const nav = document.querySelector('header nav');
   if (nav) {
     nav.innerHTML = `
-      <a href="home.html" data-path="home" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg ${current === 'home' ? 'bg-primary-container text-on-primary font-bold shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}">Home</a>
-      <a href="materi.html" data-path="materi" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg ${current === 'materi' ? 'bg-primary-container text-on-primary font-bold shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}">Materi</a>
-      <a href="classic_lobby.html" data-path="battle" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg ${current.includes('classic') || current.includes('custom') || current === 'battle' ? 'bg-primary-container text-on-primary font-bold shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}">Battle</a>
-      <a href="leaderboard.html" data-path="leaderboard" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg ${current === 'leaderboard' ? 'bg-primary-container text-on-primary font-bold shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}">Leaderboard</a>
+      <a href="home.html" data-path="home" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Home</a>
+      <a href="home.html#home-curriculum-section" data-path="materi" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Materi</a>
+      <a href="home.html#home-arena-section" data-path="battle" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Battle</a>
+      <a href="leaderboard.html" data-path="leaderboard" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Leaderboard</a>
+      <a href="feedback.html" data-path="feedback" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Feedback</a>
     `;
-    const activeLink = nav.querySelector(`a[href="${file}"]`);
-    if (activeLink) {
-      activeLink.setAttribute('aria-current', 'page');
-    }
+    
+    // Apply active state styling
+    nav.querySelectorAll('a').forEach(link => {
+      const linkPath = link.dataset.path;
+      if (linkPath === activePath) {
+        link.classList.remove('text-on-surface-variant', 'hover:text-on-surface');
+        link.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.classList.remove('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
+        link.classList.add('text-on-surface-variant', 'hover:text-on-surface');
+        link.removeAttribute('aria-current');
+      }
+    });
   }
 
   document.querySelectorAll('header a[href="#"], header a.brand').forEach((link) => {
@@ -609,6 +663,16 @@ function renderHeaderAndFooter() {
     `;
   }
 }
+
+// Update header on hash change for Materi/Battle navigation
+window.addEventListener('hashchange', () => {
+  renderHeaderAndFooter();
+});
+
+// Update header on popstate (back/forward browser buttons)
+window.addEventListener('popstate', () => {
+  renderHeaderAndFooter();
+});
 
 function initMateriWorkspace() {
   const materiContainer = document.querySelector('main .max-w-\\[1440px\\], main .max-w-7xl');
@@ -793,6 +857,69 @@ function initClassicLobbyWorkspace() {
   });
 }
 
+// Real material browser. Its hierarchy is supplied by the backend catalog built
+// from materi/, so this never falls back to the old sample lesson data.
+async function initPdfMaterialBrowser() {
+  if (!window.location.pathname.includes('materi.html')) return;
+  const host = document.getElementById('materi-container');
+  if (!host) return;
+  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let catalog;
+  try {
+    const response = await fetch('/api/materials'); const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(); catalog = data.materials || {};
+  } catch {
+    host.innerHTML = '<div class="p-10 text-center text-on-surface-variant">Materi belum dapat dimuat. Silakan coba lagi.</div>';
+    return;
+  }
+  let level = null, subject = null, subchapter = null;
+  const card = (title, desc, action) => `<button type="button" ${action} class="text-left bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/30 transition-all"><h3 class="font-title-md text-title-md font-bold text-on-surface">${escapeHtml(title)}</h3><p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">${escapeHtml(desc)}</p></button>`;
+  const render = async (materialId) => {
+    if (materialId) {
+      host.innerHTML = '<div class="p-10 text-center text-on-surface-variant">Membuka materi...</div>';
+      try {
+        const response = await fetch(`/api/materials/${encodeURIComponent(materialId)}`); const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(); const m = data.material;
+        host.innerHTML = `<section class="space-y-space-lg"><button id="material-back" class="px-3 py-2 rounded-lg bg-surface-container-low text-primary font-semibold">← Kembali</button><article class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20"><p class="text-secondary font-label-md font-bold">KELAS ${m.classLevel} · ${escapeHtml(m.subject)}</p><h1 class="mt-2 font-headline-lg text-display-lg font-bold text-on-surface">${escapeHtml(m.title)}</h1><p class="mt-2 text-on-surface-variant">${escapeHtml(m.subchapter)}</p><div class="mt-6 pt-6 border-t border-outline-variant/20 whitespace-pre-wrap leading-relaxed text-on-surface">${escapeHtml(m.content)}</div></article></section>`;
+        document.getElementById('material-back').onclick = () => render();
+      } catch { host.innerHTML = '<div class="p-10 text-center text-on-surface-variant">Materi belum dapat dibuka.</div>'; }
+      return;
+    }
+    let heading = 'Pilih Kelas', description = 'Pilih tingkat kelas untuk melihat mata pelajaran dan materi yang tersedia.', items = Object.keys(catalog).sort();
+    if (level && !subject) { heading = 'Pilih Mata Pelajaran'; description = level; items = Object.keys(catalog[level] || {}); }
+    if (level && subject && !subchapter) { heading = 'Pilih Sub Bab'; description = `${level} · ${subject}`; items = Object.keys(catalog[level]?.[subject] || {}); }
+    if (level && subject && subchapter) { heading = 'Pilih Materi'; description = `${level} · ${subject} · ${subchapter}`; items = catalog[level]?.[subject]?.[subchapter] || []; }
+    host.innerHTML = `<section class="space-y-space-lg"><div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20"><button id="material-nav-back" class="${level ? '' : 'hidden'} mb-3 px-3 py-2 rounded-lg bg-surface-container-low text-primary font-semibold">← Kembali</button><h1 class="font-headline-lg text-display-lg font-bold text-on-surface">${heading}</h1><p class="mt-2 text-on-surface-variant">${escapeHtml(description)}</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">${items.length ? items.map((item) => typeof item === 'string' ? card(item, 'Buka pilihan berikutnya', `data-choice="${escapeHtml(item)}"`) : card(item.title, item.type, `data-material="${item.id}"`)).join('') : '<p class="text-on-surface-variant">Materi belum tersedia.</p>'}</div></section>`;
+    document.getElementById('material-nav-back').onclick = () => { if (subchapter) subchapter = null; else if (subject) subject = null; else level = null; render(); };
+    host.querySelectorAll('[data-choice]').forEach((el) => el.onclick = () => { const value = el.dataset.choice; if (!level) level = value; else if (!subject) subject = value; else subchapter = value; render(); });
+    host.querySelectorAll('[data-material]').forEach((el) => el.onclick = () => render(el.dataset.material));
+  };
+  render();
+}
+
+function initRealtimeBattle() {
+  const file = window.location.pathname.toLowerCase();
+  if (!/classic_lobby|custom_lobby/.test(file) || !window.io) return;
+  const token = localStorage.getItem('edurank-token');
+  if (!token) return;
+  const socket = window.io({ auth: { token }, transports: ['websocket', 'polling'] });
+  const notice = document.createElement('div'); notice.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-lg bg-surface-container-lowest shadow-lg border border-outline-variant text-on-surface text-sm'; document.body.append(notice);
+  const say = (text) => { notice.textContent = text; };
+  socket.on('connect', () => say('Terhubung ke Battle.'));
+  socket.on('connect_error', () => say('Koneksi terputus. Mencoba menghubungkan kembali...'));
+  socket.on('matchmaking_waiting', () => say('Mencari lawan… Menunggu pemain lain untuk bergabung.'));
+  socket.on('match_found', (room) => { sessionStorage.setItem('edurank-room', room.roomId); say('Lawan ditemukan. Siapkan diri di lobi.'); });
+  socket.on('lobby_update', (room) => { sessionStorage.setItem('edurank-room', room.roomId); say(`Custom Lobby · ${room.subject} · ${room.players.length}/2 pemain`); });
+  socket.on('battle_start', (room) => { sessionStorage.setItem('edurank-room', room.roomId); window.location.href = file.includes('custom') ? 'custom_battle.html' : 'classic_battle.html'; });
+  socket.on('opponent_disconnected', () => say('Lawan terputus.'));
+  socket.on('battle_error', (data) => say(data.message || 'Battle belum dapat diproses.'));
+  window.startClassicMatch = () => { const selected = document.querySelector('.subject-card.border-primary h3, .subject-card.is-selected h3, .subject-card h3'); socket.emit('queue_classic', { subject: selected?.textContent?.trim() || '' }); };
+  if (file.includes('custom')) {
+    const start = document.getElementById('start-battle-btn');
+    if (start) start.onclick = () => { const selected = document.querySelector('.subject-card.is-selected h4, .subject-card h4'); socket.emit('create_room', { subject: selected?.textContent?.trim() || '' }); say('Custom Lobby dibuat. Undang teman dan tunggu mereka bergabung.'); };
+  }
+}
+
 function hydrateUser() {
   const user = getCurrentUser();
   if (!user) return;
@@ -803,6 +930,17 @@ function hydrateUser() {
   const accuracyText = accuracyTotal ? `${Math.round((user.correctAnswers / accuracyTotal) * 100)}%` : '0%';
   const learningStyleText = user.learningStyle || 'Belum dipilih';
   const rankText = calculateRank(user.elo);
+
+  // Update header user data
+  const headerUserName = document.getElementById('header-user-name');
+  const headerUserPhoto = document.getElementById('header-user-photo');
+  const headerUserRank = document.getElementById('header-user-rank');
+  
+  if (headerUserName) headerUserName.textContent = name;
+  if (headerUserPhoto) {
+    headerUserPhoto.src = user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+  }
+  if (headerUserRank) headerUserRank.textContent = rankText;
 
   document.querySelectorAll('[data-user-name]').forEach((el) => { el.textContent = name; });
   document.querySelectorAll('[data-user-email]').forEach((el) => { el.textContent = user.email; });
@@ -856,6 +994,29 @@ function hydrateUser() {
       window.location.href = 'login.html';
     };
   });
+}
+
+// Load user data from API for authenticated pages
+async function loadUserData() {
+  const token = localStorage.getItem('edurank-token');
+  if (!token) return null;
+
+  try {
+    const response = await fetch('/api/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (data.success && data.user) {
+      // Update local storage with fresh data
+      saveUser(data.user);
+      return data.user;
+    }
+  } catch (err) {
+    console.warn('Failed to load user data from API:', err);
+  }
+  
+  // Fallback to local storage
+  return getCurrentUser();
 }
 
 function processBattleResults() {
@@ -927,13 +1088,19 @@ function initGameInteractions() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   redirectIfLoggedOut();
   initAuth();
   initLearningStyle();
+  
+  // Load user data before rendering header
+  await loadUserData();
+  
   renderHeaderAndFooter();
   initMateriWorkspace();
+  initPdfMaterialBrowser();
   initClassicLobbyWorkspace();
+  initRealtimeBattle();
   processBattleResults();
   hydrateUser();
   initGameInteractions();

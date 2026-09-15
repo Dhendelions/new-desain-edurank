@@ -1,1142 +1,331 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>EduRank</title>
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet">
-    <style>
-        @layer base {
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Leaderboard - EduRank Indonesia</title>
+<meta name="description" content="Leaderboard EduRank Indonesia - Papan peringkat pelajar berdasarkan ELO per mata pelajaran">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"outline":"#777587","on-error-container":"#93000a","surface-bright":"#faf8ff","secondary":"#0058be","tertiary-fixed":"#6ffbbe","on-tertiary-fixed":"#002113","on-error":"#ffffff","on-secondary":"#ffffff","outline-variant":"#c7c4d8","surface-container-lowest":"#ffffff","secondary-container":"#2170e4","on-primary":"#ffffff","on-surface":"#131b2e","surface-container-high":"#e2e7ff","secondary-fixed-dim":"#adc6ff","on-background":"#131b2e","surface-tint":"#4d44e3","on-primary-fixed-variant":"#3323cc","on-secondary-fixed-variant":"#004395","on-secondary-fixed":"#001a42","surface-container-highest":"#dae2fd","on-secondary-container":"#fefcff","surface-container-low":"#f2f3ff","error-container":"#ffdad6","surface-variant":"#dae2fd","inverse-primary":"#c3c0ff","on-surface-variant":"#464555","primary-fixed":"#e2dfff","primary":"#3525cd","on-tertiary-container":"#67f4b7","on-primary-fixed":"#0f0069","primary-fixed-dim":"#c3c0ff","secondary-fixed":"#d8e2ff","surface-container":"#eaedff","inverse-on-surface":"#eef0ff","on-tertiary-fixed-variant":"#005236","tertiary-container":"#006e4b","surface-dim":"#d2d9f4","surface":"#faf8ff","background":"#faf8ff","primary-container":"#4f46e5","tertiary":"#005338","error":"#ba1a1a","on-tertiary":"#ffffff","inverse-surface":"#283044","tertiary-fixed-dim":"#4edea3","on-primary-container":"#dad7ff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-sm":"0.5rem","space-md":"1rem","gutter":"1.5rem","space-lg":"1.5rem","space-xl":"2.5rem","space-xs":"0.25rem","margin":"2.5rem"},"fontFamily":{"label-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},"fontSize":{"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.025em","fontWeight":"700"}],"headline-sm":["20px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-xl":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"800"}],"body-sm":["12px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"400"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"700"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"600"}]}}}}</script>
+<style>
+  @layer base {
+    html, body { margin: 0; padding: 0; }
+    body { overscroll-behavior: none; }
+    main > :first-child { margin-top: 0 !important; }
+    main > :last-child { margin-bottom: 0 !important; }
+  }
 
-            html,
-            body {
-                margin: 0;
-                padding: 0;
-            }
+  /* Subject Filter Tabs */
+  #subject-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  #subject-tabs::-webkit-scrollbar { display: none; }
 
-            body {
-                overscroll-behavior: none;
-            }
+  .subject-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1.5px solid #c7c4d8;
+    background: transparent;
+    color: #464555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .subject-tab:hover {
+    background: #f2f3ff;
+    border-color: #3525cd;
+    color: #3525cd;
+  }
+  .subject-tab.active {
+    background: #3525cd;
+    border-color: #3525cd;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(53, 37, 205, 0.25);
+  }
 
-            main>:first-child {
-                margin-top: 0 !important;
-            }
+  /* Podium */
+  .podium-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 1rem;
+    padding: 2rem 1rem;
+  }
+  .podium-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    background: #ffffff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
+    min-width: 120px;
+  }
+  .podium-card:hover { transform: translateY(-4px); }
+  .podium-first { 
+    border: 2px solid #FFD700; 
+    padding-bottom: 2rem;
+    transform: translateY(-0.5rem);
+  }
+  .podium-second { 
+    border: 2px solid #C0C0C0; 
+    padding-bottom: 1rem;
+  }
+  .podium-third { 
+    border: 2px solid #CD7F32; 
+    padding-bottom: 1rem;
+  }
+  .podium-medal { font-size: 1.75rem; }
+  .podium-medal .material-symbols-outlined { font-size: 32px; }
+  .podium-avatar {
+    width: 56px; height: 56px;
+    border-radius: 9999px;
+    object-fit: cover;
+    border: 3px solid #eaedff;
+  }
+  .podium-name { font-weight: 700; font-size: 13px; color: #131b2e; text-align: center; }
+  .podium-elo { font-weight: 800; font-size: 16px; color: #3525cd; }
+  .podium-rank { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
 
-            main>:last-child {
-                margin-bottom: 0 !important;
-            }
-        }
+  /* Leaderboard Table */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .leaderboard-table thead tr {
+    border-bottom: 1px solid #e2e7ff;
+  }
+  .leaderboard-table th {
+    padding: 0.75rem 1rem;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #777587;
+  }
+  .leaderboard-table td {
+    padding: 0.875rem 1rem;
+    font-size: 14px;
+  }
+  .leaderboard-table tbody tr {
+    border-bottom: 1px solid #f2f3ff;
+    transition: background 0.15s;
+  }
+  .leaderboard-table tbody tr:hover { background: #f9f8ff; }
+  .leaderboard-table tbody tr.current-user-row {
+    background: #e2dfff;
+  }
 
-        ::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script
-        id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "secondary-fixed-dim": "#b8c4ff", "surface-variant": "#dce2f7", "surface": "#f9f9ff", "surface-container": "#e9edff", "primary-container": "#1d4ed8", "on-secondary-fixed": "#001453", "tertiary-container": "#a73400", "primary-fixed-dim": "#b7c4ff", "on-tertiary-container": "#ffc9b7", "surface-container-high": "#e1e8fd", "inverse-surface": "#293040", "on-primary-container": "#cad3ff", "on-primary": "#ffffff", "on-secondary-container": "#00217a", "on-primary-fixed": "#001551", "on-surface-variant": "#434655", "surface-tint": "#2151da", "surface-container-lowest": "#ffffff", "secondary": "#3755c3", "on-background": "#141b2b", "primary": "#0037b0", "inverse-on-surface": "#edf0ff", "on-error": "#ffffff", "outline-variant": "#c4c5d7", "on-tertiary-fixed": "#390c00", "secondary-fixed": "#dde1ff", "surface-container-low": "#f1f3ff", "on-secondary-fixed-variant": "#173bab", "tertiary-fixed-dim": "#ffb59c", "secondary-container": "#708cfd", "surface-bright": "#f9f9ff", "surface-dim": "#d3daef", "background": "#f9f9ff", "on-primary-fixed-variant": "#0039b5", "inverse-primary": "#b7c4ff", "on-surface": "#141b2b", "error": "#ba1a1a", "on-tertiary-fixed-variant": "#832700", "on-error-container": "#93000a", "error-container": "#ffdad6", "on-secondary": "#ffffff", "tertiary-fixed": "#ffdbcf", "surface-container-highest": "#dce2f7", "tertiary": "#7f2500", "primary-fixed": "#dce1ff", "outline": "#747686", "on-tertiary": "#ffffff" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "margin": "1.5rem", "space-xl": "1.5rem", "space-xs": "0.25rem", "space-lg": "1rem", "space-md": "0.75rem", "gutter": "1rem", "space-sm": "0.5rem" }, "fontFamily": { "label-md": ["Inter"], "body-md": ["Inter"], "body-sm": ["Inter"], "headline-md": ["Inter"], "label-sm": ["Inter"], "display-lg": ["Inter"], "tabular-num": ["Inter"], "headline-lg": ["Inter"], "title-md": ["Inter"] }, "fontSize": { "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }], "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "tabular-num": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }] } } } };</script>
+  .rank-badge {
+    width: 32px; height: 32px;
+    border-radius: 9999px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px;
+    margin: 0 auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .rank-1 { background: linear-gradient(135deg, #FFD700, #FFC107); color: #6b4e00; }
+  .rank-2 { background: linear-gradient(135deg, #E0E0E0, #C0C0C0); color: #424242; }
+  .rank-3 { background: linear-gradient(135deg, #FFCC80, #CD7F32); color: #5d3a00; }
+  .rank-number { font-weight: 700; color: #777587; }
+
+  .user-cell { display: flex; align-items: center; gap: 0.75rem; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 9999px; object-fit: cover; }
+  .user-name { font-weight: 700; color: #131b2e; }
+  .elo-value { font-weight: 800; font-size: 16px; color: #131b2e; }
+  .winrate-value { font-weight: 600; color: #464555; }
+
+  /* Rank Labels */
+  .rank-label {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .rank-bronze { background: #FFF0E0; color: #8B5E3C; }
+  .rank-silver { background: #F0F0F0; color: #606060; }
+  .rank-gold { background: #FFF8E1; color: #A67C00; }
+  .rank-diamond { background: #E3F2FD; color: #1565C0; }
+  .rank-master { background: #EDE7F6; color: #6A1B9A; }
+  .rank-profesor { background: #FCE4EC; color: #C62828; }
+
+  /* Loading State */
+  .leaderboard-loading { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem; }
+  .loading-skeleton {
+    height: 48px;
+    background: linear-gradient(90deg, #f2f3ff 25%, #eaedff 50%, #f2f3ff 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Empty State */
+  .leaderboard-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 4rem 2rem;
+    color: #777587;
+    text-align: center;
+  }
+
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+
+  /* Responsive Podium */
+  @media (max-width: 768px) {
+    .podium-container {
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .podium-card {
+      width: 100%;
+      max-width: 200px;
+    }
+    .podium-first, .podium-second, .podium-third {
+      padding-bottom: 1.25rem;
+      transform: none;
+    }
+  }
+</style>
 </head>
+<body class="bg-background font-body-md text-on-surface antialiased">
 
-<body class="bg-surface font-body-md text-body-md text-on-surface">
-    <header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-        <div class="h-16 max-w-7xl mx-auto px-margin flex items-center justify-between gap-gutter">
-            <div class="flex items-center gap-space-md">
-                <div class="flex items-center gap-space-sm">
-                    <div class="w-8 h-8 rounded-xl bg-primary flex items-center justify-center"><span
-                            class="material-symbols-outlined text-on-primary text-[20px]">military_tech</span></div>
-                    <span
-                        class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EduRank</span>
-                </div><span
-                    class="font-label-sm text-label-sm px-space-sm py-space-xs rounded bg-surface-container-high text-primary font-semibold">Musim
-                    4 Aktif</span>
-            </div>
-            <nav class="hidden lg:flex items-center gap-space-xs p-space-xs rounded-xl bg-surface-container-low"
-                data-active-classes="bg-primary-container text-on-primary font-semibold rounded-lg shadow-sm"><a
-                    class="px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors rounded-lg"
-                    data-path="beranda" href="#">Beranda</a><a
-                    class="px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors rounded-lg"
-                    data-path="materi" href="#">Materi</a><a
-                    class="px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors rounded-lg"
-                    data-path="battle-arena" href="#">Battle Arena</a><a aria-current="page"
-                    class="px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-semibold rounded-lg shadow-sm"
-                    data-path="arena-custom" href="#">leaderboard</a></nav>
-            <div class="flex items-center gap-space-md">
-                <div
-                    class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-low text-on-surface font-tabular-num text-tabular-num font-semibold">
-                    <span class="material-symbols-outlined text-secondary text-[18px]">workspace_premium</span><span
-                        class="">2,480 LP</span>
-                </div><button
-                    class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
-                    type="button"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-                <div class="flex items-center gap-space-sm pl-space-xs">
-                    <div class="flex flex-col items-end"><span
-                            class="font-label-md text-label-md text-on-surface font-semibold">Ahmad Rizky</span><span
-                            class="font-label-sm text-label-sm text-secondary font-medium">Platinum III</span></div>
-                    <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span
-                            class="material-symbols-outlined text-on-primary text-[18px]">person</span></div>
-                </div>
-            </div>
+<!-- HEADER -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+  <div class="h-20 max-w-[1360px] mx-auto px-margin flex items-center justify-between gap-gutter">
+    <div class="flex items-center gap-space-md">
+      <a class="flex items-center gap-space-sm group" href="home.html">
+        <div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-headline-sm">school</span>
         </div>
-    </header>
-    <main class="w-full pt-16 bg-surface min-h-[calc(100vh-80px)]">
-        <div class="max-w-7xl mx-auto px-margin py-space-xl">
-            <div class="flex flex-col w-full">
-                <!-- SECTION 1: HEADER & STATS OVERVIEW -->
-                <section class="w-full mb-space-xl">
-                    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
-                        <div class="space-y-space-xs">
-                            <div class="flex items-center gap-space-sm flex-wrap">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                                    Musim 4 Aktif • Berakhir dalam 14 Hari
-                                </span>
-                                <span
-                                    class="font-label-sm text-label-sm text-on-surface-variant font-medium">Standardized
-                                    National League</span>
-                            </div>
-                            <h1 class="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">
-                                Leaderboard Nasional</h1>
-                            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-                                Peringkat akademik terstandar seluruh Indonesia — Musim 4 (2024). Evaluasi performa
-                                berbobot berdasarkan akurasi pemecahan masalah dan konsistensi pertandingan.
-                            </p>
-                        </div>
-                        <!-- Quick Metrics Ribbon -->
-                        <div
-                            class="grid grid-cols-3 gap-space-md p-space-sm rounded-xl bg-surface-container-lowest shadow-sm">
-                            <div class="px-space-md py-space-xs flex flex-col">
-                                <span
-                                    class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total
-                                    Pelajar</span>
-                                <span
-                                    class="font-headline-md text-headline-md font-bold text-on-surface font-tabular-num">124,580</span>
-                                <span class="font-label-sm text-label-sm text-primary font-medium">Terverifikasi</span>
-                            </div>
-                            <div class="px-space-md py-space-xs flex flex-col bg-surface-container-low rounded-lg">
-                                <span
-                                    class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Rata-rata
-                                    LP</span>
-                                <span
-                                    class="font-headline-md text-headline-md font-bold text-on-surface font-tabular-num">1,840</span>
-                                <span class="font-label-sm text-label-sm text-secondary font-medium">LP Nasional</span>
-                            </div>
-                            <div class="px-space-md py-space-xs flex flex-col">
-                                <span
-                                    class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Reset
-                                    Musim</span>
-                                <span
-                                    class="font-headline-md text-headline-md font-bold text-tertiary font-tabular-num">14h
-                                    08m</span>
-                                <span class="font-label-sm text-label-sm text-on-surface-variant">00:00 WIB</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- SECTION 2: USER PROMINENT STANDING CARD -->
-                <section class="w-full mb-space-xl">
-                    <div
-                        class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm transition-all relative overflow-hidden">
-                        <div
-                            class="absolute -right-8 -bottom-8 w-48 h-48 rounded-full bg-primary-fixed/20 pointer-events-none blur-2xl">
-                        </div>
-                        <div
-                            class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-space-lg relative z-10">
-                            <!-- User Identity Block -->
-                            <div class="flex items-center gap-space-md min-w-0">
-                                <div class="relative flex-shrink-0">
-                                    <div
-                                        class="w-14 h-14 rounded-xl bg-primary flex items-center justify-center text-on-primary font-headline-md text-headline-md font-bold shadow-md">
-                                        AR
-                                    </div>
-                                    <span
-                                        class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-[10px]"
-                                        title="Akun Terverifikasi">
-                                        <span class="material-symbols-outlined text-[13px]">verified</span>
-                                    </span>
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-space-xs flex-wrap">
-                                        <span
-                                            class="font-headline-md text-headline-md font-bold text-on-surface truncate">Ahmad
-                                            Rizky</span>
-                                        <span
-                                            class="px-space-xs py-0.5 rounded bg-primary-fixed text-primary font-label-sm text-label-sm font-semibold">ANDA</span>
-                                        <span
-                                            class="px-space-xs py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-medium">Platinum
-                                            III</span>
-                                    </div>
-                                    <p
-                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1 truncate mt-0.5">
-                                        <span class="material-symbols-outlined text-[15px] text-primary">school</span>
-                                        SMAN 1 Jakarta • DKI Jakarta
-                                    </p>
-                                </div>
-                            </div>
-                            <!-- Metrics Badges Grid -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-md w-full xl:w-auto">
-                                <div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Peringkat
-                                        Anda</span>
-                                    <div class="flex items-baseline gap-1 mt-0.5">
-                                        <span
-                                            class="font-headline-md text-headline-md font-bold text-primary font-tabular-num">#142</span>
-                                        <span
-                                            class="font-label-sm text-label-sm text-on-surface-variant font-medium">Top
-                                            0.8%</span>
-                                    </div>
-                                </div>
-                                <div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">League
-                                        Points</span>
-                                    <div class="flex items-baseline gap-1 mt-0.5">
-                                        <span
-                                            class="font-headline-md text-headline-md font-bold text-on-surface font-tabular-num">2,480</span>
-                                        <span class="font-label-sm text-label-sm text-secondary font-semibold">LP</span>
-                                    </div>
-                                </div>
-                                <div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Statistik
-                                        Laga</span>
-                                    <div class="flex items-baseline gap-1 mt-0.5">
-                                        <span
-                                            class="font-headline-md text-headline-md font-bold text-on-surface font-tabular-num">68%</span>
-                                        <span
-                                            class="font-label-sm text-label-sm text-on-surface-variant font-medium">(42W
-                                            / 20L)</span>
-                                    </div>
-                                </div>
-                                <div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Akurasi
-                                        Rata-rata</span>
-                                    <div class="flex items-baseline gap-1 mt-0.5">
-                                        <span
-                                            class="font-headline-md text-headline-md font-bold text-on-surface font-tabular-num">78.4%</span>
-                                        <span
-                                            class="material-symbols-outlined text-[16px] text-primary">trending_up</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Next Tier Target Progress Bar -->
-                            <div
-                                class="w-full xl:w-72 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-center">
-                                <div class="flex items-center justify-between font-label-sm text-label-sm mb-1.5">
-                                    <span class="text-on-surface font-semibold">Target: Platinum II</span>
-                                    <span class="text-primary font-semibold font-tabular-num">120 LP Lagi</span>
-                                </div>
-                                <div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
-                                    <div class="h-full bg-primary rounded-full transition-all duration-500"
-                                        style="width: 72%;"></div>
-                                </div>
-                                <div
-                                    class="flex justify-between items-center text-[10px] text-on-surface-variant mt-1 font-tabular-num">
-                                    <span class="">2,400 LP (Plat III)</span>
-                                    <span class="">2,600 LP (Plat II)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- SECTION 3: FILTER & SEARCH CONTROL BAR -->
-                <section class="w-full mb-space-lg">
-                    <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-md">
-                        <!-- Top Row: Scope Segmentation & Season Dropdown -->
-                        <div
-                            class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-space-md">
-                            <!-- Segmented Tab Controls -->
-                            <div
-                                class="flex items-center gap-1 p-1 rounded-lg bg-surface-container-low overflow-x-auto">
-                                <button
-                                    class="px-space-md py-1.5 rounded font-label-md text-label-md font-semibold bg-surface-container-lowest text-on-surface shadow-xs transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Nasional (Seluruh Indonesia)
-                                </button>
-                                <button
-                                    class="px-space-md py-1.5 rounded font-label-md text-label-md font-medium text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Provinsi
-                                </button>
-                                <button
-                                    class="px-space-md py-1.5 rounded font-label-md text-label-md font-medium text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Sekolah / Institusi
-                                </button>
-                                <button
-                                    class="px-space-md py-1.5 rounded font-label-md text-label-md font-medium text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Teman &amp; Rival
-                                </button>
-                            </div>
-                            <div class="flex items-center gap-space-sm self-end md:self-auto">
-                                <span class="font-label-sm text-label-sm text-on-surface-variant">Periode:</span>
-                                <div class="relative inline-block">
-                                    <select
-                                        class="appearance-none bg-surface-container-low text-on-surface font-label-md text-label-md font-medium py-1.5 pl-space-md pr-8 rounded-lg cursor-pointer focus:outline-none">
-                                        <option>Musim 4 (Reguler)</option>
-                                        <option>Musim 3 (Arsip)</option>
-                                        <option>Musim 2 (Arsip)</option>
-                                        <option>All-Time Hall of Fame</option>
-                                    </select>
-                                    <span
-                                        class="material-symbols-outlined absolute right-2 top-2 pointer-events-none text-on-surface-variant text-[16px]">expand_more</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Bottom Row: Search Box & Subject Filters -->
-                        <div
-                            class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md pt-space-xs">
-                            <!-- Search Input -->
-                            <div class="relative flex-1">
-                                <span
-                                    class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">search</span>
-                                <input
-                                    class="w-full bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm pl-9 pr-space-md py-2 rounded-lg focus:outline-none focus:bg-surface-container-lowest transition-colors"
-                                    placeholder="Cari nama pelajar, sekolah, atau NISN..." type="text">
-                            </div>
-                            <!-- Subject Filtering Pills -->
-                            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
-                                <button
-                                    class="px-space-sm py-1.5 rounded-lg font-label-sm text-label-sm font-semibold bg-primary text-on-primary whitespace-nowrap"
-                                    type="button">
-                                    Semua Mapel
-                                </button>
-                                <button
-                                    class="px-space-sm py-1.5 rounded-lg font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Matematika
-                                </button>
-                                <button
-                                    class="px-space-sm py-1.5 rounded-lg font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Matematika Lanjut
-                                </button>
-                                <button
-                                    class="px-space-sm py-1.5 rounded-lg font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Fisika
-                                </button>
-                                <button
-                                    class="px-space-sm py-1.5 rounded-lg font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Informatika
-                                </button>
-                                <button
-                                    class="px-space-sm py-1.5 rounded-lg font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors whitespace-nowrap"
-                                    type="button">
-                                    Bahasa Inggris
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- SECTION 4: TOP 3 PODIUM / NATIONAL SPOTLIGHT -->
-                <section class="w-full mb-space-xl">
-                    <div class="flex items-center justify-between mb-space-md">
-                        <div class="flex items-center gap-space-xs">
-                            <span class="material-symbols-outlined text-secondary text-[22px]">workspace_premium</span>
-                            <h2 class="font-headline-md text-headline-md font-bold text-on-surface">Podium Kehormatan
-                                Nasional</h2>
-                        </div>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Diperbarui
-                            realtime setiap ronde</span>
-                    </div>
-                    <!-- 3-Column Podium Grid (Rank 2, Rank 1, Rank 3) -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg items-end">
-                        <!-- Rank 2: Silver Card -->
-                        <div
-                            class="order-2 md:order-1 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col relative overflow-hidden transition-all hover:shadow-md">
-                            <div class="absolute top-0 left-0 right-0 h-1.5 bg-outline-variant"></div>
-                            <div class="flex justify-between items-start mb-space-md">
-                                <div
-                                    class="w-9 h-9 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center font-headline-md text-headline-md font-bold">
-                                    2
-                                </div>
-                                <span
-                                    class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">
-                                    <span class="material-symbols-outlined text-[14px]">military_tech</span> Perak
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-space-md mb-space-md">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary font-bold text-title-md">
-                                    SA
-                                </div>
-                                <div class="min-w-0">
-                                    <h3 class="font-title-md text-title-md font-bold text-on-surface truncate">Sarah
-                                        Annisa</h3>
-                                    <p class="font-body-sm text-body-sm text-on-surface-variant truncate">SMA Labschool
-                                        Kebayoran</p>
-                                </div>
-                            </div>
-                            <div class="bg-surface-container-low rounded-lg p-space-sm space-y-2 mb-space-md">
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Divisi</span>
-                                    <span class="font-label-sm text-label-sm font-bold text-primary">Grandmaster</span>
-                                </div>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">League
-                                        Points</span>
-                                    <span
-                                        class="font-title-md text-title-md font-bold text-on-surface font-tabular-num">3,310
-                                        LP</span>
-                                </div>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Win Rate /
-                                        Akurasi</span>
-                                    <span
-                                        class="font-body-sm text-body-sm font-semibold text-on-surface font-tabular-num">85%
-                                        • 89.2%</span>
-                                </div>
-                            </div>
-                            <div
-                                class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-space-xs">
-                                <span class="">Mapel Unggulan</span>
-                                <span
-                                    class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-semibold">Fisika</span>
-                            </div>
-                        </div>
-                        <!-- Rank 1: Gold Card (Elevated & Prominent) -->
-                        <div
-                            class="order-1 md:order-2 bg-surface-container-lowest rounded-xl p-space-lg shadow-md flex flex-col relative overflow-hidden transition-all hover:shadow-lg -mt-2">
-                            <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
-                            <div class="flex justify-between items-start mb-space-md">
-                                <div
-                                    class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center font-display-lg text-title-md font-bold shadow-sm">
-                                    1
-                                </div>
-                                <span
-                                    class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-primary-fixed text-primary font-label-sm text-label-sm font-bold">
-                                    <span class="material-symbols-outlined text-[14px]">trophy</span> Juara 1 Nasional
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-space-md mb-space-md">
-                                <div
-                                    class="w-14 h-14 rounded-xl bg-primary-container text-on-primary flex items-center justify-center font-bold text-headline-md shadow-inner">
-                                    JK
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-1">
-                                        <h3
-                                            class="font-headline-md text-headline-md font-bold text-on-surface truncate">
-                                            Jonathan Kevin</h3>
-                                        <span class="material-symbols-outlined text-primary text-[18px]">verified</span>
-                                    </div>
-                                    <p class="font-body-sm text-body-sm text-on-surface-variant truncate">SMA Pradita
-                                        Dirgantara • Jateng</p>
-                                </div>
-                            </div>
-                            <div class="bg-surface-container-low rounded-lg p-space-md space-y-2 mb-space-md">
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Divisi
-                                        Tertinggi</span>
-                                    <span
-                                        class="px-2 py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold">Grandmaster</span>
-                                </div>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">League
-                                        Points</span>
-                                    <span
-                                        class="font-display-lg text-headline-md font-bold text-primary font-tabular-num">3,420
-                                        LP</span>
-                                </div>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Efektivitas
-                                        Tanding</span>
-                                    <span
-                                        class="font-body-sm text-body-sm font-bold text-on-surface font-tabular-num">88%
-                                        WR • 93.4% Akurasi</span>
-                                </div>
-                            </div>
-                            <div
-                                class="flex items-center justify-between text-on-surface font-label-sm text-label-sm pt-space-xs">
-                                <span class="text-on-surface-variant">Mapel Utama</span>
-                                <span
-                                    class="px-space-sm py-0.5 rounded bg-primary-fixed-dim text-on-primary-fixed font-bold">Matematika
-                                    &amp; Informatika</span>
-                            </div>
-                        </div>
-                        <!-- Rank 3: Bronze Card -->
-                        <div
-                            class="order-3 md:order-3 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col relative overflow-hidden transition-all hover:shadow-md">
-                            <div class="absolute top-0 left-0 right-0 h-1.5 bg-secondary"></div>
-                            <div class="flex justify-between items-start mb-space-md">
-                                <div
-                                    class="w-9 h-9 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center font-headline-md text-headline-md font-bold">
-                                    3
-                                </div>
-                                <span
-                                    class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">
-                                    <span class="material-symbols-outlined text-[14px]">military_tech</span> Perunggu
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-space-md mb-space-md">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary font-bold text-title-md">
-                                    FP
-                                </div>
-                                <div class="min-w-0">
-                                    <h3 class="font-title-md text-title-md font-bold text-on-surface truncate">Farhan
-                                        Putra</h3>
-                                    <p class="font-body-sm text-body-sm text-on-surface-variant truncate">SMAN 3 Bandung
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="bg-surface-container-low rounded-lg p-space-sm space-y-2 mb-space-md">
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Divisi</span>
-                                    <span class="font-label-sm text-label-sm font-bold text-secondary">Master I</span>
-                                </div>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">League
-                                        Points</span>
-                                    <span
-                                        class="font-title-md text-title-md font-bold text-on-surface font-tabular-num">3,180
-                                        LP</span>
-                                </div>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Win Rate /
-                                        Akurasi</span>
-                                    <span
-                                        class="font-body-sm text-body-sm font-semibold text-on-surface font-tabular-num">82%
-                                        • 87.1%</span>
-                                </div>
-                            </div>
-                            <div
-                                class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-space-xs">
-                                <span class="">Mapel Unggulan</span>
-                                <span
-                                    class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-semibold">Matematika</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- SECTION 5: MAIN NATIONAL LEADERBOARD TABLE -->
-                <section class="w-full mb-space-lg">
-                    <div class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-                        <!-- Table Top Context Bar -->
-                        <div
-                            class="px-space-lg py-space-md flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-surface-container-low/50">
-                            <div>
-                                <h3 class="font-title-md text-title-md font-bold text-on-surface">Klasemen Utama Pelajar
-                                </h3>
-                                <p class="font-body-sm text-body-sm text-on-surface-variant">Standar ELO Akademik
-                                    terverifikasi berdasarkan kuis harian, duel langsung, dan turnamen mingguan.</p>
-                            </div>
-                            <div class="flex items-center gap-space-sm">
-                                <span class="font-label-sm text-label-sm text-on-surface-variant">Urutkan:</span>
-                                <span
-                                    class="font-label-sm text-label-sm font-semibold text-primary bg-surface-container-lowest px-space-sm py-1 rounded">League
-                                    Points (Tertinggi)</span>
-                            </div>
-                        </div>
-                        <!-- High-Density Responsive Table Container -->
-                        <div class="w-full overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr
-                                        class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
-                                        <th class="py-3 px-space-md text-center w-16" scope="col">Rank</th>
-                                        <th class="py-3 px-space-md min-w-[200px]" scope="col">Pelajar</th>
-                                        <th class="py-3 px-space-md min-w-[220px]" scope="col">Sekolah &amp; Provinsi
-                                        </th>
-                                        <th class="py-3 px-space-md" scope="col">Divisi / Tier</th>
-                                        <th class="py-3 px-space-md text-right" scope="col">League Points</th>
-                                        <th class="py-3 px-space-md text-right" scope="col">Statistik Laga</th>
-                                        <th class="py-3 px-space-md text-right" scope="col">Akurasi</th>
-                                        <th class="py-3 px-space-md text-center" scope="col">Spesialisasi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y-0 text-body-sm font-body-sm text-on-surface">
-                                    <!-- ROW 1: Jonathan Kevin -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <div
-                                                    class="w-7 h-7 rounded bg-primary text-on-primary font-bold flex items-center justify-center text-[13px] shadow-xs">
-                                                    1
-                                                </div>
-                                                <span class="text-[10px] text-primary font-semibold mt-0.5">▲ +0</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-primary-fixed text-primary font-bold flex items-center justify-center flex-shrink-0">
-                                                    JK
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-1">
-                                                        <span
-                                                            class="font-title-md text-body-md font-bold text-on-surface">Jonathan
-                                                            Kevin</span>
-                                                        <span
-                                                            class="material-symbols-outlined text-primary text-[16px]">verified</span>
-                                                    </div>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant">NISN:
-                                                        0064****91</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMA Pradita Dirgantara</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">Jawa Tengah</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold">
-                                                Grandmaster
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            3,420 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">142 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">88% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            93.4%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Matematika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 2: Sarah Annisa -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <div
-                                                    class="w-7 h-7 rounded bg-surface-container-high text-on-surface font-bold flex items-center justify-center text-[13px]">
-                                                    2
-                                                </div>
-                                                <span class="text-[10px] text-primary font-semibold mt-0.5">▲ +1</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-high text-primary font-bold flex items-center justify-center flex-shrink-0">
-                                                    SA
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-1">
-                                                        <span
-                                                            class="font-title-md text-body-md font-bold text-on-surface">Sarah
-                                                            Annisa</span>
-                                                        <span
-                                                            class="material-symbols-outlined text-primary text-[16px]">verified</span>
-                                                    </div>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant">NISN:
-                                                        0072****43</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMA Labschool Kebayoran</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">DKI Jakarta</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold">
-                                                Grandmaster
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            3,310 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">128 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">85% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            89.2%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Fisika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 3: Farhan Putra -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <div
-                                                    class="w-7 h-7 rounded bg-surface-container-high text-on-surface font-bold flex items-center justify-center text-[13px]">
-                                                    3
-                                                </div>
-                                                <span class="text-[10px] text-tertiary font-semibold mt-0.5">▼ -1</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-high text-primary font-bold flex items-center justify-center flex-shrink-0">
-                                                    FP
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-1">
-                                                        <span
-                                                            class="font-title-md text-body-md font-bold text-on-surface">Farhan
-                                                            Putra</span>
-                                                        <span
-                                                            class="material-symbols-outlined text-primary text-[16px]">verified</span>
-                                                    </div>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant">NISN:
-                                                        0068****12</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMAN 3 Bandung</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">Jawa Barat</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-secondary text-on-secondary font-label-sm text-label-sm font-semibold">
-                                                Master I
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            3,180 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">114 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">82% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            87.1%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Matematika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 4: Clarissa Aurelia -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <span class="font-bold text-on-surface text-title-md">4</span>
-                                                <span class="text-[10px] text-primary font-semibold mt-0.5">▲ +2</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-low text-on-surface-variant font-bold flex items-center justify-center flex-shrink-0">
-                                                    CA
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span
-                                                        class="font-title-md text-body-md font-bold text-on-surface">Clarissa
-                                                        Aurelia</span>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant block">NISN:
-                                                        0071****87</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMA Kolese Kanisius</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">DKI Jakarta</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-secondary text-on-secondary font-label-sm text-label-sm font-semibold">
-                                                Master II
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            3,050 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">98 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">81% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            85.0%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Informatika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 5: David Tanuwijaya -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <span class="font-bold text-on-surface text-title-md">5</span>
-                                                <span
-                                                    class="text-[10px] text-on-surface-variant font-medium mt-0.5">—</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-low text-on-surface-variant font-bold flex items-center justify-center flex-shrink-0">
-                                                    DT
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span
-                                                        class="font-title-md text-body-md font-bold text-on-surface">David
-                                                        Tanuwijaya</span>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant block">NISN:
-                                                        0062****55</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMAK 1 BPK Penabur</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">DKI Jakarta</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-secondary text-on-secondary font-label-sm text-label-sm font-semibold">
-                                                Master III
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            2,980 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">94 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">79% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            83.8%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Fisika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 6: Siti Nurhaliza -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <span class="font-bold text-on-surface text-title-md">6</span>
-                                                <span class="text-[10px] text-primary font-semibold mt-0.5">▲ +3</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-low text-on-surface-variant font-bold flex items-center justify-center flex-shrink-0">
-                                                    SN
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span
-                                                        class="font-title-md text-body-md font-bold text-on-surface">Siti
-                                                        Nurhaliza</span>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant block">NISN:
-                                                        0075****99</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMAN 8 Jakarta</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">DKI Jakarta</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
-                                                Diamond I
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            2,890 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">88 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">76% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            81.5%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">B.
-                                                Inggris</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 7: Kevin Pratama -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <span class="font-bold text-on-surface text-title-md">7</span>
-                                                <span class="text-[10px] text-tertiary font-semibold mt-0.5">▼ -2</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-low text-on-surface-variant font-bold flex items-center justify-center flex-shrink-0">
-                                                    KP
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span
-                                                        class="font-title-md text-body-md font-bold text-on-surface">Kevin
-                                                        Pratama</span>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant block">NISN:
-                                                        0067****20</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMAN 5 Surabaya</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">Jawa Timur</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
-                                                Diamond II
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            2,810 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">76 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">75% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            80.2%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Matematika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ROW 8: Bintang Pratama -->
-                                    <tr class="hover:bg-surface-container-low/60 transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <span class="font-bold text-on-surface text-title-md">8</span>
-                                                <span class="text-[10px] text-primary font-semibold mt-0.5">▲ +1</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-surface-container-low text-on-surface-variant font-bold flex items-center justify-center flex-shrink-0">
-                                                    BP
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span
-                                                        class="font-title-md text-body-md font-bold text-on-surface">Bintang
-                                                        Pratama</span>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant block">NISN:
-                                                        0069****04</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-medium text-on-surface truncate">SMAN 2 Semarang</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">Jawa Tengah</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold">
-                                                Platinum II
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-on-surface">
-                                            2,515 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-semibold text-on-surface">58 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">71% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-semibold text-primary">
-                                            77.9%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Informatika</span>
-                                        </td>
-                                    </tr>
-                                    <!-- ELLIPSIS ROW DIVIDER INDICATING LEAP TO USER ROW -->
-                                    <tr class="bg-surface-container-low/30">
-                                        <td class="py-2 px-space-md text-center text-on-surface-variant font-label-sm text-label-sm"
-                                            colspan="8">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <span class="h-0.5 w-12 bg-surface-container-high rounded-full"></span>
-                                                <span class="">Melompati 133 Pelajar ke Posisi Anda</span>
-                                                <span class="h-0.5 w-12 bg-surface-container-high rounded-full"></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- HIGHLIGHTED CURRENT USER ROW: Ahmad Rizky -->
-                                    <tr class="bg-primary-fixed/20 shadow-xs transition-colors">
-                                        <td class="py-3.5 px-space-md text-center font-tabular-num">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <div
-                                                    class="w-8 h-8 rounded bg-primary text-on-primary font-bold flex items-center justify-center text-[13px] shadow-sm">
-                                                    142
-                                                </div>
-                                                <span class="text-[10px] text-primary font-bold mt-0.5">▲ +4</span>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <div class="flex items-center gap-space-sm">
-                                                <div
-                                                    class="w-9 h-9 rounded-lg bg-primary text-on-primary font-bold flex items-center justify-center flex-shrink-0 shadow-sm">
-                                                    AR
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-1.5">
-                                                        <span
-                                                            class="font-title-md text-body-md font-bold text-primary">Ahmad
-                                                            Rizky</span>
-                                                        <span
-                                                            class="px-1.5 py-0.2 rounded bg-primary text-on-primary text-[10px] font-bold">YOU</span>
-                                                    </div>
-                                                    <span
-                                                        class="font-label-sm text-label-sm text-on-surface-variant">NISN:
-                                                        0073****81</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <p class="font-bold text-on-surface truncate">SMAN 1 Jakarta</p>
-                                            <p class="text-on-surface-variant text-[12px] truncate">DKI Jakarta</p>
-                                        </td>
-                                        <td class="py-3.5 px-space-md">
-                                            <span
-                                                class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">
-                                                Platinum III
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-primary">
-                                            2,480 LP
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-right font-tabular-num">
-                                            <span class="font-bold text-on-surface">42 Menang</span>
-                                            <span class="text-on-surface-variant text-[12px] block">68% Win Rate</span>
-                                        </td>
-                                        <td
-                                            class="py-3.5 px-space-md text-right font-tabular-num font-bold text-primary">
-                                            78.4%
-                                        </td>
-                                        <td class="py-3.5 px-space-md text-center">
-                                            <span
-                                                class="inline-block px-2 py-0.5 rounded bg-primary-fixed text-primary font-label-sm text-label-sm font-bold">Matematika</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <!-- SECTION 6: PAGINATION & METADATA FOOTER -->
-                        <div
-                            class="px-space-lg py-space-md bg-surface-container-low/40 flex flex-col md:flex-row items-center justify-between gap-space-md">
-                            <!-- Result count metadata -->
-                            <span class="font-body-sm text-body-sm text-on-surface-variant">
-                                Menampilkan <strong class="text-on-surface font-semibold">1 - 10</strong> dari <strong
-                                    class="text-on-surface font-semibold">124,580</strong> Pelajar Terdaftar
-                            </span>
-                            <!-- Pagination Controls -->
-                            <div class="flex items-center gap-1">
-                                <button
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container disabled:opacity-40 transition-colors"
-                                    disabled="" type="button">
-                                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-                                </button>
-                                <button
-                                    class="w-8 h-8 rounded-lg font-label-md text-label-md font-bold bg-primary text-on-primary shadow-xs"
-                                    type="button">
-                                    1
-                                </button>
-                                <button
-                                    class="w-8 h-8 rounded-lg font-label-md text-label-md font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
-                                    type="button">
-                                    2
-                                </button>
-                                <button
-                                    class="w-8 h-8 rounded-lg font-label-md text-label-md font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
-                                    type="button">
-                                    3
-                                </button>
-                                <span class="w-6 text-center text-on-surface-variant text-body-sm">…</span>
-                                <button
-                                    class="w-8 h-8 rounded-lg font-label-md text-label-md font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
-                                    type="button">
-                                    12,458
-                                </button>
-                                <button
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors"
-                                    type="button">
-                                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
-                                </button>
-                            </div>
-                            <!-- Action Exports -->
-                            <div class="flex items-center gap-space-xs">
-                                <button
-                                    class="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container-high transition-colors"
-                                    type="button">
-                                    <span class="material-symbols-outlined text-[16px]">file_download</span>
-                                    <span class="">Unduh Laporan (CSV)</span>
-                                </button>
-                                <a class="inline-flex items-center gap-1 px-space-sm py-1.5 text-primary font-label-sm text-label-sm font-semibold hover:underline"
-                                    data-path="pedoman-integritas" href="#">
-                                    <span class="material-symbols-outlined text-[16px]">help</span>
-                                    <span class="">Regulasi LP Musim 4</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm tracking-tight text-on-surface group-hover:text-primary transition-colors">EduRank</span>
+          <span class="font-label-sm text-label-sm text-outline tracking-wider uppercase -mt-1">Indonesia</span>
         </div>
-    </main>
-    <footer class="w-full bg-surface-container-low">
-        <div
-            class="max-w-7xl mx-auto px-margin py-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md">
-            <p class="font-body-sm text-body-sm text-on-surface-variant text-center md:text-left">© 2024 EduRank League.
-                Sistem Evaluasi &amp; Kompetisi Akademik Terstandar.</p>
-            <div class="flex items-center gap-space-lg font-body-sm text-body-sm"><a
-                    class="text-on-surface-variant hover:text-on-surface transition-colors" data-path="syarat-ketentuan"
-                    href="#">Syarat &amp; Ketentuan</a><a
-                    class="text-on-surface-variant hover:text-on-surface transition-colors"
-                    data-path="kebijakan-privasi" href="#">Kebijakan Privasi</a><a
-                    class="text-on-surface-variant hover:text-on-surface transition-colors"
-                    data-path="pedoman-integritas" href="#">Pedoman Integritas</a></div>
+      </a>
+      <div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Real-Time PvP</span>
+      </div>
+    </div>
+    <nav class="hidden md:flex items-center gap-space-xs bg-surface-container-low/70 p-1 rounded-xl">
+      <a href="home.html" data-path="home">Home</a>
+      <a href="home.html#home-curriculum-section" data-path="materi">Materi</a>
+      <a href="home.html#home-arena-section" data-path="battle">Battle</a>
+      <a href="leaderboard.html" data-path="leaderboard">Leaderboard</a>
+      <a href="feedback.html" data-path="feedback">Feedback</a>
+    </nav>
+    <div class="flex items-center gap-space-md">
+      <button id="btn-notifications" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button" aria-label="Notifications" aria-expanded="false">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <div class="flex items-center gap-space-sm pl-space-xs border-l border-outline-variant/30">
+        <div class="flex flex-col text-right hidden sm:flex">
+          <span id="header-user-name" class="font-label-md text-label-md text-on-surface font-bold">Memuat...</span>
+          <span id="header-user-rank" class="font-label-sm text-label-sm text-secondary font-semibold">-</span>
         </div>
-    </footer>
+        <a href="profile.html">
+          <img id="header-user-photo" alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-surface-container-highest cursor-pointer" src="https://ui-avatars.com/api/?name=User&background=random">
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
 
-    <div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true"
-        style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div>
+<!-- MAIN CONTENT -->
+<main class="w-full pt-20 bg-background min-h-screen">
+  <div class="max-w-[1360px] mx-auto px-margin py-space-xl">
+    <div class="flex flex-col w-full gap-space-xl">
+
+      <!-- SECTION: LEADERBOARD HEADER -->
+      <section class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
+          <div>
+            <div class="flex items-center gap-space-sm mb-space-xs">
+              <span class="material-symbols-outlined text-secondary text-headline-lg">leaderboard</span>
+              <h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Leaderboard</h1>
+            </div>
+            <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+              Papan peringkat pelajar EduRank Indonesia berdasarkan ELO per mata pelajaran.
+            </p>
+          </div>
+          <div class="inline-flex items-center gap-space-xs px-3 py-2 rounded-full bg-surface-container-low text-secondary font-label-md font-bold"><span class="material-symbols-outlined text-body-lg">public</span>Leaderboard Nasional</div>
+        </div>
+      </section>
+
+      <!-- SECTION: SUBJECT FILTER TABS -->
+      <section>
+        <div id="subject-tabs" class="flex flex-wrap gap-space-sm">
+          <!-- Dynamically rendered by leaderboard.js -->
+          <div class="subject-tab active">
+            <span class="material-symbols-outlined text-[16px]">public</span>
+            Memuat...
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: LEADERBOARD TABLE -->
+      <section class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+        <div id="leaderboard-table-container">
+          <!-- Dynamically rendered by leaderboard.js -->
+          <div class="leaderboard-loading">
+            <div class="loading-skeleton"></div>
+            <div class="loading-skeleton"></div>
+            <div class="loading-skeleton"></div>
+            <div class="loading-skeleton"></div>
+            <div class="loading-skeleton"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER — same as Home -->
+<footer class="w-full bg-surface-container-lowest shadow-[0_-1px_8px_rgba(0,0,0,0.03)]">
+  <div class="max-w-[1360px] mx-auto px-margin py-space-lg">
+    <div class="flex flex-wrap items-center justify-center md:justify-between gap-space-md pb-space-lg border-b border-surface-container-high">
+      <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+        <span class="material-symbols-outlined text-tertiary-container text-body-lg">verified_user</span>
+        <span>Bebas Malware</span>
+      </div>
+      <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+        <span class="material-symbols-outlined text-secondary text-body-lg">lock</span>
+        <span>100% Bebas Iklan Komersial</span>
+      </div>
+    </div>
+    <div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md">
+      <p class="font-body-sm text-body-sm text-outline text-center md:text-left">© 2026 EduRank. All rights reserved.</p>
+      <a href="feedback.html" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Feedback</a>
+    </div>
+  </div>
+</footer>
+
+<script src="./js/app.js"></script>
+<script src="./js/leaderboard.js"></script>
 </body>
-
 </html>

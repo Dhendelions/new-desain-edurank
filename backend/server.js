@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -6,20 +7,25 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const { pool, initDb } = require('./db');
+const { getCatalog, getMaterial } = require('./materials');
+const { configureBattleSocket } = require('./battleSocket');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'edurank_jwt_secret_fallback_key';
+const JWT_SECRET = process.env.JWT_SECRET || '7f3c9a1e84d62b5f0a7c91e3d8b46f2a6c0e5d9b17a4f8c2e6b93d0a51f7c4e8';
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static frontend files from client directory
+app.use('/materi-files', express.static(path.join(__dirname, '..', 'materi')));
 app.use(express.static(path.join(__dirname, '..', 'client')));
 
 function calculateRank(elo) {
   const value = Math.max(0, Number(elo) || 0);
+  if (value >= 1600) return 'Profesor';
   if (value >= 1101) return 'Master';
   if (value >= 701) return 'Diamond';
   if (value >= 401) return 'Gold';
@@ -59,6 +65,47 @@ function generateUserId(email) {
   return `user-${clean}`;
 }
 
+async function getDailyMissions(userId) {
+  const [definitions] = await pool.query('SELECT * FROM daily_missions WHERE is_active = TRUE ORDER BY id');
+  if (definitions.length === 0) return [];
+  // Rotate up to four real mission definitions by server date; assignments remain
+  // immutable for that user/date after they have been created.
+  const today = new Date();
+  const start = ((Math.floor(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) / 86400000) % definitions.length) + definitions.length) % definitions.length;
+  const missionCount = Math.min(4, definitions.length);
+  const selected = definitions.length <= missionCount
+    ? definitions
+    : Array.from({ length: missionCount }, (_, i) => definitions[(start + i) % definitions.length]);
+  for (const mission of selected) {
+    await pool.query(`INSERT IGNORE INTO user_daily_missions (user_id, mission_id, assigned_date)
+      VALUES (?, ?, CURDATE())`, [userId, mission.id]);
+  }
+  const [rows] = await pool.query(`
+    SELECT udm.id, dm.title, dm.description, dm.target, dm.reward_xp, dm.mission_type,
+           udm.progress, udm.completed, udm.assigned_date, udm.completed_at,
+           TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(CURDATE(), INTERVAL 1 DAY)) AS seconds_until_reset
+    FROM user_daily_missions udm JOIN daily_missions dm ON dm.id = udm.mission_id
+    WHERE udm.user_id = ? AND udm.assigned_date = CURDATE() ORDER BY dm.id`, [userId]);
+
+  for (const mission of rows) {
+    let progress = 0;
+    if (mission.mission_type === 'matches') {
+      const [r] = await pool.query('SELECT COUNT(*) count FROM battles WHERE user_id = ? AND DATE(created_at) = CURDATE()', [userId]); progress = r[0].count;
+    } else if (mission.mission_type === 'wins') {
+      const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
+    } else if (mission.mission_type === 'ranked_wins') {
+      const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND mode = 'ranked' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
+    }
+    // Answer-level events are not recorded by the existing battle schema. Do
+    // not infer them from lifetime totals: the mission stays at zero until a
+    // real answer event is persisted by the battle service.
+    const completed = progress >= mission.target;
+    await pool.query('UPDATE user_daily_missions SET progress = ?, completed = ?, completed_at = CASE WHEN ? AND completed_at IS NULL THEN NOW() ELSE completed_at END WHERE id = ?', [progress, completed, completed, mission.id]);
+    mission.progress = progress; mission.completed = completed;
+  }
+  return rows;
+}
+
 // REST API Endpoints
 
 // 1. REGISTER API
@@ -96,7 +143,14 @@ app.post('/api/register', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
     const user = formatUserResponse(rows[0]);
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    // Insert default subjects
+    const [subjectsRows] = await pool.query('SELECT id FROM subjects');
+    if (subjectsRows.length > 0) {
+      const insertData = subjectsRows.map(sub => [userId, sub.id, 100]);
+      await pool.query('INSERT IGNORE INTO user_subjects (user_id, subject_id, elo) VALUES ?', [insertData]);
+    }
+
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
 
     return res.status(201).json({
       success: true,
@@ -132,7 +186,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const user = formatUserResponse(dbUser);
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
 
     return res.status(200).json({
       success: true,
@@ -206,13 +260,296 @@ app.put('/api/user/update', async (req, res) => {
   }
 });
 
+// 5. GET HOME PAGE DATA
+app.get('/api/home', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Sesi tidak valid.' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.id;
+
+    // Get User Profile with total ELO
+    const [userRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
+    if (!userRows || userRows.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+    const user = formatUserResponse(userRows[0]);
+
+    // Calculate total ELO from user_subjects
+    const [totalEloRow] = await pool.query('SELECT SUM(elo) as totalElo FROM user_subjects WHERE user_id = ?', [userId]);
+    user.elo = totalEloRow[0].totalElo || 0;
+
+    // Get rank from database
+    const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [user.elo, user.elo]);
+    user.rank = rankRows.length > 0 ? rankRows[0].name : 'Bronze';
+
+    // Get User Subjects Data
+    // One card per subject name. The historical schema has Fisika for several
+    // classes; the earliest configured subject is the canonical home rank.
+    const [userSubjects] = await pool.query(`
+      SELECT s.id, s.name as subjectName, c.level as classLevel, us.elo
+      FROM subjects s JOIN classes c ON s.class_id = c.id
+      LEFT JOIN user_subjects us ON us.subject_id = s.id AND us.user_id = ?
+      WHERE s.id IN (SELECT MIN(id) FROM subjects GROUP BY name)
+      ORDER BY s.id
+    `, [userId]);
+
+    // Process user subjects with their individual ranks
+    const subjectsData = await Promise.all(userSubjects.map(async (sub) => {
+      if (sub.elo === null || sub.elo === undefined) return { ...sub, rank: null };
+      const [r] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [sub.elo, sub.elo]);
+      return {
+        ...sub,
+        rank: r.length > 0 ? r[0].name : 'Bronze'
+      };
+    }));
+
+    // Get Leaderboard (Top 10)
+    const [leaderboard] = await pool.query(`
+      SELECT u.id, u.name, u.photo, u.xp, SUM(us.elo) as total_elo,
+             (SELECT name FROM ranks WHERE min_elo <= SUM(us.elo) AND max_elo >= SUM(us.elo) LIMIT 1) as rank_name,
+             u.wins, u.total_battles
+      FROM users u
+      LEFT JOIN user_subjects us ON u.id = us.user_id
+      GROUP BY u.id
+      ORDER BY total_elo DESC
+      LIMIT 10
+    `);
+
+    // Get Active Classes & Subjects
+    const [classesRows] = await pool.query('SELECT * FROM classes WHERE is_active = TRUE');
+    const [subjectsRows] = await pool.query('SELECT * FROM subjects');
+
+    // Get Friends
+    const [friends] = await pool.query(`
+      SELECT u.id, u.name, u.photo
+      FROM friends f
+      JOIN users u ON (f.user_id_1 = u.id OR f.user_id_2 = u.id)
+      WHERE (f.user_id_1 = ? OR f.user_id_2 = ?) AND u.id != ?
+      LIMIT 10
+    `, [userId, userId, userId]);
+
+    // Get Missions
+    const missions = await getDailyMissions(userId);
+
+    // Get Battles
+    const [battles] = await pool.query(`
+      SELECT b.id, b.result, b.elo_change, b.mode, b.created_at, u.name as opponent_name, s.name as subject_name
+      FROM battles b
+      LEFT JOIN users u ON b.opponent_id = u.id
+      LEFT JOIN subjects s ON b.subject_id = s.id
+      WHERE b.user_id = ?
+      ORDER BY b.created_at DESC
+      LIMIT 5
+    `, [userId]);
+
+    // Get Unread Notifications Count
+    const [notifCount] = await pool.query('SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = FALSE', [userId]);
+
+    return res.json({
+      success: true,
+      user,
+      subjectsData,
+      leaderboard,
+      classes: classesRows,
+      allSubjects: subjectsRows,
+      friends,
+      missions,
+      battles,
+      unreadNotifications: notifCount[0].count
+    });
+
+  } catch (err) {
+    console.error('API Home Data Error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal mengambil data Home.' });
+  }
+});
+
+// 6. OTHER NEW APIS (Search Friend, Add Friend, Notifications, etc.)
+app.get('/api/friends/search', async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    if (!q) return res.json({ success: true, users: [] });
+
+    // Simplification for search
+    const [users] = await pool.query('SELECT id, name, photo FROM users WHERE name LIKE ? LIMIT 10', [`%${q}%`]);
+    res.json({ success: true, users });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post('/api/friends/request', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const senderId = decoded.id;
+    const { receiverId } = req.body;
+    // Just directly add to friends table for simplicity in this demo, usually it goes to requests first
+    await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (?, ?)', [senderId, receiverId]);
+    res.json({ success: true, message: 'Berhasil ditambahkan sebagai teman.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menambahkan teman.' });
+  }
+});
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const [notifs] = await pool.query('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10', [decoded.id]);
+    res.json({ success: true, notifications: notifs });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// 7. LEADERBOARD API
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const subjectId = req.query.subject;
+
+    if (subjectId) {
+      // Leaderboard per mapel
+      const [rows] = await pool.query(`
+        SELECT u.id, u.name, u.photo, u.xp, us.elo,
+               u.wins, u.total_battles
+        FROM user_subjects us
+        JOIN users u ON us.user_id = u.id
+        WHERE us.subject_id = ?
+        ORDER BY us.elo DESC
+        LIMIT 100
+      `, [subjectId]);
+
+      const leaderboard = await Promise.all(rows.map(async (row, index) => {
+        const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [row.elo, row.elo]);
+        return {
+          position: index + 1,
+          id: row.id,
+          name: row.name,
+          photo: row.photo,
+          xp: Number(row.xp) || 0,
+          level: Math.floor((Number(row.xp) || 0) / 100) + 1,
+          elo: row.elo,
+          rank_name: rankRows.length > 0 ? rankRows[0].name : calculateRank(row.elo),
+          wins: row.wins,
+          total_battles: row.total_battles
+        };
+      }));
+
+      return res.json({ success: true, leaderboard, type: 'subject' });
+    } else {
+      // Leaderboard semua mapel (total ELO)
+      const [rows] = await pool.query(`
+        SELECT u.id, u.name, u.photo, u.xp, COALESCE(SUM(us.elo), 0) as total_elo,
+               u.wins, u.total_battles
+        FROM users u
+        LEFT JOIN user_subjects us ON u.id = us.user_id
+        GROUP BY u.id
+        ORDER BY total_elo DESC
+        LIMIT 100
+      `);
+
+      const leaderboard = await Promise.all(rows.map(async (row, index) => {
+        const elo = Number(row.total_elo) || 0;
+        const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [elo, elo]);
+        return {
+          position: index + 1,
+          id: row.id,
+          name: row.name,
+          photo: row.photo,
+          xp: Number(row.xp) || 0,
+          level: Math.floor((Number(row.xp) || 0) / 100) + 1,
+          elo: elo,
+          rank_name: rankRows.length > 0 ? rankRows[0].name : calculateRank(elo),
+          wins: row.wins,
+          total_battles: row.total_battles
+        };
+      }));
+
+      return res.json({ success: true, leaderboard, type: 'all' });
+    }
+  } catch (err) {
+    console.error('API Leaderboard Error:', err);
+    return res.status(500).json({ success: false, message: 'Leaderboard belum dapat dimuat. Silakan coba lagi.' });
+  }
+});
+
+// 8. SUBJECTS API
+app.get('/api/subjects', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT s.id, s.name, s.class_id, c.level as class_level
+      FROM subjects s
+      JOIN classes c ON s.class_id = c.id
+      ORDER BY s.name
+    `);
+    // The legacy database stores advanced mathematics separately. It remains
+    // intact for historic ELO, but is one Mathematics choice in the UI/API.
+    const merged = rows.filter((row) => row.name !== 'Matematika Lanjut')
+      .map((row) => ({ ...row, name: row.name === 'Matematika Lanjut' ? 'Matematika' : row.name }));
+    return res.json({ success: true, subjects: merged });
+  } catch (err) {
+    console.error('API Subjects Error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal mengambil daftar mata pelajaran.' });
+  }
+});
+
+// Material catalog is derived from the supplied materi/ tree. PDF/DOCX text is
+// extracted server-side and never exposed as raw filesystem paths.
+// This endpoint is public (no auth required) to allow material browsing
+app.get('/api/materials', async (req, res) => {
+  try {
+    const catalog = await getCatalog();
+    const grouped = {};
+    for (const item of catalog) {
+      const key = `Kelas ${item.classLevel}`;
+      grouped[key] ||= {};
+      // Use subject directly (already merged by subjectFromPath in materials.js)
+      grouped[key][item.subject] ||= {};
+      grouped[key][item.subject][item.subchapter] ||= [];
+      grouped[key][item.subject][item.subchapter].push({ id: item.id, title: item.title, type: item.type });
+    }
+    res.json({ success: true, materials: grouped });
+  } catch (err) {
+    console.error('Material catalog error:', err.message);
+    res.status(500).json({ success: false, message: 'Materi belum dapat dimuat.' });
+  }
+});
+
+// Material content endpoint - also public for browsing
+app.get('/api/materials/:id', async (req, res) => {
+  try {
+    const material = await getMaterial(req.params.id);
+    if (!material) return res.status(404).json({ success: false, message: 'Materi tidak ditemukan.' });
+    res.json({ success: true, material: { id: material.id, classLevel: material.classLevel, subject: material.subject, subchapter: material.subchapter, title: material.title, type: material.type, content: material.text || 'Materi belum tersedia dalam format teks.' } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Materi belum dapat dibuka.' });
+  }
+});
+
+// 9. RANKS API
+app.get('/api/ranks', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM ranks ORDER BY min_elo ASC');
+    return res.json({ success: true, ranks: rows });
+  } catch (err) {
+    console.error('API Ranks Error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal mengambil konfigurasi rank.' });
+  }
+});
+
 // Fallback to index.html for client side routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
 });
 
 // Start Express Server & initialize DB connection
-app.listen(PORT, async () => {
+configureBattleSocket(server, JWT_SECRET);
+server.listen(PORT, async () => {
   console.log(`================================================`);
   console.log(`🚀 EduRank Server running at http://localhost:${PORT}`);
   console.log(`================================================`);
