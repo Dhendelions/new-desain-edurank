@@ -147,10 +147,66 @@ class Header {
     const profileLink = document.querySelector('header a[href="profile.html"]');
     if (profileLink) {
       profileLink.addEventListener('click', (e) => {
-        // Navigate to profile page
         window.location.href = 'profile.html';
       });
     }
+
+    // Intercept nav links when on Home Page for smooth scrolling
+    const navLinks = document.querySelectorAll('header nav a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        const path = this.getCurrentPage();
+        const navPath = link.getAttribute('data-path');
+
+        if (path === 'home') {
+          if (navPath === 'materi') {
+            e.preventDefault();
+            const target = document.getElementById('home-curriculum-section') || document.getElementById('materi');
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth' });
+            }
+          } else if (navPath === 'battle') {
+            e.preventDefault();
+            const target = document.getElementById('home-arena-section') || document.getElementById('battle');
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth' });
+            }
+          } else if (navPath === 'home') {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      });
+    });
+
+    // Scroll spy active state for Home page sections
+    window.addEventListener('scroll', () => {
+      const page = this.getCurrentPage();
+      if (page !== 'home') return;
+
+      const materiSec = document.getElementById('home-curriculum-section') || document.getElementById('materi');
+      const battleSec = document.getElementById('home-arena-section') || document.getElementById('battle');
+      const scrollY = window.scrollY + 120;
+
+      let activeSection = 'home';
+      if (battleSec && scrollY >= battleSec.offsetTop) {
+        activeSection = 'battle';
+      } else if (materiSec && scrollY >= materiSec.offsetTop) {
+        activeSection = 'materi';
+      }
+
+      const links = document.querySelectorAll('header nav a');
+      links.forEach(l => {
+        const linkPath = l.getAttribute('data-path');
+        if (linkPath === activeSection) {
+          l.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
+          l.classList.remove('text-on-surface-variant', 'hover:text-on-surface');
+        } else {
+          l.classList.remove('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
+          l.classList.add('text-on-surface-variant', 'hover:text-on-surface');
+        }
+      });
+    });
 
     // Update navigation on popstate (browser back/forward)
     window.addEventListener('popstate', () => {

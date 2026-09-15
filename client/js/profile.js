@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    renderProfile(data.user, data.subjectsData);
+    renderProfile(data.user, data.subjectsData, data.battles);
     renderHeader(data.user, data.unreadNotifications);
     
   } catch (err) {
@@ -37,7 +37,7 @@ function renderHeader(user, unreadCount) {
   }
 }
 
-function renderProfile(user, subjectsData) {
+function renderProfile(user, subjectsData, battles) {
   // Profile Header Section
   const profileName = document.getElementById('profile-name');
   const profileUsername = document.getElementById('profile-username');
@@ -63,7 +63,7 @@ function renderProfile(user, subjectsData) {
     const level = Math.floor(xp / 100) + 1;
     const nextLevelXp = level * 100;
     const currentLevelXp = (level - 1) * 100;
-    const progress = ((xp - currentLevelXp) / 100) * 100;
+    const progress = Math.min(100, Math.max(0, ((xp - currentLevelXp) / 100) * 100));
     
     progressEl.innerHTML = `
       <div class="flex flex-col gap-1 w-full max-w-xs">
@@ -76,7 +76,7 @@ function renderProfile(user, subjectsData) {
           </span>
         </div>
         <div class="w-full bg-surface-container rounded-full h-2">
-          <div class="bg-secondary rounded-full h-2 transition-all" style="width: ${Math.min(100, Math.max(0, progress))}%"></div>
+          <div class="bg-secondary rounded-full h-2 transition-all" style="width: ${progress}%"></div>
         </div>
         <span class="text-xs text-on-surface-variant">${xp.toLocaleString('id-ID')} / ${nextLevelXp.toLocaleString('id-ID')} XP</span>
       </div>
@@ -92,22 +92,29 @@ function renderProfile(user, subjectsData) {
   // Learning Style Section
   renderLearningStyle(user);
 
+  // Activity Timeline Section
+  renderActivityTimeline(battles);
+
   // Logout functionality
   const logoutBtn = document.querySelector('[data-logout]');
-  if (logoutBtn) {
+  if (logoutBtn && !logoutBtn.dataset.bound) {
+    logoutBtn.dataset.bound = 'true';
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('edurank-token');
       window.location.href = 'login.html';
     });
   }
 
-  // Add functionality to all buttons in profile page
+  // Add functionality to action buttons in profile header
+  const editBtn = document.querySelector('button:has(.material-symbols-outlined)');
   const allButtons = document.querySelectorAll('button');
   allButtons.forEach(btn => {
+    if (btn.dataset.bound) return;
     const buttonText = btn.textContent.trim().toLowerCase();
     
     // Edit Profile button
     if (buttonText.includes('edit') && buttonText.includes('profil')) {
+      btn.dataset.bound = 'true';
       btn.addEventListener('click', () => {
         alert('Fitur edit profil akan segera tersedia.');
       });
@@ -115,6 +122,7 @@ function renderProfile(user, subjectsData) {
     
     // Share Profile button
     if (buttonText.includes('bagikan') && buttonText.includes('profil')) {
+      btn.dataset.bound = 'true';
       btn.addEventListener('click', () => {
         alert('Fitur bagikan profil akan segera tersedia.');
       });
@@ -122,15 +130,9 @@ function renderProfile(user, subjectsData) {
     
     // Retake Learning Style button
     if (buttonText.includes('tes') && buttonText.includes('ulang')) {
+      btn.dataset.bound = 'true';
       btn.addEventListener('click', () => {
         window.location.href = 'learning-style.html';
-      });
-    }
-    
-    // Play buttons in subject ranks
-    if (buttonText.includes('mainkan')) {
-      btn.addEventListener('click', () => {
-        window.location.href = 'battle.html';
       });
     }
   });
@@ -160,10 +162,11 @@ function updateQuickStats(user) {
   // Winrate
   const winrateEl = document.getElementById('stat-winrate');
   if (winrateEl) {
-    const winrate = user.totalBattles > 0 
-      ? ((user.wins / user.totalBattles) * 100).toFixed(1) 
-      : 0;
-    winrateEl.innerHTML = `${winrate}% (${user.wins || 0}W - ${user.losses || 0}L)`;
+    const total = Number(user.totalBattles) || 0;
+    const wins = Number(user.wins) || 0;
+    const losses = Number(user.losses) || 0;
+    const winrate = total > 0 ? ((wins / total) * 100).toFixed(1) : '0';
+    winrateEl.innerHTML = `${winrate}% (${wins}W - ${losses}L)`;
   }
 }
 
@@ -217,11 +220,6 @@ function renderSubjectRanks(subjectsData) {
             </div>
           </div>
         </div>
-        <div class="mt-space-lg pt-space-md flex flex-col gap-space-xs bg-surface-container-low/50 -mx-space-md -mb-space-md p-space-md rounded-b-xl">
-          <button class="w-full py-2 bg-secondary text-on-secondary rounded-lg font-label-sm hover:bg-primary transition-colors" onclick="window.location.href='classic_lobby.html'">
-            Mainkan
-          </button>
-        </div>
       </div>
     `;
   }).join('');
@@ -249,6 +247,45 @@ function renderLearningStyle(user) {
       ? `Gunakan metode ${user.learningStyle} untuk hasil belajar yang optimal.`
       : 'Ikuti tes gaya belajar untuk mendapatkan tips personal.';
   }
+}
+
+function renderActivityTimeline(battles) {
+  const container = document.getElementById('profile-activity-container');
+  if (!container) return;
+
+  const list = Array.isArray(battles) ? battles : [];
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 text-center text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/30 flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-3xl text-outline">history_toggle_off</span>
+        <p class="font-semibold text-body-sm text-on-surface">Belum ada riwayat aktivitas</p>
+        <p class="font-body-sm text-outline text-xs">Mulai ikuti pertandingan atau pelajari materi untuk melihat riwayat aktivitas di sini.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = list.map(b => {
+    const isWin = b.result === 'win';
+    const bgClass = isWin ? 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/30' : 'bg-error-container/20 text-on-error-container border-error-container/40';
+    const sign = isWin ? '+' : '-';
+    const dateStr = b.created_at ? new Date(b.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Baru saja';
+
+    return `
+      <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low border border-outline-variant/20 hover:bg-surface-container transition-colors">
+        <div class="flex items-center gap-3">
+          <div class="px-2.5 py-1 rounded-lg border font-label-sm text-label-sm font-bold ${bgClass}">
+            ${isWin ? 'Menang' : 'Kalah'} (${sign}${Math.abs(b.elo_change || 0)} LP)
+          </div>
+          <div class="flex flex-col">
+            <span class="font-title-md text-title-md font-bold text-on-surface">${b.subject_name || 'Pertandingan Umum'}</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'AI Bot'}</span>
+          </div>
+        </div>
+        <span class="font-label-sm text-label-sm text-outline shrink-0">${dateStr}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 function showError(message) {

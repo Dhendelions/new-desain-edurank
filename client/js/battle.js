@@ -196,6 +196,29 @@ class BattlePage {
 
   showSubjectModal() {
     const modal = document.getElementById('subject-modal');
+    const diffContainer = document.getElementById('difficulty-selector-container');
+    if (diffContainer) {
+      if (this.selectedMode === 'ai') {
+        diffContainer.classList.remove('hidden');
+        this.selectedDifficulty = 'medium'; // Default
+        
+        // Setup diff button listeners
+        diffContainer.querySelectorAll('.ai-diff-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            diffContainer.querySelectorAll('.ai-diff-btn').forEach(b => {
+              b.classList.remove('border-primary', 'bg-primary/10', 'text-primary');
+              b.classList.add('border-outline-variant/30', 'bg-surface-container-low', 'text-on-surface-variant');
+            });
+            btn.classList.remove('border-outline-variant/30', 'bg-surface-container-low', 'text-on-surface-variant');
+            btn.classList.add('border-primary', 'bg-primary/10', 'text-primary');
+            this.selectedDifficulty = btn.dataset.difficulty;
+          });
+        });
+      } else {
+        diffContainer.classList.add('hidden');
+      }
+    }
+
     if (modal) {
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -211,19 +234,15 @@ class BattlePage {
   }
 
   async joinRoomByCode() {
-    const roomCode = prompt('Masukkan kode room:');
+    const roomCode = prompt('Masukkan kode room (misal: ROOM123):');
     if (!roomCode) return;
 
-    try {
-      if (this.socket) {
-        this.socket.emit('join_room', { roomId: roomCode });
-      } else {
-        alert('Koneksi ke server battle belum tersedia. Silakan coba lagi.');
-      }
-    } catch (err) {
-      console.error('Error joining room:', err);
-      alert('Gagal bergabung ke room. Silakan coba lagi.');
-    }
+    sessionStorage.setItem('currentBattleRoom', JSON.stringify({
+      roomId: roomCode,
+      mode: 'custom',
+      subject: 'Fisika'
+    }));
+    window.location.href = 'custom_lobby.html';
   }
 
   startMatchmaking() {
@@ -237,15 +256,11 @@ class BattlePage {
       return;
     }
 
-    // Handle different modes
     if (this.selectedMode === 'ai') {
-      // VS AI mode - direct to battle without matchmaking
       this.startAIBattle();
     } else if (this.selectedMode === 'custom') {
-      // Private room - create room
       this.createPrivateRoom();
     } else {
-      // Ranked and Classic - use matchmaking
       this.startOnlineMatchmaking();
     }
   }
@@ -256,31 +271,25 @@ class BattlePage {
       return;
     }
 
-    // Show loading state
     this.showMatchmakingWaiting();
-
-    // Emit matchmaking event based on mode
-    if (this.selectedMode === 'ranked') {
-      this.socket.emit('queue_classic', { subject: this.selectedSubject.name });
-    } else if (this.selectedMode === 'classic') {
-      this.socket.emit('queue_classic', { subject: this.selectedSubject.name });
-    }
+    this.socket.emit('queue_classic', { subject: this.selectedSubject.name });
   }
 
   createPrivateRoom() {
-    if (!this.socket) {
-      alert('Koneksi ke server battle belum tersedia. Silakan coba lagi.');
-      return;
-    }
-
-    this.socket.emit('create_room', { subject: this.selectedSubject.name });
+    const roomData = {
+      roomId: `ROOM-${Math.floor(100000 + Math.random() * 900000)}`,
+      mode: 'custom',
+      subject: this.selectedSubject.name
+    };
+    sessionStorage.setItem('currentBattleRoom', JSON.stringify(roomData));
+    window.location.href = 'custom_lobby.html';
   }
 
   startAIBattle() {
-    // For AI mode, navigate directly to battle page with AI flag
     const roomData = {
       roomId: `ai-battle-${Date.now()}`,
       mode: 'ai',
+      difficulty: this.selectedDifficulty || 'medium',
       subject: this.selectedSubject.name,
       isAI: true
     };

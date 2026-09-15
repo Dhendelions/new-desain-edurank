@@ -3,23 +3,21 @@
 <div class="w-full flex flex-col gap-space-lg">
 <!-- TOP BATTLE HEADER: LIVE DUEL TRACKER -->
 <section class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col md:flex-row items-center justify-between gap-space-md">
-<!-- Player 1 (User: Ahmad Rizky) -->
+<!-- Player 1 (User) -->
 <div class="flex items-center gap-space-md w-full md:w-5/12 justify-start">
 <div class="relative">
-<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary font-headline-md text-headline-md font-bold shadow-sm">
+<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary font-headline-md text-headline-md font-bold shadow-sm" id="p1-avatar">
             AR
           </div>
 <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-600 ring-2 ring-surface-container-lowest"></span>
 </div>
 <div class="flex flex-col">
 <div class="flex items-center gap-space-xs">
-<span class="font-title-md text-title-md text-on-surface font-bold">Ahmad Rizky</span>
+<span class="font-title-md text-title-md text-on-surface font-bold" id="p1-name">Memuat...</span>
 <span class="px-space-xs py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm font-semibold">Kamu</span>
 </div>
 <div class="flex items-center gap-space-sm text-on-surface-variant font-label-md text-label-md">
-<span class="text-secondary font-medium">Platinum III</span>
-<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
-<span class="font-tabular-num text-tabular-num font-semibold text-primary">Score: 3</span>
+<span class="font-tabular-num text-tabular-num font-semibold text-primary" id="p1-score">Score: 0</span>
 </div>
 </div>
 </div>
@@ -29,225 +27,44 @@
 <span class="material-symbols-outlined text-[15px]">swords</span>
           Classic Arena
         </div>
-<span class="font-headline-md text-headline-md font-bold text-on-surface mt-0.5">Soal 4 / 10</span>
-<div class="text-[10px] uppercase font-bold tracking-widest text-outline-variant">Head-to-Head</div>
+<span class="font-headline-md text-headline-md font-bold text-on-surface mt-0.5" id="question-number">Soal 1 / 10</span>
 </div>
-<!-- Player 2 (Opponent: Dimas Arya) -->
+<!-- Player 2 (Opponent) -->
 <div class="flex items-center gap-space-md w-full md:w-5/12 justify-end text-right">
 <div class="flex flex-col items-end">
 <div class="flex items-center gap-space-xs">
 <span class="px-space-xs py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">Lawan</span>
-<span class="font-title-md text-title-md text-on-surface font-bold">Dimas Arya</span>
+<span class="font-title-md text-title-md text-on-surface font-bold" id="p2-name">AI Computer</span>
 </div>
 <div class="flex items-center gap-space-sm text-on-surface-variant font-label-md text-label-md">
-<span class="font-tabular-num text-tabular-num font-semibold text-secondary">Score: 2</span>
-<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
-<span class="text-secondary font-medium">Diamond II</span>
+<span class="font-tabular-num text-tabular-num font-semibold text-secondary" id="p2-score">Score: 0</span>
 </div>
 </div>
 <div class="relative">
-<div class="w-12 h-12 rounded-xl bg-surface-container-high text-on-surface font-headline-md text-headline-md font-bold flex items-center justify-center shadow-sm">
-            DA
+<div class="w-12 h-12 rounded-xl bg-surface-container-high text-on-surface font-headline-md text-headline-md font-bold flex items-center justify-center shadow-sm" id="p2-avatar">
+            AI
           </div>
 <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-600 ring-2 ring-surface-container-lowest"></span>
 </div>
 </div>
 </section>
-<!-- HORIZONTAL TRACKER & COUNTDOWN TIMER -->
-<section class="w-full bg-surface-container-lowest rounded-xl shadow-sm px-space-lg py-space-md flex flex-col md:flex-row items-center justify-between gap-space-md">
-<!-- Stepper Matrix 1-10 -->
-<div class="w-full md:w-8/12 flex items-center gap-1.5 sm:gap-2">
-<!-- Q1: Completed Correct -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-emerald-600"></div>
-<div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-<span class="material-symbols-outlined text-[13px] font-bold">check</span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">01</span>
-</div>
-<!-- Q2: Completed Correct -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-emerald-600"></div>
-<div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-<span class="material-symbols-outlined text-[13px] font-bold">check</span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">02</span>
-</div>
-<!-- Q3: Completed Incorrect -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-rose-600"></div>
-<div class="w-5 h-5 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center">
-<span class="material-symbols-outlined text-[13px] font-bold">close</span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">03</span>
-</div>
-<!-- Q4: Current Active -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-primary-container animate-pulse"></div>
-<div class="w-5 h-5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold flex items-center justify-center shadow-sm">
-            4
-          </div>
-<span class="font-label-sm text-label-sm font-bold text-primary">04</span>
-</div>
-<!-- Q5: Upcoming -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-surface-container"></div>
-<div class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
-<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">05</span>
-</div>
-<!-- Q6: Upcoming -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-surface-container"></div>
-<div class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
-<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">06</span>
-</div>
-<!-- Q7: Upcoming -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-surface-container"></div>
-<div class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
-<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">07</span>
-</div>
-<!-- Q8: Upcoming -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-surface-container"></div>
-<div class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
-<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">08</span>
-</div>
-<!-- Q9: Upcoming -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-surface-container"></div>
-<div class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
-<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">09</span>
-</div>
-<!-- Q10: Upcoming -->
-<div class="flex-1 flex flex-col items-center gap-1">
-<div class="w-full h-2 rounded-full bg-surface-container"></div>
-<div class="w-5 h-5 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
-<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-</div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">10</span>
-</div>
-</div>
-<!-- Visual Stopwatch Countdown -->
-<div class="flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-lg shadow-sm">
-<div class="w-8 h-8 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center">
-<span class="material-symbols-outlined text-[20px] animate-pulse">timer</span>
-</div>
-<div class="flex flex-col">
-<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant leading-none">Sisa Waktu</span>
-<span class="font-tabular-num text-headline-md font-bold text-rose-700 tracking-tight" id="countdown-timer">00:00</span>
-</div>
-</div>
-</section>
-<!-- MAIN BATTLE ARENA & LIVE SCOREBOARD -->
-<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
-<!-- LEFT / CENTER: QUESTION & INTERACTIVE OPTIONS (8 Cols) -->
+
+<!-- MAIN BATTLE ARENA -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start mt-4">
 <div class="xl:col-span-8 flex flex-col gap-space-lg">
 <!-- QUESTION CONTAINER -->
 <div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-xl flex flex-col gap-space-md">
-<div class="flex flex-wrap items-center justify-between gap-space-sm">
-<div class="flex items-center gap-space-xs">
-<span class="px-space-sm py-1 rounded bg-surface-container text-primary font-label-md text-label-md font-semibold">
-                Matematika Saintek
-              </span>
-<span class="px-space-sm py-1 rounded bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
-                Matriks &amp; Determinan
-              </span>
+  <div class="py-space-md flex flex-col gap-space-md">
+    <h2 class="font-headline-md text-headline-md text-on-surface font-semibold leading-relaxed" id="question-text">
+      Memuat Soal...
+    </h2>
+  </div>
 </div>
-<div class="flex items-center gap-1 text-on-surface-variant font-label-md text-label-md">
-<span class="material-symbols-outlined text-[16px] text-amber-600">bolt</span>
-<span class="">Bobot Nilai: <strong class="text-on-surface font-tabular-num">100 LP</strong></span>
+<!-- OPTIONS CONTAINER -->
+<div id="options-container" class="grid grid-cols-1 gap-space-md">
+  <!-- Options rendered dynamically by BattleEngine -->
 </div>
 </div>
-<!-- Problem Formulation -->
-<div class="py-space-md flex flex-col gap-space-md">
-<h2 class="font-headline-md text-headline-md text-on-surface font-semibold leading-relaxed">
-              Jika matriks matriks berordo 2×2 didefinisikan sebagai:
-            </h2>
-<!-- Matrix Notation Box -->
-<div class="p-space-lg rounded-xl bg-surface-container-low flex flex-col sm:flex-row items-center justify-start gap-space-lg">
-<div class="flex items-center gap-space-md font-display-lg text-display-lg text-on-surface font-mono">
-<span class="">A =</span>
-<div class="flex items-center font-normal">
-<span class="text-outline-variant font-light scale-y-125 select-none text-[36px]">[</span>
-<div class="grid grid-cols-2 gap-x-6 gap-y-1 px-2 text-center text-title-md font-tabular-num">
-<span class="font-semibold">1</span>
-<span class="font-semibold">2</span>
-<span class="font-semibold">3</span>
-<span class="font-semibold">4</span>
-</div>
-<span class="text-outline-variant font-light scale-y-125 select-none text-[36px]">]</span>
-</div>
-</div>
-<div class="h-10 w-px bg-surface-container hidden sm:block"></div>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                maka determinan dari matriks <strong class="text-on-surface">A</strong> (<span class="font-mono italic font-semibold">det(A)</span> atau <span class="font-mono font-semibold">|A|</span>) adalah...
-              </p>
-</div>
-</div>
-</div>
-<!-- 4 CHOICES WITH INSTANT VERIFIED FEEDBACK -->
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
-<!-- OPTION A: CURRENTLY SELECTED & CORRECT -->
-<div class="relative bg-emerald-50 rounded-xl p-space-md shadow-sm flex flex-col justify-between gap-space-sm cursor-default">
-<div class="flex items-start justify-between gap-space-sm">
-<div class="flex items-center gap-space-md">
-<div class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-headline-md text-headline-md font-bold flex items-center justify-center shrink-0">
-                  A
-                </div>
-<div class="flex flex-col">
-<span class="font-display-lg text-display-lg text-emerald-950 font-bold leading-none">-2</span>
-<span class="font-label-sm text-label-sm text-emerald-800 font-medium mt-1">Jawaban Kamu (Terkonfirmasi)</span>
-</div>
-</div>
-<div class="flex items-center gap-1 bg-emerald-600 text-white px-2 py-0.5 rounded text-label-sm font-semibold shadow-sm">
-<span class="material-symbols-outlined text-[14px]">check</span>
-<span class="">Benar!</span>
-</div>
-</div>
-<!-- Mathematical derivation breakdown -->
-<div class="mt-space-xs p-space-sm rounded-lg bg-emerald-100/70 text-emerald-900 font-label-md text-label-md flex flex-col gap-0.5">
-<div class="font-semibold flex items-center gap-1 text-[11px] uppercase tracking-wide text-emerald-800">
-<span class="material-symbols-outlined text-[13px]">calculate</span> Formula Det(A):
-              </div>
-<div class="font-mono text-body-sm font-semibold tracking-tight">
-                (ad - bc) = (1 × 4) - (2 × 3) = 4 - 6 = -2
-              </div>
-</div>
-</div>
-<!-- OPTION B: NEUTRAL -->
-<div class="opacity-60 bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md cursor-not-allowed">
-<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface-variant font-headline-md text-headline-md font-bold flex items-center justify-center shrink-0">
-              B
-            </div>
-<div class="flex flex-col">
-<span class="font-headline-lg text-headline-lg text-on-surface font-bold leading-none">2</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Pilihan Opsi</span>
-</div>
-</div>
-<!-- OPTION C: NEUTRAL -->
-<div class="opacity-60 bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md cursor-not-allowed">
-<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface-variant font-headline-md text-headline-md font-bold flex items-center justify-center shrink-0">
-              C
-            </div>
-<div class="flex flex-col">
-<span class="font-headline-lg text-headline-lg text-on-surface font-bold leading-none">10</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Pilihan Opsi</span>
-</div>
-</div>
-<!-- OPTION D: NEUTRAL -->
-<div class="opacity-60 bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md cursor-not-allowed">
-<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface-variant font-headline-md text-headline-md font-bold flex items-center justify-center shrink-0">
               D
             </div>
 <div class="flex flex-col">
@@ -395,4 +212,17 @@
   </script>
 </div></div></main><footer class="w-full bg-surface-container-lowest border-t border-outline-variant/30 py-space-lg"><div class="max-w-[1440px] mx-auto px-margin flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-label-md text-label-md"><div class="">© 2024 EduRank League. Sistem Evaluasi &amp; Kompetisi Akademik Terstandar.</div><div class="flex items-center gap-space-md"><a class="hover:text-on-surface transition-colors" href="#">Protokol Integritas</a><span class="w-1 h-1 rounded-full bg-outline-variant"></span><a class="hover:text-on-surface transition-colors" href="#">Regulasi Kompetisi</a><span class="w-1 h-1 rounded-full bg-outline-variant"></span><a class="hover:text-on-surface transition-colors" href="#">Dokumentasi API</a></div></div></footer>
 
-<script src="./js/app.js"></script></body></html>
+<script src="./js/app.js"></script>
+<script src="./js/battleEngine.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const raw = sessionStorage.getItem('currentBattleRoom');
+    const room = raw ? JSON.parse(raw) : { mode: 'ai', difficulty: 'medium', subject: 'Fisika' };
+    window.battleInstance = new BattleEngine({
+      mode: room.mode || 'ai',
+      difficulty: room.difficulty || 'medium',
+      subject: room.subject || 'Fisika'
+    });
+  });
+</script>
+</body></html>

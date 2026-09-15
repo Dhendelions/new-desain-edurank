@@ -34,4 +34,35 @@
 </div>
 </div></div></main><footer class="w-full bg-white border-t border-[#e2e8f0] py-space-lg"><div class="max-w-[1440px] mx-auto px-margin flex flex-col sm:flex-row items-center justify-between gap-space-md text-[#64748b] font-label-md text-label-md"><div class="">© 2024 EduRank League. Sistem Evaluasi &amp; Kompetisi Akademik Terstandar.</div><div class="flex items-center gap-space-md"><a class="hover:text-[#0f172a] transition-colors" href="#">Protokol Integritas</a><span class="w-1 h-1 rounded-full bg-[#cbd5e1]"></span><a class="hover:text-[#0f172a] transition-colors" href="#">Regulasi Kompetisi</a><span class="w-1 h-1 rounded-full bg-[#cbd5e1]"></span><a class="hover:text-[#0f172a] transition-colors" href="#">Dokumentasi API</a></div></div></footer>
 
-<script src="./js/app.js"></script></body></html>
+<script src="./js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const userScore = params.get('userScore') || '3';
+    const oppScore = params.get('oppScore') || '8';
+    const opponent = params.get('opponent') || 'AI Computer';
+
+    const user = JSON.parse(localStorage.getItem('edurank-user') || '{}');
+
+    const uName = document.querySelector('.px-space-xl .font-title-md');
+    if (uName && user.name) uName.textContent = user.name;
+    
+    const oName = document.querySelectorAll('.px-space-xl .font-title-md')[1];
+    if (oName) oName.textContent = opponent;
+
+    const scores = document.querySelectorAll('.tabular-nums');
+    if (scores[0]) scores[0].textContent = userScore;
+    if (scores[1]) scores[1].textContent = oppScore;
+
+    const btns = document.querySelectorAll('button');
+    btns.forEach(btn => {
+      const txt = btn.textContent.trim().toLowerCase();
+      if (txt.includes('kembali')) {
+        btn.addEventListener('click', () => window.location.href = 'battle.html');
+      } else if (txt.includes('main lagi')) {
+        btn.addEventListener('click', () => window.location.href = 'battle.html');
+      }
+    });
+  });
+</script>
+</body></html>
