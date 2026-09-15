@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   port: Number(process.env.DB_PORT) || 3306,
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'edurank123',
-  database: process.env.DB_NAME || 'edu_pvp',
+  database: process.env.DB_NAME || 'edu_pvp_new',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -16,7 +16,7 @@ const pool = mysql.createPool({
 async function initDb() {
   try {
     const connection = await pool.getConnection();
-    console.log('✅ Connected to MySQL Database successfully.');
+    console.log('✅ Database connection successful.');
 
     await connection.query(`
       CREATE TABLE IF NOT EXISTS \`users\` (
@@ -73,13 +73,23 @@ async function initDb() {
       ('answer_20','Jawab 20 Soal','Jawab dua puluh soal hari ini.','answers',20,40),
       ('ranked_win_1','Menangkan 1 Ranked Match','Raih kemenangan pada satu pertandingan ranked hari ini.','ranked_wins',1,70),
       ('accuracy_70','Raih 70% Akurasi','Pertahankan akurasi jawaban minimal 70% hari ini.','accuracy',70,50)`);
-    await connection.query(`INSERT INTO subjects (name, class_id)
-      SELECT 'Informatika', 3 WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE name = 'Informatika' AND class_id = 3)`);
+    
+    // Check if subjects table exists before attempting to insert
+    const [subjectsCheck] = await connection.query(`SHOW TABLES LIKE 'subjects'`);
+    if (subjectsCheck.length > 0) {
+      await connection.query(`INSERT INTO subjects (name, class_id)
+        SELECT 'Informatika', 3 WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE name = 'Informatika' AND class_id = 3)`);
+    } else {
+      console.log('⚠️ Schema setup required: Run backend/schema.sql on your database to create all required tables.');
+    }
 
     connection.release();
-    console.log('✅ MySQL Table `users` is ready.');
+    console.log('✅ Basic database tables initialized.');
   } catch (err) {
-    console.warn('⚠️ Warning: MySQL connection not active yet or failed:', err.message);
+    console.error('❌ Database initialization failed:', err.message);
+    if (err.code === 'ER_NO_SUCH_TABLE') {
+      console.error('❌ Missing table detected. Please run backend/schema.sql on your database.');
+    }
   }
 }
 
