@@ -43,11 +43,7 @@
       </div>
     </div>
     <nav class="hidden md:flex items-center gap-space-xs bg-surface-container-low/70 p-1 rounded-xl">
-      <a href="home.html" data-path="home">Home</a>
-      <a href="home.html#home-curriculum-section" data-path="materi">Materi</a>
-      <a href="home.html#home-arena-section" data-path="battle">Battle</a>
-      <a href="leaderboard.html" data-path="leaderboard">Leaderboard</a>
-      <a href="feedback.html" data-path="feedback">Feedback</a>
+      <!-- Navigation will be populated by header.js -->
     </nav>
     <div class="flex items-center gap-space-md">
       <button id="btn-notifications" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button" aria-label="Notifications" aria-expanded="false">
@@ -69,9 +65,7 @@
 <!-- MAIN CONTENT -->
 <main class="w-full pt-20 bg-background min-h-screen">
   <div class="max-w-[1440px] mx-auto px-margin py-space-xl" id="materi-container">
-    <div class="flex flex-col w-full gap-space-lg">
-      <!-- Content will be dynamically loaded by initPdfMaterialBrowser -->
-    </div>
+    <!-- Content will be dynamically loaded by initPdfMaterialBrowser -->
   </div>
 </main>
 
@@ -95,6 +89,16 @@
   </div>
 </footer>
 
+<script src="./js/header.js"></script>
+<script src="./js/utils.js"></script>
 <script src="./js/app.js"></script>
+<script>
+  // Initialize material browser when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof initPdfMaterialBrowser === 'function') {
+      initPdfMaterialBrowser();
+    }
+  });
+</script>
 </body>
 </html>

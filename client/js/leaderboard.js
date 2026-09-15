@@ -47,13 +47,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- RENDER FUNCTIONS ---
 
   function renderHeader(user) {
-    const headerName = document.getElementById('header-user-name');
-    const headerPhoto = document.getElementById('header-user-photo');
-    const headerRank = document.getElementById('header-user-rank');
-
-    if (headerName) headerName.textContent = user.name;
-    if (headerPhoto) headerPhoto.src = user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
-    if (headerRank) headerRank.textContent = user.rank || 'Bronze';
+    // Header is now handled by header.js, but we update the notification count if needed
+    if (window.headerComponent && typeof window.headerComponent.setUnreadCount === 'function') {
+      window.headerComponent.setUnreadCount(0); // Leaderboard doesn't have unread count
+    }
   }
 
   function initNotifications() {

@@ -31,15 +31,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderHeader(user, unreadCount) {
-  const headerUserName = document.getElementById('header-user-name');
-  const headerUserPhoto = document.getElementById('header-user-photo');
-  const headerUserRank = document.getElementById('header-user-rank');
-  
-  if (headerUserName) headerUserName.textContent = user.name || 'Memuat...';
-  if (headerUserPhoto) {
-    headerUserPhoto.src = user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
+  // Header is now handled by header.js, but we need to set the notification count
+  if (window.headerComponent && typeof window.headerComponent.setUnreadCount === 'function') {
+    window.headerComponent.setUnreadCount(unreadCount);
   }
-  if (headerUserRank) headerUserRank.textContent = user.rank || '-';
 }
 
 function renderProfile(user, subjectsData) {
@@ -92,6 +87,40 @@ function renderProfile(user, subjectsData) {
       window.location.href = 'login.html';
     });
   }
+
+  // Add functionality to all buttons in profile page
+  const allButtons = document.querySelectorAll('button');
+  allButtons.forEach(btn => {
+    const buttonText = btn.textContent.trim().toLowerCase();
+    
+    // Edit Profile button
+    if (buttonText.includes('edit') && buttonText.includes('profil')) {
+      btn.addEventListener('click', () => {
+        alert('Fitur edit profil akan segera tersedia.');
+      });
+    }
+    
+    // Share Profile button
+    if (buttonText.includes('bagikan') && buttonText.includes('profil')) {
+      btn.addEventListener('click', () => {
+        alert('Fitur bagikan profil akan segera tersedia.');
+      });
+    }
+    
+    // Retake Learning Style button
+    if (buttonText.includes('tes') && buttonText.includes('ulang')) {
+      btn.addEventListener('click', () => {
+        window.location.href = 'learning-style.html';
+      });
+    }
+    
+    // Play buttons in subject ranks
+    if (buttonText.includes('mainkan')) {
+      btn.addEventListener('click', () => {
+        window.location.href = 'battle.html';
+      });
+    }
+  });
 }
 
 function updateQuickStats(user) {

@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   // Keep the competitive path together: ranks and daily missions are followed
-  // by the aggregate leaderboard, then modes, friends, and match history.
-  const curriculum = document.getElementById('home-curriculum-section');
-  const arena = document.getElementById('home-arena-section');
-  if (curriculum && arena) arena.after(curriculum);
+  // by battle history
   const token = localStorage.getItem('edurank-token');
   if (!token) {
     window.location.href = 'login.html';
@@ -27,12 +24,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderHeader(data.user, data.unreadNotifications);
     renderHero(data.user);
-    renderSubjects(data.subjectsData, data.allSubjects);
-    renderClasses(data.classes);
+    renderUserStats(data.user);
     renderMissions(data.missions);
-    renderLeaderboard(data.leaderboard, data.user);
-    renderFriends(data.friends);
     renderBattles(data.battles);
+    renderQuickMatch(data.user);
 
   } catch (err) {
     console.error('Error fetching home data:', err);
@@ -60,194 +55,64 @@ function showError(message) {
 }
 
 function renderHeader(user, unreadCount) {
-  document.getElementById('header-user-name').textContent = user.name;
-  document.getElementById('header-user-photo').src = user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
-  
-  const badge = document.getElementById('notif-badge');
-  if (unreadCount > 0) {
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
+  // Header is now handled by header.js, but we need to set the notification count
+  if (window.headerComponent && typeof window.headerComponent.setUnreadCount === 'function') {
+    window.headerComponent.setUnreadCount(unreadCount);
   }
-
-  document.getElementById('btn-notifications').addEventListener('click', async () => {
-    // Basic modal for notifications
-    const res = await fetch('/api/notifications', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('edurank-token')}` }
-    });
-    const data = await res.json();
-    
-    let modal = document.getElementById('notifications-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'notifications-modal';
-      modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
-      document.body.appendChild(modal);
-    }
-    
-    let notifHtml = '';
-    if (data.notifications && data.notifications.length > 0) {
-      notifHtml = data.notifications.map(n => `
-        <div class="p-3 border-b border-outline-variant/20 text-left">
-          <p class="font-bold text-sm text-on-surface">${n.title}</p>
-          <p class="text-xs text-on-surface-variant">${n.message}</p>
-        </div>
-      `).join('');
-    } else {
-      notifHtml = `
-        <div class="p-8 text-center text-on-surface-variant">
-          <span class="material-symbols-outlined text-4xl text-outline mb-2">notifications_off</span>
-          <p class="font-semibold text-sm">Tidak ada notifikasi saat ini.</p>
-        </div>
-      `;
-    }
-
-    modal.innerHTML = `
-      <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface">
-        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
-          <h3 class="font-bold text-lg flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary">notifications</span> Notifikasi
-          </h3>
-          <button onclick="document.getElementById('notifications-modal').remove()" class="p-1 text-on-surface-variant hover:text-on-surface">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="max-h-80 overflow-y-auto">
-          ${notifHtml}
-        </div>
-      </div>
-    `;
-  });
 }
 
 function renderHero(user) {
   document.getElementById('hero-greeting').innerHTML = `Halo, ${user.name}! <span class="inline-block animate-bounce">👋</span>`;
 }
 
-function renderSubjects(userSubjects, allSubjects) {
-  const container = document.getElementById('subjects-container');
-  if (!userSubjects || userSubjects.length === 0) {
-    container.innerHTML = `<div class="col-span-full py-10 text-center text-outline">Belum ada data mata pelajaran.</div>`;
-    return;
-  }
+function renderUserStats(user) {
+  const container = document.getElementById('user-stats-container');
+  if (!container) return;
 
-  const icons = {
-    'Fisika': 'science',
-    'Matematika': 'calculate',
-    'Bahasa Inggris': 'translate',
-    'Matematika Lanjut': 'functions',
-    'Biologi': 'biotech',
-    'Kimia': 'science',
-    'Informatika': 'code',
-    'Bahasa Indonesia': 'menu_book',
-    'Sejarah': 'history_edu',
-    'Geografi': 'public',
-    'Ekonomi': 'trending_up',
-    'Sosiologi': 'groups'
-  };
+  const xp = Math.max(0, Number(user.xp) || 0);
+  const level = Math.floor(xp / 100) + 1;
+  const elo = Math.max(0, Number(user.elo) || 0);
+  const totalBattles = Math.max(0, Number(user.totalBattles) || 0);
+  const wins = Math.max(0, Number(user.wins) || 0);
+  const losses = Math.max(0, Number(user.losses) || 0);
+  const draws = Math.max(0, Number(user.draws) || 0);
+  const winrate = totalBattles > 0 ? ((wins / totalBattles) * 100).toFixed(1) : 0;
 
-  const descriptions = {
-    'Fisika': 'Pelajari konsep fisika dan fenomena alam melalui materi dan soal latihan.',
-    'Matematika': 'Kuasai konsep matematika dari dasar hingga lanjut dengan latihan terstruktur.',
-    'Bahasa Inggris': 'Tingkatkan kemampuan bahasa Inggris untuk komunikasi dan akademik.',
-    'Matematika Lanjut': 'Pelajari matematika tingkat lanjut untuk persiapan olimpiade dan ujian.',
-    'Biologi': 'Memahami kehidupan dan organisme melalui materi biologi yang komprehensif.',
-    'Kimia': 'Eksplorasi dunia kimia dengan materi reaksi dan struktur molekul.',
-    'Informatika': 'Pelajari dasar pemrograman dan ilmu komputer untuk era digital.',
-    'Bahasa Indonesia': 'Tingkatkan kemampuan bahasa Indonesia sastra dan kebahasaan.',
-    'Sejarah': 'Pelajari peristiwa sejarah dan peradaban manusia dari masa lalu.',
-    'Geografi': 'Memahami fenomena geosfer dan interaksi manusia dengan lingkungan.',
-    'Ekonomi': 'Pelajari konsep ekonomi dan sistem pembangunan masyarakat.',
-    'Sosiologi': 'Memahami struktur sosial dan dinamika masyarakat.'
-  };
-
-  container.innerHTML = userSubjects.map(sub => {
-    const subjectName = typeof sub.subjectName === 'string' && sub.subjectName.trim() ? sub.subjectName.trim() : 'Mata Pelajaran';
-    const classLevel = Number.isFinite(Number(sub.classLevel)) ? Number(sub.classLevel) : '—';
-    const icon = icons[subjectName] || 'menu_book';
-    const elo = sub.elo === null || sub.elo === undefined ? 0 : sub.elo;
-    const rank = typeof sub.rank === 'string' && sub.rank.trim() ? sub.rank.trim() : 'Belum Ada Rank';
-    const description = descriptions[subjectName] || 'Pelajari materi dan latihan soal untuk meningkatkan pemahaman.';
-    
-    return `
-      <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow min-h-[200px]">
-        <div class="flex flex-col gap-space-sm">
-          <div class="flex items-center justify-between">
-            <div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center text-secondary">
-              <span class="material-symbols-outlined text-headline-sm">${icon}</span>
-            </div>
-            <span class="px-2.5 py-1 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm whitespace-nowrap">
-              ${rank}
-            </span>
-          </div>
-          <div class="mt-2">
-            <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Mapel Kelas ${classLevel}</span>
-            <h3 class="font-headline-sm text-headline-sm text-on-surface truncate">${subjectName}</h3>
-            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">${description}</p>
-          </div>
-          <div class="flex items-baseline gap-2 mt-1">
-            <span class="font-label-md text-label-md text-secondary font-bold">${elo} ELO</span>
-          </div>
-        </div>
-        <div class="mt-space-lg pt-space-md flex flex-col gap-space-xs bg-surface-container-low/50 -mx-space-lg -mb-space-lg p-space-md rounded-b-xl">
-          <button class="w-full py-2 bg-secondary text-on-secondary rounded-lg font-label-sm hover:bg-primary transition-colors" onclick="window.location.href='classic_lobby.html'">Mainkan</button>
-        </div>
-      </div>
-    `;
-  }).join('');
+  container.innerHTML = `
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+      <span class="material-symbols-outlined text-secondary text-headline-sm">bolt</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-bold">${xp.toLocaleString('id-ID')}</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Total XP</span>
+    </div>
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+      <span class="material-symbols-outlined text-primary text-headline-sm">workspace_premium</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-bold">Level ${level}</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Level Akun</span>
+    </div>
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+      <span class="material-symbols-outlined text-tertiary-container text-headline-sm">military_tech</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-bold">${elo.toLocaleString('id-ID')}</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Total ELO</span>
+    </div>
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+      <span class="material-symbols-outlined text-secondary text-headline-sm">emoji_events</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-bold">${winrate}%</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Win Rate</span>
+    </div>
+  `;
 }
 
-function renderClasses(classes) {
-  const container = document.getElementById('classes-container');
-  if (!classes || classes.length === 0) {
-    container.innerHTML = `<div class="col-span-full text-center text-outline py-8">Tidak ada kelas aktif.</div>`;
-    return;
+function renderQuickMatch(user) {
+  // Add Quick Match button functionality to hero section
+  const quickMatchBtn = document.getElementById('btn-quick-match');
+  if (quickMatchBtn) {
+    quickMatchBtn.addEventListener('click', () => {
+      window.location.href = 'battle.html';
+    });
   }
-
-  const classIcons = {
-    '10': 'looks_one',
-    '11': 'looks_two', 
-    '12': 'looks_3'
-  };
-
-  const classDescriptions = {
-    '10': 'Fondasi konsep dasar untuk persiapan materi tingkat menengah.',
-    '11': 'Pengembangan konsep lanjut dan persiapan ujian akhir.',
-    '12': 'Materi intensif untuk persiapan ujian masuk perguruan tinggi.'
-  };
-
-  container.innerHTML = classes.map(c => {
-    const level = c.level || '—';
-    const icon = classIcons[level] || 'school';
-    const name = c.name || `Kelas ${level}`;
-    const description = c.description || classDescriptions[level] || 'Pelajari materi kurikulum sesuai tingkat kelas.';
-    
-    return `
-      <div class="bg-surface-container-lowest rounded-2xl p-space-xl shadow-sm flex flex-col justify-between opacity-80 hover:opacity-100 transition-opacity relative overflow-hidden">
-        ${c.is_active ? '<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>' : ''}
-        <div class="flex flex-col gap-space-md relative">
-          <div class="flex items-center justify-between">
-            <div class="w-10 h-10 rounded-xl ${c.is_active ? 'bg-secondary text-on-secondary' : 'bg-surface-container-low text-on-surface'} flex items-center justify-center">
-              <span class="material-symbols-outlined text-headline-sm">${icon}</span>
-            </div>
-            <span class="px-3 py-1 rounded-full ${c.is_active ? 'bg-secondary text-on-secondary' : 'bg-surface-container'} font-label-sm text-label-sm font-bold">
-              ${c.is_active ? 'Siap Dipelajari' : 'Segera Hadir'}
-            </span>
-          </div>
-          <div>
-            <h3 class="font-headline-md text-headline-md text-on-surface">${name}</h3>
-            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">${description}</p>
-          </div>
-        </div>
-        <div class="mt-space-xl pt-space-md">
-          <button class="w-full py-3 rounded-lg ${c.is_active ? 'bg-secondary text-on-secondary hover:bg-primary' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'} font-label-md transition-colors" type="button">
-            ${c.is_active ? 'Buka Modul Kelas' : 'Nyalakan Notifikasi Rilis'}
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
 }
+
+
 
 function renderMissions(missions) {
   const container = document.getElementById('missions-container');
@@ -291,112 +156,9 @@ function renderMissions(missions) {
   }).join('');
 }
 
-function renderLeaderboard(leaderboard, currentUser) {
-  const container = document.getElementById('leaderboard-container');
-  if (!leaderboard || leaderboard.length === 0) {
-    container.innerHTML = `<div class="p-10 text-center text-outline">Belum ada data peringkat nasional.</div>`;
-    return;
-  }
 
-  let html = `<table class="w-full text-left border-collapse">
-    <thead class="border-b border-surface-container-high font-label-md text-label-md text-outline">
-      <tr>
-        <th class="py-3 px-4 text-center w-16">#</th>
-        <th class="py-3 px-4">Siswa</th>
-        <th class="py-3 px-4">Gelar</th>
-        <th class="py-3 px-4 text-right">ELO Rating</th>
-        <th class="py-3 px-4 text-center">Winrate</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-surface-container-high font-body-md text-body-md">
-  `;
 
-  leaderboard.forEach((u, index) => {
-    const rankNum = index + 1;
-    let rankBadge = `<span class="font-bold text-outline">#${rankNum}</span>`;
-    if (rankNum === 1) rankBadge = `<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-bold flex items-center justify-center mx-auto shadow-sm">1</div>`;
-    else if (rankNum === 2) rankBadge = `<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface font-bold flex items-center justify-center mx-auto shadow-sm">2</div>`;
-    else if (rankNum === 3) rankBadge = `<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface font-bold flex items-center justify-center mx-auto shadow-sm">3</div>`;
-    
-    let winrate = '0%';
-    if (u.total_battles > 0) winrate = Math.round((u.wins / u.total_battles) * 100) + '%';
 
-    html += `
-      <tr class="hover:bg-surface-container-low/50 transition-colors">
-        <td class="py-3.5 px-4 text-center">${rankBadge}</td>
-        <td class="py-3.5 px-4">
-          <div class="flex items-center gap-3">
-            <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`}" class="w-8 h-8 rounded-full">
-            <span class="font-label-lg text-label-lg text-on-surface font-bold">${u.name}</span>
-          </div>
-        </td>
-        <td class="py-3.5 px-4"><span class="font-label-md text-label-md text-secondary font-bold">${u.rank_name || 'Bronze'}</span></td>
-        <td class="py-3.5 px-4 text-right"><span class="font-headline-sm text-headline-sm font-bold text-on-surface">${u.total_elo || 0}</span></td>
-        <td class="py-3.5 px-4 text-center"><span class="font-label-md text-label-md text-on-surface font-bold">${winrate}</span></td>
-      </tr>
-    `;
-  });
-
-  html += `</tbody></table>`;
-  container.innerHTML = html;
-}
-
-function renderFriends(friends) {
-  const container = document.getElementById('friends-container');
-  if (!friends || friends.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-outline">Belum ada teman yang ditambahkan.</div>`;
-  } else {
-    container.innerHTML = friends.map(f => `
-      <div class="p-space-sm rounded-xl bg-surface-container-low flex items-center justify-between">
-        <div class="flex items-center gap-space-sm min-w-0">
-          <img src="${f.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(f.name)}&background=random`}" class="w-9 h-9 rounded-full">
-          <div class="flex flex-col min-w-0">
-            <span class="font-label-md text-label-md text-on-surface font-bold truncate">${f.name}</span>
-            <span class="font-body-sm text-body-sm text-tertiary-container font-semibold">Online</span>
-          </div>
-        </div>
-        <button class="px-2.5 py-1 rounded-md bg-secondary text-on-secondary font-label-sm text-label-sm hover:bg-primary transition-colors flex-shrink-0" onclick="window.location.href='classic_lobby.html'">
-          Tantang
-        </button>
-      </div>
-    `).join('');
-  }
-
-  // Handle Add Friend Search
-  const searchInput = document.getElementById('search-friend-input');
-  if (searchInput) {
-    searchInput.addEventListener('keypress', async (e) => {
-      if (e.key === 'Enter') {
-        const q = searchInput.value.trim();
-        if (q) {
-          try {
-            const token = localStorage.getItem('edurank-token');
-            const res = await fetch('/api/friends/search?q=' + encodeURIComponent(q), {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (data.success && data.users.length > 0) {
-              const u = data.users[0];
-              if (confirm(`Tambahkan ${u.name} sebagai teman?`)) {
-                await fetch('/api/friends/request', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                  body: JSON.stringify({ receiverId: u.id }) // Sender is handled by token on backend, wait actually I might need to send senderId based on my simplified API.
-                });
-                alert('Berhasil ditambahkan!');
-                window.location.reload();
-              }
-            } else {
-              alert('Teman tidak ditemukan.');
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
-      }
-    });
-  }
-}
 
 function renderBattles(battles) {
   const container = document.getElementById('battle-history-container');
@@ -421,11 +183,18 @@ function renderBattles(battles) {
           </div>
         </div>
         <div class="flex items-center gap-space-lg w-full md:w-auto justify-between md:justify-end">
-          <button class="px-3 py-1.5 rounded-lg bg-surface-container-lowest text-secondary font-label-sm text-label-sm font-semibold shadow-sm hover:bg-surface-container transition-colors" type="button">
+          <button class="battle-review-btn px-3 py-1.5 rounded-lg bg-surface-container-lowest text-secondary font-label-sm text-label-sm font-semibold shadow-sm hover:bg-surface-container transition-colors" type="button" data-battle-id="${b.id}">
             Tinjau Pembahasan
           </button>
         </div>
       </div>
     `;
   }).join('');
+
+  // Add event listeners to review buttons
+  container.querySelectorAll('.battle-review-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      alert('Fitur tinjau pembahasan akan segera tersedia.');
+    });
+  });
 }

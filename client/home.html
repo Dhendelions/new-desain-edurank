@@ -58,11 +58,7 @@ html {
       </div>
     </div>
     <nav class="hidden md:flex items-center gap-space-xs bg-surface-container-low/70 p-1 rounded-xl">
-      <a href="home.html" data-path="home">Home</a>
-      <a href="home.html#home-curriculum-section" data-path="materi">Materi</a>
-      <a href="home.html#home-arena-section" data-path="battle">Battle</a>
-      <a href="leaderboard.html" data-path="leaderboard">Leaderboard</a>
-      <a href="feedback.html" data-path="feedback">Feedback</a>
+      <!-- Navigation will be populated by header.js -->
     </nav>
     <div class="flex items-center gap-space-md">
       <button id="btn-notifications" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button" aria-label="Notifications" aria-expanded="false">
@@ -80,9 +76,9 @@ html {
     </div>
   </div>
 </header><main class="w-full pt-20 bg-background min-h-screen"><div class="max-w-[1360px] mx-auto px-margin py-space-xl"><div class="flex flex-col w-full gap-space-xl">
-<!-- SECTION 1: HERO & STUDENT ACADEMIC RANK -->
-<section id="home-rank-section" class="flex flex-col gap-space-lg">
-<!-- Hero Greeting & Motivation Header -->
+<!-- SECTION 1: HERO & USER ACTIVITY -->
+<section id="home-hero-section" class="flex flex-col gap-space-lg">
+<!-- Hero Greeting & User Stats -->
 <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm">
 <div class="flex flex-col gap-space-xs max-w-2xl">
 <div class="flex items-center gap-space-xs">
@@ -110,34 +106,49 @@ html {
 <span class="font-semibold">Multiplayer</span>
 </div>
 </div>
-<div class="flex flex-wrap items-center gap-space-md w-full lg:w-auto mt-space-md">
-<button class="flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-secondary text-on-secondary font-label-lg text-label-lg shadow-sm hover:bg-primary transition-all duration-200" type="button">
-<span class="material-symbols-outlined text-body-lg">flash_on</span>
-<span class="">Mulai Mode Ranked</span>
-</button>
-<button class="flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-surface-container-low text-on-surface font-label-lg text-label-lg hover:bg-surface-container transition-colors" type="button">
-<span class="material-symbols-outlined text-body-lg">insights</span>
-<span class="">Lihat Leaderboard&nbsp;</span>
-</button>
-</div>
 </div>
 </div>
 
-<!-- Lima mata pelajaran dengan rank dari data user -->
-<div class="mt-space-lg">
-<h3 class="font-headline-md text-headline-md text-on-surface mb-space-md">Peringkat Mata Pelajaran</h3>
-<div id="subjects-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md">
-  <div class="col-span-full py-10 text-center text-outline">
+<!-- User Progress Stats -->
+<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm">
+<div class="flex items-center gap-space-md mb-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-headline-sm">trending_up</span>
+</div>
+<div class="flex flex-col">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Progress & Statistik</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Statistik akademik dan performa pertandinganmu.</p>
+</div>
+</div>
+<div id="user-stats-container" class="grid grid-cols-2 md:grid-cols-4 gap-space-md">
+  <div class="text-outline py-4 text-center">
     <div class="flex flex-col items-center gap-2">
-      <span class="material-symbols-outlined text-4xl animate-pulse">hourglass_empty</span>
-      <p>Memuat data mata pelajaran...</p>
+      <span class="material-symbols-outlined text-2xl animate-pulse">hourglass_empty</span>
+      <p>Memuat statistik...</p>
     </div>
   </div>
 </div>
 </div>
 
-<!-- Quick Daily Quests Progress Card -->
-<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-lg mt-space-lg">
+<!-- Quick Match CTA -->
+<div class="bg-gradient-to-r from-secondary to-primary p-space-xl rounded-2xl shadow-sm">
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary-container text-headline-lg">flash_on</span>
+<h3 class="font-headline-lg text-headline-lg text-on-primary font-bold">Quick Match</h3>
+</div>
+<p class="font-body-md text-body-md text-on-primary/90">Langsung main tanpa pusing - pilih mapel dan cari lawan!</p>
+</div>
+<button id="btn-quick-match" class="flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-lg bg-surface-container-lowest text-secondary font-label-lg text-label-lg shadow-sm hover:bg-surface-container transition-all duration-200" type="button">
+<span class="material-symbols-outlined text-body-lg">play_arrow</span>
+<span class="">Mulai Sekarang</span>
+</button>
+</div>
+</div>
+
+<!-- Daily Quests -->
+<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-lg">
 <div class="flex items-center gap-space-md">
 <div class="w-12 h-12 rounded-xl bg-tertiary-container/10 flex items-center justify-center text-tertiary-container">
 <span class="material-symbols-outlined text-headline-sm">task_alt</span>
@@ -161,157 +172,26 @@ html {
 </div>
 </div>
 </section>
-<!-- SECTION 2: KURIKULUM & MATERI KELAS (KELAS 10, 11, 12) -->
-<section id="home-curriculum-section" class="flex flex-col gap-space-lg scroll-mt-28">
-<span id="materi" class="absolute -mt-28" aria-hidden="true"></span>
+<!-- SECTION 2: BATTLE HISTORY (Riwayat Pertandingan) -->
+<section id="home-battle-history-section" class="flex flex-col gap-space-lg">
+<span id="battle-history" class="absolute -mt-28" aria-hidden="true"></span>
 <div class="flex flex-col gap-space-xs max-w-2xl">
-<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">Materi</span>
+<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">Battle History</span>
 <h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
-          Eksplorasi Materi Pembelajaran
-        </h2>
-<p class="font-body-md text-body-md text-on-surface-variant">
-          Materi sesuai Kurikulum Merdeka dan latihan soal untuk meningkatkan kemampuan serta persiapan PTN.
-        </p>
-</div>
-<!-- 3 Grade Cards (Kelas 10, 11, 12) -->
-<div id="classes-container" class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg items-stretch">
-  <div class="col-span-full text-center text-outline py-8">Memuat kelas aktif...</div>
-</div>
-
-</section>
-<!-- SECTION 3: BATTLE ARENA AKADEMIK (ARENA ADU PENGETAHUAN) -->
-<section id="home-arena-section" class="flex flex-col gap-space-lg scroll-mt-28">
-<span id="battle" class="absolute -mt-28" aria-hidden="true"></span>
-<div class="flex flex-col gap-space-xs max-w-2xl">
-<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">Multiplayer Sync &amp; Duel Prestasi</span>
-<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
-        Arena Kompetisi &amp; Battle Pembelajaran Pelajar
+        Riwayat Pertandingan Terakhir
       </h2>
 <p class="font-body-md text-body-md text-on-surface-variant">
-        Uji ketangkasan intelektual secara real-time bersama rekan sebaya se-Indonesia. Raih poin ELO tertinggi untuk mengharumkan nama sekolah.
+        Lihat performa pertandinganmu dan analisis kemajuan akademik.
       </p>
-</div>
-<!-- Leaderboard nasional gabungan semua mapel -->
-<div class="bg-surface-container-lowest rounded-2xl p-space-xl shadow-sm flex flex-col gap-space-lg">
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-<div class="flex items-center gap-space-xs">
-<span class="material-symbols-outlined text-secondary text-headline-sm">trophy</span>
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Leaderboard Nasional Pelajar</h3>
-</div>
-<span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container-low text-secondary font-label-md font-bold"><span class="material-symbols-outlined text-body-lg">public</span>Semua Mapel</span>
-</div>
-<!-- Podium Top 3 Pelajar Nasional -->
-<div id="leaderboard-container" class="overflow-x-auto w-full">
-  <div class="p-10 text-center text-outline">Memuat leaderboard...</div>
-</div>
-<!-- Leaderboard Rank 4 to 6 Summary -->
-
-<!-- Current User Position Sticky Bar -->
-
-</div>
-<!-- Battle Modes & Friend List Side-by-Side -->
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-space-lg items-start">
-<!-- 3 Game Mode Selection (2 Cols on XL) -->
-<div class="xl:col-span-2 flex flex-col gap-space-md">
-<div class="flex items-center justify-between">
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Pilih Mode Pertandingan</h3>
-
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-<!-- 1. Ranked Match -->
-<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex flex-col gap-space-sm">
-<div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
-<span class="material-symbols-outlined text-headline-sm">swords</span>
-</div>
-<h4 class="font-headline-sm text-headline-sm text-on-surface mt-2">Ranked Match</h4>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Kompetitif resmi ELO rating 1 vs 1. 45 detik per soal. Taruhan medali peringkat nasional.</p>
-<div class="flex items-center gap-1 text-secondary font-label-sm text-label-sm font-bold mt-2">
-<span class="material-symbols-outlined text-body-sm">timer</span>
-<span class="">45 Detik / Soal</span>
-</div>
-</div>
-<button class="mt-space-lg w-full py-2.5 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-primary transition-colors" type="button">
-              Cari Lawan Duel
-            </button>
-</div>
-<!-- 2. Classic Match -->
-<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex flex-col gap-space-sm">
-<div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
-<span class="material-symbols-outlined text-headline-sm">smart_toy</span>
-</div>
-<h4 class="font-headline-sm text-headline-sm text-on-surface mt-2">Classic Match</h4>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Latihan santai tanpa risiko penurunan ELO. Mode uji materi solo atau tanding kasual.</p>
-<div class="flex items-center gap-1 text-outline font-label-sm text-label-sm font-semibold mt-2">
-<span class="material-symbols-outlined text-body-sm">shield</span>
-<span class="">Bebas Pinalti Poin</span>
-</div>
-</div>
-<button class="mt-space-lg w-full py-2.5 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-primary transition-colors" type="button">
-              Main Classic
-            </button>
-</div>
-<!-- 3. Custom Room -->
-<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex flex-col gap-space-sm">
-<div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
-<span class="material-symbols-outlined text-headline-sm">groups</span>
-</div>
-<h4 class="font-headline-sm text-headline-sm text-on-surface mt-2">Custom Room</h4>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Buat ruang belajar kelompok kustom hingga 8 siswa. Ideal untuk kelas atau grup belajar.</p>
-<div class="flex items-center gap-1 text-outline font-label-sm text-label-sm font-semibold mt-2">
-<span class="material-symbols-outlined text-body-sm">key</span>
-<span class="">Kode Akses Privat</span>
-</div>
-</div>
-<div class="mt-space-lg flex items-center gap-2">
-<button class="flex-1 py-2 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm hover:bg-primary transition-colors" type="button">
-                Buat Room
-              </button>
-<button class="flex-1 py-2 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm hover:bg-primary transition-colors" type="button">
-                Gabung Kode
-              </button>
-</div>
-</div>
-</div>
-</div>
-<!-- Friend List & Realtime Status Widget -->
-<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md w-full">
-<div class="flex items-center justify-between pb-space-sm">
-<div class="flex items-center gap-2">
-<h4 class="font-headline-sm text-headline-sm text-on-surface">Teman Seperjuangan</h4>
-</div>
-<button id="btn-add-friend" class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary hover:bg-surface-container transition-colors" title="Tambah Teman" type="button">
-<span class="material-symbols-outlined text-body-lg">person_add</span>
-</button>
-</div>
-<!-- Friend Search -->
-<div class="relative w-full mb-3">
-  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-body-lg">search</span>
-  <input id="search-friend-input" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:bg-surface-container-low transition-colors placeholder:text-outline shadow-sm" placeholder="Cari teman..." type="text">
-</div>
-<!-- Friend Items -->
-<div id="friends-container" class="flex flex-col gap-space-sm">
-  <div class="p-6 text-center text-outline">Memuat teman...</div>
-</div>
-</div>
-</div>
-<!-- Riwayat Pertandingan (History Battle) -->
-<div class="bg-surface-container-lowest rounded-2xl p-space-xl shadow-sm flex flex-col gap-space-md">
-<div class="flex items-center justify-between pb-space-xs">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary text-headline-sm">history</span>
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Riwayat Pertandingan Terakhir</h3>
-</div>
 </div>
 <!-- History Table List -->
 <div id="battle-history-container" class="flex flex-col gap-space-xs">
   <div class="p-10 text-center text-outline">Memuat riwayat battle...</div>
 </div>
-</div>
 </section>
 </div>
 </div></main><footer class="w-full bg-surface-container-lowest shadow-[0_-1px_8px_rgba(0,0,0,0.03)]"><div class="max-w-[1360px] mx-auto px-margin py-space-lg"><div class="flex flex-wrap items-center justify-center md:justify-between gap-space-md pb-space-lg border-b border-surface-container-high"><div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant"><span class="material-symbols-outlined text-tertiary-container text-body-lg">verified_user</span><span>Bebas Malware</span></div><div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant"><span class="material-symbols-outlined text-secondary text-body-lg">lock</span><span>100% Bebas Iklan Komersial</span></div></div><div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md"><p class="font-body-sm text-body-sm text-outline text-center md:text-left">© 2026 EduRank. All rights reserved.</p><a href="feedback.html" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Feedback</a></div></div></footer>
 
+<script src="./js/header.js"></script>
+<script src="./js/utils.js"></script>
 <script src="./js/app.js"></script><script src="./js/home.js"></script></body></html>

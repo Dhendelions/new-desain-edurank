@@ -563,89 +563,9 @@ function initLearningStyle() {
 }
 
 function renderHeaderAndFooter() {
-  const file = window.location.pathname.split(/[\\/]/).pop() || 'home.html';
-  const current = file.toLowerCase().replace('.html', '');
+  // Header is now handled by header.js, so we skip this
+  // Footer is still rendered here for pages that don't have their own footer
   
-  // Handle hash for Materi and Battle sections
-  const hash = window.location.hash.replace('#', '');
-  let activePath = current;
-  if (current === 'home' && hash === 'home-curriculum-section') {
-    activePath = 'materi';
-  } else if (current === 'home' && hash === 'home-arena-section') {
-    activePath = 'battle';
-  }
-
-  const nav = document.querySelector('header nav');
-  if (nav) {
-    nav.innerHTML = `
-      <a href="home.html" data-path="home" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Home</a>
-      <a href="home.html#home-curriculum-section" data-path="materi" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Materi</a>
-      <a href="home.html#home-arena-section" data-path="battle" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Battle</a>
-      <a href="leaderboard.html" data-path="leaderboard" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Leaderboard</a>
-      <a href="feedback.html" data-path="feedback" class="px-space-md py-2 transition-colors rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface">Feedback</a>
-    `;
-    
-    // Apply active state styling
-    nav.querySelectorAll('a').forEach(link => {
-      const linkPath = link.dataset.path;
-      if (linkPath === activePath) {
-        link.classList.remove('text-on-surface-variant', 'hover:text-on-surface');
-        link.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
-        link.setAttribute('aria-current', 'page');
-      } else {
-        link.classList.remove('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
-        link.classList.add('text-on-surface-variant', 'hover:text-on-surface');
-        link.removeAttribute('aria-current');
-      }
-    });
-  }
-
-  document.querySelectorAll('header a[href="#"], header a.brand').forEach((link) => {
-    if (/EduRank/i.test(link.textContent || '')) {
-      link.href = 'home.html';
-    }
-  });
-
-  document.querySelectorAll('img[alt="Profile"], .header-profile-avatar, [data-profile-link], header .w-8.h-8.rounded-full').forEach((el) => {
-    const link = el.closest('a') || el;
-    link.style.cursor = 'pointer';
-    link.onclick = (e) => {
-      if (link.tagName !== 'A') {
-        e.preventDefault();
-        window.location.href = 'profile.html';
-      }
-    };
-  });
-
-  document.querySelectorAll('button[aria-label="Notifications"], button:has(.material-symbols-outlined:contains("notifications"))').forEach((btn) => {
-    btn.onclick = (e) => {
-      e.preventDefault();
-      let modal = document.getElementById('notifications-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'notifications-modal';
-        modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
-        modal.innerHTML = `
-          <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface">
-            <div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
-              <h3 class="font-bold text-lg flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">notifications</span> Notifikasi
-              </h3>
-              <button onclick="document.getElementById('notifications-modal').remove()" class="p-1 text-on-surface-variant hover:text-on-surface">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div class="p-8 text-center text-on-surface-variant">
-              <span class="material-symbols-outlined text-4xl text-outline mb-2">notifications_off</span>
-              <p class="font-semibold text-sm">Tidak ada notifikasi saat ini.</p>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(modal);
-      }
-    };
-  });
-
   const footer = document.querySelector('footer');
   if (footer) {
     footer.className = 'relative z-10 w-full bg-surface-container-lowest/80 backdrop-blur-md shadow-[0_-1px_6px_rgba(0,0,0,0.02)] py-6 mt-auto border-t border-outline-variant/20';
@@ -664,15 +584,15 @@ function renderHeaderAndFooter() {
   }
 }
 
-// Update header on hash change for Materi/Battle navigation
-window.addEventListener('hashchange', () => {
-  renderHeaderAndFooter();
-});
+// Update header on hash change for Materi/Battle navigation - REMOVED (no longer needed)
+// window.addEventListener('hashchange', () => {
+//   renderHeaderAndFooter();
+// });
 
-// Update header on popstate (back/forward browser buttons)
-window.addEventListener('popstate', () => {
-  renderHeaderAndFooter();
-});
+// Update header on popstate (back/forward browser buttons) - REMOVED (no longer needed)
+// window.addEventListener('popstate', () => {
+//   renderHeaderAndFooter();
+// });
 
 function initMateriWorkspace() {
   const materiContainer = document.querySelector('main .max-w-\\[1440px\\], main .max-w-7xl');
@@ -889,7 +809,11 @@ async function initPdfMaterialBrowser() {
     if (level && !subject) { heading = 'Pilih Mata Pelajaran'; description = level; items = Object.keys(catalog[level] || {}); }
     if (level && subject && !subchapter) { heading = 'Pilih Sub Bab'; description = `${level} · ${subject}`; items = Object.keys(catalog[level]?.[subject] || {}); }
     if (level && subject && subchapter) { heading = 'Pilih Materi'; description = `${level} · ${subject} · ${subchapter}`; items = catalog[level]?.[subject]?.[subchapter] || []; }
-    host.innerHTML = `<section class="space-y-space-lg"><div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20"><button id="material-nav-back" class="${level ? '' : 'hidden'} mb-3 px-3 py-2 rounded-lg bg-surface-container-low text-primary font-semibold">← Kembali</button><h1 class="font-headline-lg text-display-lg font-bold text-on-surface">${heading}</h1><p class="mt-2 text-on-surface-variant">${escapeHtml(description)}</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">${items.length ? items.map((item) => typeof item === 'string' ? card(item, 'Buka pilihan berikutnya', `data-choice="${escapeHtml(item)}"`) : card(item.title, item.type, `data-material="${item.id}"`)).join('') : '<p class="text-on-surface-variant">Materi belum tersedia.</p>'}</div></section>`;
+    
+    const contentHtml = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">${items.length ? items.map((item) => typeof item === 'string' ? card(item, 'Buka pilihan berikutnya', `data-choice="${escapeHtml(item)}"`) : card(item.title, item.type, `data-material="${item.id}"`)).join('') : '<p class="text-on-surface-variant col-span-full text-center py-8">Materi belum tersedia.</p>'}</div>`;
+    
+    host.innerHTML = `<section class="space-y-space-lg"><div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20"><button id="material-nav-back" class="${level ? '' : 'hidden'} mb-3 px-3 py-2 rounded-lg bg-surface-container-low text-primary font-semibold">← Kembali</button><h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">${heading}</h1><p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">${escapeHtml(description)}</p></div>${contentHtml}</section>`;
+    
     document.getElementById('material-nav-back').onclick = () => { if (subchapter) subchapter = null; else if (subject) subject = null; else level = null; render(); };
     host.querySelectorAll('[data-choice]').forEach((el) => el.onclick = () => { const value = el.dataset.choice; if (!level) level = value; else if (!subject) subject = value; else subchapter = value; render(); });
     host.querySelectorAll('[data-material]').forEach((el) => el.onclick = () => render(el.dataset.material));
@@ -909,6 +833,19 @@ function initRealtimeBattle() {
   socket.on('connect_error', () => say('Koneksi terputus. Mencoba menghubungkan kembali...'));
   socket.on('matchmaking_waiting', () => say('Mencari lawan… Menunggu pemain lain untuk bergabung.'));
   socket.on('match_found', (room) => { sessionStorage.setItem('edurank-room', room.roomId); say('Lawan ditemukan. Siapkan diri di lobi.'); });
+}
+
+// Initialize all page-specific functions
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  initLearningStyle();
+  initMateriWorkspace();
+  initClassicLobbyWorkspace();
+  initRealtimeBattle();
+  
+  // initPdfMaterialBrowser is called separately in materi.html
+  // to avoid conflicts with other page initializations
+});
   socket.on('lobby_update', (room) => { sessionStorage.setItem('edurank-room', room.roomId); say(`Custom Lobby · ${room.subject} · ${room.players.length}/2 pemain`); });
   socket.on('battle_start', (room) => { sessionStorage.setItem('edurank-room', room.roomId); window.location.href = file.includes('custom') ? 'custom_battle.html' : 'classic_battle.html'; });
   socket.on('opponent_disconnected', () => say('Lawan terputus.'));
