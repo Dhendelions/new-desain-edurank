@@ -62,6 +62,16 @@ async function initDb() {
       }
     }
 
+    // Add opponent_name to battles if not exists
+    try {
+      await connection.query('ALTER TABLE `battles` ADD COLUMN `opponent_name` VARCHAR(255) DEFAULT NULL AFTER `opponent_id`');
+      console.log('✅ Added opponent_name column to battles table.');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') {
+        console.log('Note: opponent_name column already exists or battles table not yet created.');
+      }
+    }
+
     connection.release();
     console.log('✅ MySQL Table `users` is ready.');
   } catch (err) {

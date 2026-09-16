@@ -49,10 +49,12 @@ class BattlePageManager {
 
       this.socket.on('match_found', (room) => {
         this.hideLobbyLoaders();
+        const currentUserId = window.headerComponent?.user?.id;
+        const oppPlayer = room.players.find(p => String(p.id) !== String(currentUserId));
         this.startBattle(room.mode || this.selectedMode, {
           isAi: false,
-          name: room.players.find(p => p.id !== (window.headerComponent?.user?.id))?.name || 'Lawan Real-Time'
-        });
+          name: oppPlayer?.name || 'Lawan Real-Time'
+        }, room.roomId);
       });
 
       this.socket.on('battle_error', (data) => {
@@ -117,7 +119,7 @@ class BattlePageManager {
           </div>
           <div class="flex flex-col min-w-0">
             <span class="font-title-md text-title-md font-bold text-on-surface">${subject.name}</span>
-            <span class="font-body-sm text-body-sm text-on-surface-variant">Kurikulum Merdeka • Kelas ${subject.class_level || subject.classLevel || 12}</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">${subject.name}</span>
           </div>
         </button>
       `;
@@ -410,7 +412,7 @@ class BattlePageManager {
     }
   }
 
-  startBattle(mode, opponentConfig = {}) {
+  startBattle(mode, opponentConfig = {}, roomId = null) {
     const lobbyView = document.getElementById('battle-lobby-view');
     const arenaView = document.getElementById('battle-arena-view');
     const resultView = document.getElementById('battle-result-view');
@@ -433,6 +435,7 @@ class BattlePageManager {
       subject: this.selectedSubject.name,
       subjectId: this.selectedSubject.id,
       socket: this.socket,
+      roomId: roomId,
       opponent: opponentConfig
     });
   }

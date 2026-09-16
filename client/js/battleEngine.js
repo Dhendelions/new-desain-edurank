@@ -38,7 +38,7 @@ class BattleEngine {
         const opp = room.players.find(p => String(p.id) !== String(this.user.id));
         if (opp) {
           if (room.score && room.score[opp.id] !== undefined) {
-            this.opponentScore = room.score[opp.id];
+            this.opponentScore = Number(room.score[opp.id]);
           }
           if (room.progress && room.progress[opp.id] !== undefined) {
             this.opponentProgress = room.progress[opp.id];
@@ -50,11 +50,25 @@ class BattleEngine {
         }
       });
 
+      // Listen for direct score updates (faster path, no wait for question advance)
+      this.socket.on('player_score_update', (data) => {
+        if (!data) return;
+        const oppId = String(data.playerId);
+        if (oppId !== String(this.user.id)) {
+          this.opponentScore = Number(data.score);
+          this.updatePlayerUI();
+        }
+      });
+
       this.socket.on('next_question', (data) => {
+        // Guard against duplicate next_question events for the same index
+        const incoming = Number(data && data.questionIndex != null ? data.questionIndex : this.currentQuestionIndex + 1);
+        if (incoming <= this.currentQuestionIndex) return; // already advanced or stale
+
         // Hapus notice menunggu lawan
         const delayNotice = document.getElementById('battle-delay-notice');
         if (delayNotice) delayNotice.remove();
-        
+
         this.nextQuestion();
       });
 
@@ -62,10 +76,10 @@ class BattleEngine {
         // Lawan keluar, otomatis menang
         const delayNotice = document.getElementById('battle-delay-notice');
         if (delayNotice) delayNotice.remove();
-        
+
         // Buat score opponent kalah telak agar player menang
         this.opponentScore = -999;
-        
+
         // Selesaikan battle
         this.finishBattle('disconnected');
       });
@@ -164,6 +178,14 @@ class BattleEngine {
     this.p2ScoreEl = document.getElementById('p2-score');
 
     this.updatePlayerUI();
+    // Anti-cheat: detect tab/window switch during ranked matches
+    document.addEventListener('visibilitychange', () => {
+      if (this.mode === 'ranked' && document.hidden) {
+        // Immediate loss
+        this.userScore = -999;
+        this.finishBattle();
+      }
+    });
   }
 
   updatePlayerUI() {
@@ -305,12 +327,14 @@ class BattleEngine {
     });
 
     if (this.socket && this.roomId) {
+      // Emit score update immediately for real-time display on opponent's screen
       this.socket.emit('battle_answer', {
         roomId: this.roomId,
         score: this.userScore,
         questionIndex: this.currentQuestionIndex + 1
       });
-      
+
+      // Ready for next question
       this.socket.emit('player_ready_next', {
         roomId: this.roomId,
         questionIndex: Number(this.currentQuestionIndex + 1)
@@ -408,7 +432,7 @@ class BattleEngine {
       xpGained = isWin ? 50 : (isDraw ? 25 : 10);
     } else if (this.mode === 'classic') {
       eloChange = 0;
-      xpGained = isWin ? 40 : (isDraw ? 20 : 10);
+      xpGained = isWin ? 50 : (isDraw ? 20 : 10);
     } else {
       eloChange = 0;
       xpGained = 0;

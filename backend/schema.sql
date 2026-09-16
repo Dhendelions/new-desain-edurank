@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS `battles` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` VARCHAR(100) NOT NULL,
   `opponent_id` VARCHAR(100),
+  `opponent_name` VARCHAR(255) DEFAULT NULL,
   `subject_id` INT NOT NULL,
   `result` ENUM('win', 'loss', 'draw') NOT NULL,
   `elo_change` INT NOT NULL,
@@ -108,6 +109,8 @@ CREATE TABLE IF NOT EXISTS `battles` (
   SET NULL,
     FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+-- Migration: add opponent_name if it does not exist
+ALTER TABLE `battles` ADD COLUMN IF NOT EXISTS `opponent_name` VARCHAR(255) DEFAULT NULL;
 -- 8. Tabel Missions (Misi Harian)
 CREATE TABLE IF NOT EXISTS `missions` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

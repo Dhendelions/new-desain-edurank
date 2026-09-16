@@ -602,19 +602,21 @@ app.post('/api/battles/record', async (req, res) => {
     const eloDelta = Number(eloChange) || 0;
     const subjId = Number(subjectId) || 1;
 
+    const oppName = String(opponentName || 'Lawan').substring(0, 100);
+
     // 1. Insert battle history record
     await pool.query(
-      `INSERT INTO battles (user_id, opponent_id, subject_id, result, elo_change, mode, created_at)
-       VALUES (?, NULL, ?, ?, ?, ?, NOW())`,
-      [userId, subjId, battleResult, eloDelta, battleMode]
+      `INSERT INTO battles (user_id, opponent_id, opponent_name, subject_id, result, elo_change, mode, created_at)
+       VALUES (?, NULL, ?, ?, ?, ?, ?, NOW())`,
+      [userId, oppName, subjId, battleResult, eloDelta, battleMode]
     );
 
     // 2. Determine XP & ELO deltas
     let xpDelta = 0;
     if (battleMode === 'ranked') {
-      xpDelta = battleResult === 'win' ? 30 : 10;
+      xpDelta = battleResult === 'win' ? 50 : (battleResult === 'draw' ? 25 : 10);
     } else if (battleMode === 'classic') {
-      xpDelta = battleResult === 'win' ? 20 : 10;
+      xpDelta = battleResult === 'win' ? 50 : (battleResult === 'draw' ? 20 : 10);
     }
 
     const isWin = battleResult === 'win' ? 1 : 0;
@@ -664,7 +666,7 @@ app.get('/api/battles', async (req, res) => {
 
     const [battles] = await pool.query(`
       SELECT b.id, b.result, b.elo_change, b.mode, b.created_at, 
-             COALESCE(u.name, 'Lawan EduBot') as opponent_name, 
+             COALESCE(b.opponent_name, u.name, 'Lawan EduBot') as opponent_name, 
              COALESCE(s.name, 'Fisika') as subject_name
       FROM battles b
       LEFT JOIN users u ON b.opponent_id = u.id

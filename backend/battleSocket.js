@@ -161,7 +161,10 @@ function configureBattleSocket(server, secret) {
       if (questionIndex !== undefined) {
         room.progress[player.id] = questionIndex;
       }
+      // Broadcast full room state
       emitRoom(room, 'battle_update');
+      // Also emit a fast targeted score update so opponent's UI refreshes instantly
+      io.to(roomId).emit('player_score_update', { playerId: player.id, score: room.score[player.id] });
     });
 
     // PLAYER READY FOR NEXT QUESTION

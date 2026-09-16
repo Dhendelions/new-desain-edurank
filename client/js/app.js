@@ -145,6 +145,17 @@ function readJson(key, fallback) {
   }
 }
 
+// Purge all per-user cached data from localStorage when a new user logs in/registers.
+// This prevents stale data from a previous account showing up on the same device.
+function clearStaleUserData() {
+  const keysToRemove = [
+    'edurank-user',
+    'edurank-battle-history',
+    LEARNING_KEY
+  ];
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+}
+
 function readSession() {
   return readJson(APP_STORAGE_KEY, {});
 }
@@ -345,9 +356,11 @@ function initAuth() {
           });
           const result = await response.json().catch(() => null);
           if (response.ok && result && result.success && result.user) {
+            clearStaleUserData();
             saveUser(result.user);
             setUserSession(result.user);
             if (result.token) localStorage.setItem('edurank-token', result.token);
+            if (result.user) localStorage.setItem('edurank-user', JSON.stringify(result.user));
             setNotice('Registrasi berhasil! Mengarahkan ke learning style...', true);
             shouldRedirect = true;
             setTimeout(() => {
@@ -463,9 +476,11 @@ function initAuth() {
           });
           const result = await response.json().catch(() => null);
           if (response.ok && result && result.success && result.user) {
+            clearStaleUserData();
             saveUser(result.user);
             setUserSession(result.user);
             if (result.token) localStorage.setItem('edurank-token', result.token);
+            if (result.user) localStorage.setItem('edurank-user', JSON.stringify(result.user));
             setNotice('Login berhasil! Mengarahkan ke dashboard...', true);
             // Check if user already has learning style
             const targetPage = result.user.learningStyle ? 'home.html' : 'learning-style.html';
