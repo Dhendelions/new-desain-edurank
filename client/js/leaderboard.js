@@ -169,21 +169,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      const leaderboard = data.leaderboard;
+      const leaderboard = Array.isArray(data.leaderboard) ? data.leaderboard : [];
 
-      if (!leaderboard || leaderboard.length === 0) {
-        const emptyMsg = subjectId
-          ? 'Belum ada peringkat untuk mata pelajaran ini.'
-          : 'Belum ada peringkat. Jadilah salah satu yang pertama masuk leaderboard!';
-        container.innerHTML = `
-          <div class="leaderboard-empty">
-            <span class="material-symbols-outlined text-[48px]">emoji_events</span>
-            <p class="font-bold">${emptyMsg}</p>
-          </div>
-        `;
-        return;
+      // Pad up to 10 rows if fewer users exist
+      const displayRows = [...leaderboard];
+      while (displayRows.length < 10) {
+        displayRows.push({ isPlaceholder: true });
       }
-
 
       // Wire Rank Tier Modal events
       const rankModal = document.getElementById('rank-tiers-modal');
@@ -206,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       }
 
-      // Render table for all entries (sorted by ELO LP)
+      // Render table for 10 entries (sorted by ELO LP)
       let tableHtml = `
         <table class="leaderboard-table">
           <thead>
@@ -220,12 +212,24 @@ document.addEventListener('DOMContentLoaded', async () => {
           <tbody>
       `;
 
-      leaderboard.forEach((u, index) => {
+      displayRows.forEach((u, index) => {
         const rankNum = index + 1;
         let rankBadge = `<span class="rank-number">#${rankNum}</span>`;
         if (rankNum === 1) rankBadge = `<div class="rank-badge rank-1">1</div>`;
         else if (rankNum === 2) rankBadge = `<div class="rank-badge rank-2">2</div>`;
         else if (rankNum === 3) rankBadge = `<div class="rank-badge rank-3">3</div>`;
+
+        if (u.isPlaceholder) {
+          tableHtml += `
+            <tr class="opacity-50">
+              <td class="text-center">${rankBadge}</td>
+              <td><span class="text-outline font-bold pl-2">-</span></td>
+              <td><span class="text-outline font-bold">-</span></td>
+              <td class="text-right"><span class="text-outline font-bold pr-2">-</span></td>
+            </tr>
+          `;
+          return;
+        }
 
         const userElo = Number(u.elo || u.total_elo || 400);
         const rankTier = u.rank_name || calculateRank(userElo);

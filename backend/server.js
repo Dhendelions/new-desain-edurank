@@ -228,10 +228,10 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
-// 4. UPDATE USER PROFILE (LEARNING STYLE, STATS)
+// 4. UPDATE USER PROFILE (LEARNING STYLE, STATS, DISPLAY NAME, PHOTO, EMAIL)
 app.put('/api/user/update', async (req, res) => {
   try {
-    const { email, learningStyle, elo, wins, losses, draws, xp, correctAnswers, incorrectAnswers } = req.body;
+    const { email, name, photo, newEmail, learningStyle, elo, wins, losses, draws, xp, correctAnswers, incorrectAnswers } = req.body;
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email required.' });
     }
@@ -242,6 +242,10 @@ app.put('/api/user/update', async (req, res) => {
     }
 
     const current = rows[0];
+    const updatedName = name !== undefined && String(name).trim() ? String(name).trim() : current.name;
+    const updatedPhoto = photo !== undefined ? String(photo).trim() : current.photo;
+    const updatedEmail = newEmail !== undefined && String(newEmail).trim() ? String(newEmail).trim().toLowerCase() : current.email;
+
     const updatedStyle = learningStyle !== undefined ? learningStyle : current.learning_style;
     const updatedElo = elo !== undefined ? Number(elo) : current.elo;
     const updatedWins = wins !== undefined ? Number(wins) : current.wins;
@@ -254,9 +258,9 @@ app.put('/api/user/update', async (req, res) => {
 
     await pool.query(
       `UPDATE users 
-       SET learning_style = ?, elo = ?, xp = ?, wins = ?, losses = ?, draws = ?, total_battles = ?, correct_answers = ?, incorrect_answers = ?
+       SET name = ?, email = ?, photo = ?, learning_style = ?, elo = ?, xp = ?, wins = ?, losses = ?, draws = ?, total_battles = ?, correct_answers = ?, incorrect_answers = ?
        WHERE id = ?`,
-      [updatedStyle, updatedElo, updatedXp, updatedWins, updatedLosses, updatedDraws, totalBattles, updatedCorrect, updatedIncorrect, current.id]
+      [updatedName, updatedEmail, updatedPhoto, updatedStyle, updatedElo, updatedXp, updatedWins, updatedLosses, updatedDraws, totalBattles, updatedCorrect, updatedIncorrect, current.id]
     );
 
     const [updatedRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [current.id]);
@@ -471,19 +475,19 @@ app.get('/api/leaderboard', async (req, res) => {
     const subjectId = req.query.subject;
 
     if (subjectId) {
-      // Leaderboard per mapel
+      // Leaderboard per mapel (includes all users with default 100 ELO if not in user_subjects)
       const [rows] = await pool.query(`
-        SELECT u.id, u.name, u.photo, u.xp, us.elo,
+        SELECT u.id, u.name, u.photo, u.xp, COALESCE(us.elo, 100) as elo,
                u.wins, u.total_battles
-        FROM user_subjects us
-        JOIN users u ON us.user_id = u.id
-        WHERE us.subject_id = ?
-        ORDER BY us.elo DESC
+        FROM users u
+        LEFT JOIN user_subjects us ON us.user_id = u.id AND us.subject_id = ?
+        ORDER BY elo DESC, u.created_at ASC
         LIMIT 100
       `, [subjectId]);
 
       const leaderboard = await Promise.all(rows.map(async (row, index) => {
-        const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [row.elo, row.elo]);
+        const eloVal = Number(row.elo) || 100;
+        const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [eloVal, eloVal]);
         return {
           position: index + 1,
           id: row.id,
@@ -491,8 +495,8 @@ app.get('/api/leaderboard', async (req, res) => {
           photo: row.photo,
           xp: Number(row.xp) || 0,
           level: Math.floor((Number(row.xp) || 0) / 100) + 1,
-          elo: row.elo,
-          rank_name: rankRows.length > 0 ? rankRows[0].name : calculateRank(row.elo),
+          elo: eloVal,
+          rank_name: rankRows.length > 0 ? rankRows[0].name : calculateRank(eloVal),
           wins: row.wins,
           total_battles: row.total_battles
         };

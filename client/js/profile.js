@@ -105,37 +105,102 @@ function renderProfile(user, subjectsData, battles) {
     });
   }
 
-  // Add functionality to action buttons in profile header
-  const editBtn = document.querySelector('button:has(.material-symbols-outlined)');
-  const allButtons = document.querySelectorAll('button');
-  allButtons.forEach(btn => {
-    if (btn.dataset.bound) return;
-    const buttonText = btn.textContent.trim().toLowerCase();
-    
-    // Edit Profile button
-    if (buttonText.includes('edit') && buttonText.includes('profil')) {
-      btn.dataset.bound = 'true';
-      btn.addEventListener('click', () => {
-        alert('Fitur edit profil akan segera tersedia.');
-      });
-    }
-    
-    // Share Profile button
-    if (buttonText.includes('bagikan') && buttonText.includes('profil')) {
-      btn.dataset.bound = 'true';
-      btn.addEventListener('click', () => {
-        alert('Fitur bagikan profil akan segera tersedia.');
-      });
-    }
-    
-    // Retake Learning Style button
-    if (buttonText.includes('tes') && buttonText.includes('ulang')) {
-      btn.dataset.bound = 'true';
-      btn.addEventListener('click', () => {
-        window.location.href = 'learning-style.html';
-      });
-    }
-  });
+  // Edit Profile modal setup
+  const editModal = document.getElementById('edit-profile-modal');
+  const btnEdit = document.getElementById('btn-edit-profile');
+  const btnCloseEdit = document.getElementById('btn-close-edit-modal');
+  const btnCancelEdit = document.getElementById('btn-cancel-edit-modal');
+  const editForm = document.getElementById('edit-profile-form');
+  const inputName = document.getElementById('edit-input-name');
+  const inputEmail = document.getElementById('edit-input-email');
+  const inputPhoto = document.getElementById('edit-input-photo');
+
+  if (btnEdit && editModal) {
+    btnEdit.onclick = () => {
+      if (inputName) inputName.value = user.name || '';
+      if (inputEmail) inputEmail.value = user.email || '';
+      if (inputPhoto) inputPhoto.value = user.photo || '';
+      editModal.classList.remove('hidden');
+    };
+  }
+
+  const closeEditModal = () => {
+    if (editModal) editModal.classList.add('hidden');
+  };
+
+  if (btnCloseEdit) btnCloseEdit.onclick = closeEditModal;
+  if (btnCancelEdit) btnCancelEdit.onclick = closeEditModal;
+  if (editModal) {
+    editModal.onclick = (e) => {
+      if (e.target === editModal) closeEditModal();
+    };
+  }
+
+  if (editForm) {
+    editForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('btn-save-edit-profile');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
+      }
+
+      try {
+        const newName = inputName.value.trim();
+        const newEmailVal = inputEmail.value.trim().toLowerCase();
+        const newPhotoVal = inputPhoto.value.trim();
+
+        const token = localStorage.getItem('edurank-token');
+        const res = await fetch('/api/user/update', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            email: user.email,
+            name: newName,
+            newEmail: newEmailVal,
+            photo: newPhotoVal
+          })
+        });
+
+        const resData = await res.json();
+        if (resData.success && resData.user) {
+          localStorage.setItem('edurank-user', JSON.stringify(resData.user));
+          if (resData.user.email !== user.email && resData.token) {
+            localStorage.setItem('edurank-token', resData.token);
+          }
+          if (window.headerComponent && typeof window.headerComponent.init === 'function') {
+            window.headerComponent.user = resData.user;
+            window.headerComponent.updateUserInfo();
+          }
+          alert('✅ Profil berhasil diperbarui!');
+          closeEditModal();
+          window.location.reload();
+        } else {
+          alert(resData.message || 'Gagal memperbarui profil.');
+        }
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        alert('Gagal memperbarui profil. Periksa koneksi internet kamu.');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Simpan Perubahan';
+        }
+      }
+    };
+  }
+
+  // Add functionality to other action buttons in profile header
+  const btnShare = document.getElementById('btn-share-profile');
+  if (btnShare) {
+    btnShare.onclick = () => {
+      navigator.clipboard.writeText(window.location.href);
+      alert('🔗 Link profil EduRank berhasil disalin ke clipboard!');
+    };
+  }
 }
 
 function updateQuickStats(user) {
