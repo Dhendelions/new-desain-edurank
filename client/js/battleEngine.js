@@ -21,6 +21,7 @@ class BattleEngine {
     this.secondsLeft = 30;
     this.maxTime = 30;
     this.isAnswered = false;
+    this.battleFinished = false; // Guard: prevent duplicate finishBattle calls
     this.socket = options.socket || null;
     this.roomId = options.roomId || null;
     this.opponent = options.opponent || { name: 'AI Computer', isAi: true };
@@ -58,6 +59,14 @@ class BattleEngine {
           this.opponentScore = Number(data.score);
           this.updatePlayerUI();
         }
+      });
+
+      // Opponent forfeited (anti-cheat tab switch on their side)
+      this.socket.on('opponent_forfeited', () => {
+        const delayNotice = document.getElementById('battle-delay-notice');
+        if (delayNotice) delayNotice.remove();
+        this.opponentScore = -999;
+        this.finishBattle('opponent_forfeit');
       });
 
       this.socket.on('next_question', (data) => {
@@ -180,8 +189,12 @@ class BattleEngine {
     this.updatePlayerUI();
     // Anti-cheat: detect tab/window switch during ranked matches
     document.addEventListener('visibilitychange', () => {
-      if (this.mode === 'ranked' && document.hidden) {
-        // Immediate loss
+      if (this.mode === 'ranked' && document.hidden && !this.battleFinished) {
+        // Notify opponent via socket before finishing
+        if (this.socket && this.roomId) {
+          this.socket.emit('battle_forfeit', { roomId: this.roomId });
+        }
+        // Immediate loss for self
         this.userScore = -999;
         this.finishBattle();
       }
@@ -420,6 +433,8 @@ class BattleEngine {
   }
 
   async finishBattle() {
+    if (this.battleFinished) return; // Prevent duplicate calls
+    this.battleFinished = true;
     clearInterval(this.timer);
     const isWin = this.userScore > this.opponentScore;
     const isDraw = this.userScore === this.opponentScore;
