@@ -1246,7 +1246,7 @@ function initGameInteractions() {
 
     if (/daftar akun baru|buat akun|register/.test(label)) {
       route = 'register.html';
-    } else if (/edit profil|gaya belajar/.test(label)) {
+    } else if (/tes gaya belajar|gaya belajar/.test(label)) {
       route = 'learning-style.html';
     } else if (/masuk.*login|sudah punya akun|login di sini/.test(label)) {
       route = 'login.html';

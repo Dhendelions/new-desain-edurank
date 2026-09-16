@@ -410,15 +410,156 @@ app.get('/api/friends/search', async (req, res) => {
 app.post('/api/friends/request', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ success: false });
+    if (!authHeader) return res.status(401).json({ success: false, message: 'Sesi tidak valid.' });
     const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
     const senderId = decoded.id;
     const { receiverId } = req.body;
-    // Just directly add to friends table for simplicity in this demo, usually it goes to requests first
-    await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (?, ?)', [senderId, receiverId]);
-    res.json({ success: true, message: 'Berhasil ditambahkan sebagai teman.' });
+
+    if (!receiverId || receiverId === senderId) {
+      return res.status(400).json({ success: false, message: 'ID penerima tidak valid.' });
+    }
+
+    const [senderRows] = await pool.query('SELECT name FROM users WHERE id = ?', [senderId]);
+    const senderName = senderRows[0] ? senderRows[0].name : 'Teman EduRank';
+
+    // Insert notification for receiver
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, is_read, created_at)
+       VALUES (?, ?, ?, FALSE, NOW())`,
+      [receiverId, 'Permintaan Pertemanan', `${senderName} (ID: ${senderId}) ingin menambahkan kamu sebagai teman.`]
+    );
+
+    res.json({ success: true, message: 'Permintaan pertemanan berhasil dikirim!' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal menambahkan teman.' });
+    console.error('Friend Request Error:', err);
+    res.status(500).json({ success: false, message: 'Gagal mengirim permintaan pertemanan.' });
+  }
+});
+
+app.post('/api/friends/accept', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const userId = decoded.id;
+    const { senderId, notificationId } = req.body;
+
+    if (senderId) {
+      await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (?, ?)', [senderId, userId]);
+      await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (?, ?)', [userId, senderId]);
+
+      const [userRows] = await pool.query('SELECT name FROM users WHERE id = ?', [userId]);
+      const userName = userRows[0] ? userRows[0].name : 'Teman EduRank';
+
+      await pool.query(
+        `INSERT INTO notifications (user_id, title, message, is_read, created_at)
+         VALUES (?, ?, ?, FALSE, NOW())`,
+        [senderId, 'Permintaan Pertemanan Diterima', `${userName} menerima permintaan pertemanan kamu.`]
+      );
+    }
+
+    if (notificationId) {
+      await pool.query('UPDATE notifications SET is_read = TRUE WHERE id = ?', [notificationId]);
+    }
+
+    res.json({ success: true, message: 'Permintaan pertemanan diterima!' });
+  } catch (err) {
+    console.error('Accept Friend Error:', err);
+    res.status(500).json({ success: false, message: 'Gagal menerima pertemanan.' });
+  }
+});
+
+app.post('/api/friends/decline', async (req, res) => {
+  try {
+    const { notificationId } = req.body;
+    if (notificationId) {
+      await pool.query('UPDATE notifications SET is_read = TRUE WHERE id = ?', [notificationId]);
+    }
+    res.json({ success: true, message: 'Permintaan pertemanan ditolak.' });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post('/api/friends/unfriend', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const userId = decoded.id;
+    const { friendId } = req.body;
+
+    if (!friendId) return res.status(400).json({ success: false, message: 'Friend ID required.' });
+
+    await pool.query(
+      `DELETE FROM friends WHERE (user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)`,
+      [userId, friendId, friendId, userId]
+    );
+
+    res.json({ success: true, message: 'Teman berhasil dihapus.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menghapus teman.' });
+  }
+});
+
+app.post('/api/friends/whisper', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const senderId = decoded.id;
+    const { friendId, message } = req.body;
+
+    if (!friendId || !message) return res.status(400).json({ success: false, message: 'Pesan tidak boleh kosong.' });
+
+    const [senderRows] = await pool.query('SELECT name FROM users WHERE id = ?', [senderId]);
+    const senderName = senderRows[0] ? senderRows[0].name : 'Teman EduRank';
+
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, is_read, created_at)
+       VALUES (?, ?, ?, FALSE, NOW())`,
+      [friendId, `Whisper dari ${senderName}`, message]
+    );
+
+    res.json({ success: true, message: 'Whisper terkirim!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mengirim pesan.' });
+  }
+});
+
+app.post('/api/friends/invite-duel', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const senderId = decoded.id;
+    const { friendId, mode, subjectId } = req.body;
+
+    if (!friendId) return res.status(400).json({ success: false });
+
+    const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const [senderRows] = await pool.query('SELECT name FROM users WHERE id = ?', [senderId]);
+    const senderName = senderRows[0] ? senderRows[0].name : 'Teman';
+
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, is_read, created_at)
+       VALUES (?, ?, ?, FALSE, NOW())`,
+      [friendId, 'Tantangan Duel Arena!', `${senderName} mengajak kamu berduel di Custom Scrim (Kode: ${roomCode}). Masukkan kode untuk join!`]
+    );
+
+    res.json({ success: true, roomCode, message: `Undangan duel dikirim! Kode Room: ${roomCode}` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mengirim tantangan duel.' });
+  }
+});
+
+app.get('/api/user/profile/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, name, email, photo, elo, xp, wins, losses, draws, total_battles FROM users WHERE id = ? LIMIT 1', [req.params.id]);
+    if (!rows || rows.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+    res.json({ success: true, user: formatUserResponse(rows[0]) });
+  } catch (err) {
+    res.status(500).json({ success: false });
   }
 });
 
@@ -427,14 +568,14 @@ app.get('/api/notifications', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ success: false });
     const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
-    const [notifs] = await pool.query('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10', [decoded.id]);
+    const [notifs] = await pool.query('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 15', [decoded.id]);
     res.json({ success: true, notifications: notifs });
   } catch (err) {
     res.status(500).json({ success: false });
   }
 });
 
-// 6.5. BATTLE HISTORY APIS
+// 6.5. BATTLE HISTORY & STATS ENHANCED PERSISTENCE API
 app.post('/api/battles/record', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -445,15 +586,53 @@ app.post('/api/battles/record', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.id;
 
-    const { opponentName, subjectId, result, eloChange, mode } = req.body;
+    const { opponentName, subjectId, result, eloChange, mode, correctCount, incorrectCount } = req.body;
+    const battleMode = mode || 'classic';
+    const battleResult = result || 'draw';
+    const eloDelta = Number(eloChange) || 0;
+    const subjId = Number(subjectId) || 1;
 
+    // 1. Insert battle history record
     await pool.query(
       `INSERT INTO battles (user_id, opponent_id, subject_id, result, elo_change, mode, created_at)
        VALUES (?, NULL, ?, ?, ?, ?, NOW())`,
-      [userId, subjectId || 1, result || 'draw', eloChange || 0, mode || 'classic']
+      [userId, subjId, battleResult, eloDelta, battleMode]
     );
 
-    return res.json({ success: true, message: 'Riwayat pertandingan berhasil dicatat.' });
+    // 2. Determine XP & ELO deltas
+    let xpDelta = 0;
+    if (battleMode === 'ranked') {
+      xpDelta = battleResult === 'win' ? 30 : 10;
+    } else if (battleMode === 'classic') {
+      xpDelta = battleResult === 'win' ? 20 : 10;
+    }
+
+    const isWin = battleResult === 'win' ? 1 : 0;
+    const isLoss = battleResult === 'loss' ? 1 : 0;
+    const isDraw = battleResult === 'draw' ? 1 : 0;
+    const correctAdd = Number(correctCount) || 0;
+    const incorrectAdd = Number(incorrectCount) || 0;
+
+    // 3. Update main users table
+    await pool.query(
+      `UPDATE users 
+       SET wins = wins + ?, losses = losses + ?, draws = draws + ?, total_battles = total_battles + 1,
+           xp = xp + ?, elo = GREATEST(0, elo + ?), correct_answers = correct_answers + ?, incorrect_answers = incorrect_answers + ?
+       WHERE id = ?`,
+      [isWin, isLoss, isDraw, xpDelta, eloDelta, correctAdd, incorrectAdd, userId]
+    );
+
+    // 4. Update user_subjects table for subject ELO
+    if (battleMode === 'ranked') {
+      await pool.query(
+        `INSERT INTO user_subjects (user_id, subject_id, elo)
+         VALUES (?, ?, GREATEST(0, 100 + ?))
+         ON DUPLICATE KEY UPDATE elo = GREATEST(0, elo + ?)`,
+        [userId, subjId, eloDelta, eloDelta]
+      );
+    }
+
+    return res.json({ success: true, message: 'Riwayat & statistik pertandingan berhasil dicatat ke database.' });
   } catch (err) {
     console.error('API Record Battle Error:', err);
     return res.status(500).json({ success: false, message: 'Gagal mencatat pertandingan.' });

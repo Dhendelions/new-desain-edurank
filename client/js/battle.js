@@ -259,20 +259,11 @@ class BattlePageManager {
         if (this.socket) {
           this.socket.emit('queue_ranked', { subject: this.selectedSubject.name });
         }
-
-        // Fallback pair after 4s so player is never stuck
-        this.matchmakingTimer = setTimeout(() => {
-          if (matchmakingBox && !matchmakingBox.classList.contains('hidden')) {
-            this.hideLobbyLoaders();
-            this.startBattle('ranked', { isAi: true, name: 'Pelajar Nasional (ELO 420)', accuracy: 0.7, delayRange: [3000, 6500] });
-          }
-        }, 4000);
       });
     }
 
     if (btnCancelMatchmaking) {
       btnCancelMatchmaking.addEventListener('click', () => {
-        if (this.matchmakingTimer) clearTimeout(this.matchmakingTimer);
         if (this.socket) this.socket.emit('cancel_queue');
         this.hideLobbyLoaders();
       });
@@ -282,12 +273,10 @@ class BattlePageManager {
     const btnStartClassic = document.getElementById('btn-start-classic');
     if (btnStartClassic) {
       btnStartClassic.addEventListener('click', () => {
+        if (matchmakingBox) matchmakingBox.classList.remove('hidden');
         if (this.socket) {
           this.socket.emit('queue_classic', { subject: this.selectedSubject.name });
         }
-        setTimeout(() => {
-          this.startBattle('classic', { isAi: true, name: 'Rekan Latihan Classic', accuracy: 0.6, delayRange: [3500, 8000] });
-        }, 2000);
       });
     }
 
@@ -326,31 +315,33 @@ class BattlePageManager {
       });
     }
 
-    // Custom Room Join
+    // Custom Room Join (Realtime Socket without AI fallback)
     const btnJoinRoom = document.getElementById('btn-join-custom-room');
     const inputRoomCode = document.getElementById('input-room-code');
     if (btnJoinRoom && inputRoomCode) {
       btnJoinRoom.addEventListener('click', () => {
         const code = inputRoomCode.value.trim();
         if (code.length !== 6) {
-          alert('Masukkan 6 digit kode room yang valid.');
+          const errBox = document.getElementById('room-error-msg');
+          if (errBox) {
+            errBox.textContent = 'Masukkan 6 digit kode room yang valid.';
+            errBox.classList.remove('hidden');
+          } else {
+            alert('Masukkan 6 digit kode room yang valid.');
+          }
           return;
         }
         if (this.socket) {
           this.socket.emit('join_room', { roomCode: code });
         }
-        // Fallback launch
-        setTimeout(() => {
-          this.startBattle('custom', { isAi: true, name: `Pemain Room #${code}`, accuracy: 0.65, delayRange: [3000, 7000] });
-        }, 1500);
       });
     }
 
-    // Start VS AI
+    // Start VS AI (explicit button)
     const btnStartAi = document.getElementById('btn-start-ai');
     if (btnStartAi) {
       btnStartAi.addEventListener('click', () => {
-        this.startBattle('custom', { isAi: true });
+        this.startBattle('custom', { isAi: true, name: 'EduBot AI PRO' });
       });
     }
 

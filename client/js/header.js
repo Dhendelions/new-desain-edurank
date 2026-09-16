@@ -253,52 +253,122 @@ class Header {
       
       let notifHtml = '';
       if (data.notifications && data.notifications.length > 0) {
-        notifHtml = data.notifications.map(n => `
-          <div class="p-3 border-b border-outline-variant/20 text-left">
-            <p class="font-bold text-sm text-on-surface">${n.title}</p>
-            <p class="text-xs text-on-surface-variant">${n.message}</p>
-          </div>
-        `).join('');
+        notifHtml = data.notifications.map(n => {
+          const isFriendRequest = n.title && n.title.includes('Permintaan Pertemanan') && !n.title.includes('Diterima');
+          const isDuelInvite = n.title && n.title.includes('Tantangan Duel');
+
+          // Extract sender ID if present
+          let senderIdMatch = n.message ? n.message.match(/ID:\s*([a-zA-Z0-9_-]+)/) : null;
+          let senderId = senderIdMatch ? senderIdMatch[1] : '';
+
+          let actionButtons = '';
+          if (isFriendRequest) {
+            actionButtons = `
+              <div class="flex items-center gap-2 mt-2">
+                <button onclick="window.headerComponent.acceptFriendRequest('${senderId}', ${n.id})" class="px-3 py-1 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-primary-container transition-all">
+                  Terima
+                </button>
+                <button onclick="window.headerComponent.declineFriendRequest(${n.id})" class="px-3 py-1 rounded-lg bg-surface-container text-on-surface-variant font-bold text-xs hover:bg-surface-container-high transition-all">
+                  Tolak
+                </button>
+              </div>
+            `;
+          } else if (isDuelInvite) {
+            actionButtons = `
+              <div class="flex items-center gap-2 mt-2">
+                <button onclick="window.location.href='battle.html?mode=custom'" class="px-3 py-1 rounded-lg bg-tertiary-container text-on-tertiary font-bold text-xs hover:opacity-90 transition-all flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">swords</span>
+                  <span>Join Arena</span>
+                </button>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="p-3.5 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}">
+              <div class="flex items-start justify-between">
+                <p class="font-bold text-xs text-on-surface flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm ${isFriendRequest ? 'text-primary' : (isDuelInvite ? 'text-amber-600' : 'text-secondary')}">
+                    ${isFriendRequest ? 'person_add' : (isDuelInvite ? 'swords' : 'notifications')}
+                  </span>
+                  <span>${n.title}</span>
+                </p>
+                <span class="text-[10px] text-outline">${n.created_at ? new Date(n.created_at).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+              </div>
+              <p class="text-xs text-on-surface-variant mt-1 font-medium leading-relaxed">${n.message}</p>
+              ${actionButtons}
+            </div>
+          `;
+        }).join('');
       } else {
         notifHtml = `
           <div class="p-8 text-center text-on-surface-variant">
             <span class="material-symbols-outlined text-4xl text-outline mb-2">notifications_off</span>
-            <p class="font-semibold text-sm">Tidak ada notifikasi saat ini.</p>
+            <p class="font-semibold text-xs">Tidak ada notifikasi baru saat ini.</p>
           </div>
         `;
       }
 
       modal.innerHTML = `
-        <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface">
-          <div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
-            <h3 class="font-bold text-lg flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary">notifications</span> Notifikasi
+        <div class="w-full max-w-sm bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface space-y-3">
+          <div class="flex items-center justify-between pb-2.5 border-b border-outline-variant/20">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-lg">notifications</span> Notifikasi
             </h3>
-            <button onclick="document.getElementById('notifications-modal').remove()" class="p-1 text-on-surface-variant hover:text-on-surface">
-              <span class="material-symbols-outlined">close</span>
+            <button onclick="document.getElementById('notifications-modal').remove()" class="w-7 h-7 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
+              <span class="material-symbols-outlined text-base">close</span>
             </button>
           </div>
-          <div class="max-h-80 overflow-y-auto">
+          <div class="max-h-80 overflow-y-auto pr-1 space-y-1">
             ${notifHtml}
           </div>
         </div>
       `;
     } catch (err) {
       modal.innerHTML = `
-        <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface">
-          <div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
-            <h3 class="font-bold text-lg">Notifikasi</h3>
-            <button onclick="document.getElementById('notifications-modal').remove()" class="p-1 text-on-surface-variant hover:text-on-surface">
-              <span class="material-symbols-outlined">close</span>
+        <div class="w-full max-w-sm bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface">
+          <div class="flex items-center justify-between pb-3 border-b border-outline-variant/20 mb-3">
+            <h3 class="font-bold text-sm">Notifikasi</h3>
+            <button onclick="document.getElementById('notifications-modal').remove()" class="w-7 h-7 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">close</span>
             </button>
           </div>
-          <div class="p-8 text-center text-on-surface-variant">
-            <span class="material-symbols-outlined text-4xl text-outline mb-2">wifi_off</span>
-            <p class="font-semibold text-sm">Gagal memuat notifikasi</p>
+          <div class="p-6 text-center text-on-surface-variant text-xs">
+            <span class="material-symbols-outlined text-3xl text-outline mb-2">wifi_off</span>
+            <p class="font-semibold">Gagal memuat notifikasi</p>
           </div>
         </div>
       `;
     }
+  }
+
+  async acceptFriendRequest(senderId, notificationId) {
+    const token = localStorage.getItem('edurank-token');
+    try {
+      const res = await fetch('/api/friends/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ senderId, notificationId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('notifications-modal')?.remove();
+        alert('✅ ' + data.message);
+        window.location.reload();
+      }
+    } catch (e) {}
+  }
+
+  async declineFriendRequest(notificationId) {
+    const token = localStorage.getItem('edurank-token');
+    try {
+      await fetch('/api/friends/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ notificationId })
+      });
+      document.getElementById('notifications-modal')?.remove();
+    } catch (e) {}
   }
 
   setUnreadCount(count) {

@@ -161,44 +161,43 @@
             </div>
           </div>
 
-          <!-- MODAL EDIT PROFILE -->
-          <div id="edit-profile-modal" class="fixed inset-0 z-[100] hidden bg-on-surface/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-surface-container-lowest max-w-md w-full rounded-3xl p-6 shadow-2xl border border-outline-variant/30 space-y-5 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div class="flex items-center justify-between border-b border-outline-variant/20 pb-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl">edit_square</span>
+          <!-- MODAL EDIT PROFILE (Minimalist & Compact) -->
+          <div id="edit-profile-modal" class="fixed inset-0 z-[100] hidden bg-on-surface/40 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-surface-container-lowest max-w-sm w-full rounded-2xl p-5 shadow-2xl border border-outline-variant/30 space-y-4 relative overflow-hidden">
+              <div class="flex items-center justify-between border-b border-outline-variant/15 pb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-lg">edit_square</span>
                   </div>
                   <div>
-                    <h3 class="font-title-md font-bold text-on-surface">Edit Data Profil</h3>
-                    <p class="font-body-sm text-on-surface-variant">Perbarui nama tampilan, username & foto profil</p>
+                    <h3 class="font-title-md font-extrabold text-on-surface text-sm">Edit Profil</h3>
+                    <p class="text-[11px] text-outline">Perbarui data profil siswa</p>
                   </div>
                 </div>
-                <button id="btn-close-edit-modal" class="w-9 h-9 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
-                  <span class="material-symbols-outlined text-xl">close</span>
+                <button id="btn-close-edit-modal" class="w-7 h-7 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
+                  <span class="material-symbols-outlined text-base">close</span>
                 </button>
               </div>
 
-              <form id="edit-profile-form" class="space-y-4">
+              <form id="edit-profile-form" class="space-y-3 text-xs">
                 <div>
-                  <label class="block font-label-md font-bold text-on-surface mb-1">Nama Tampilan (Display Name)</label>
-                  <input type="text" id="edit-input-name" class="w-full px-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface focus:outline-none focus:border-primary font-medium" placeholder="Masukkan nama kamu" required>
+                  <label class="block font-bold text-on-surface mb-1 text-[11px]">Nama Tampilan</label>
+                  <input type="text" id="edit-input-name" class="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface focus:outline-none focus:border-primary font-semibold text-xs" placeholder="Nama lengkap" required>
                 </div>
 
                 <div>
-                  <label class="block font-label-md font-bold text-on-surface mb-1">Email / Username</label>
-                  <input type="email" id="edit-input-email" class="w-full px-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface focus:outline-none focus:border-primary font-medium" placeholder="email@contoh.com" required>
+                  <label class="block font-bold text-on-surface mb-1 text-[11px]">Email / Username</label>
+                  <input type="email" id="edit-input-email" class="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface focus:outline-none focus:border-primary font-semibold text-xs" placeholder="email@contoh.com" required>
                 </div>
 
                 <div>
-                  <label class="block font-label-md font-bold text-on-surface mb-1">URL Foto Profil (Avatar)</label>
-                  <input type="url" id="edit-input-photo" class="w-full px-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface focus:outline-none focus:border-primary font-medium" placeholder="https://example.com/photo.jpg">
-                  <p class="text-xs text-outline mt-1">Kosongkan jika ingin menggunakan avatar default berbasis nama.</p>
+                  <label class="block font-bold text-on-surface mb-1 text-[11px]">URL Foto Profil (Opsional)</label>
+                  <input type="url" id="edit-input-photo" class="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface focus:outline-none focus:border-primary font-medium text-xs" placeholder="https://...">
                 </div>
 
-                <div class="pt-3 border-t border-outline-variant/20 flex items-center justify-end gap-3">
-                  <button type="button" id="btn-cancel-edit-modal" class="px-4 py-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface font-bold text-sm">Batal</button>
-                  <button type="submit" id="btn-save-edit-profile" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold text-sm transition-all shadow-sm">Simpan Perubahan</button>
+                <div class="pt-2 border-t border-outline-variant/15 flex items-center justify-end gap-2">
+                  <button type="button" id="btn-cancel-edit-modal" class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-bold text-xs">Batal</button>
+                  <button type="submit" id="btn-save-edit-profile" class="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs transition-all shadow-xs">Simpan</button>
                 </div>
               </form>
             </div>

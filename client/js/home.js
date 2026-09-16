@@ -400,29 +400,236 @@ function renderFriends(friends) {
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div class="p-6 text-center text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/30 flex flex-col items-center gap-2">
-        <span class="material-symbols-outlined text-3xl text-outline">group_off</span>
-        <p class="font-semibold text-body-sm text-on-surface">Belum ada teman aktif</p>
-        <p class="font-body-sm text-outline text-xs">Klik tombol Cari untuk menemukan dan menambahkan teman baru.</p>
+      <div class="p-5 text-center text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/30 flex flex-col items-center gap-1.5">
+        <span class="material-symbols-outlined text-2xl text-outline">group_off</span>
+        <p class="font-bold text-xs text-on-surface">Belum ada teman aktif</p>
+        <p class="text-outline text-[11px]">Klik + Cari untuk menambah teman baru.</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = list.map(f => `
-    <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20 hover:bg-surface-container transition-colors">
-      <div class="flex items-center gap-2.5">
-        <div class="relative">
-          <img src="${f.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(f.name || 'Friend')}&background=random`}" class="w-8 h-8 rounded-full object-cover" alt="${f.name}">
-          <span class="w-2.5 h-2.5 rounded-full bg-tertiary-container absolute bottom-0 right-0 border border-white"></span>
+  container.innerHTML = list.map(f => {
+    const friendName = f.name || 'Teman EduRank';
+    const photoUrl = f.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(friendName)}&background=random`;
+
+    return `
+      <div class="flex items-center justify-between p-2 px-3 rounded-xl bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/40 transition-all shadow-xs">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="relative shrink-0">
+            <img src="${photoUrl}" class="w-7 h-7 rounded-full object-cover ring-1 ring-outline-variant/30" alt="${friendName}">
+            <span class="w-2 h-2 rounded-full bg-tertiary-container absolute bottom-0 right-0 border border-white"></span>
+          </div>
+          <span class="font-bold text-xs text-on-surface truncate max-w-[100px] sm:max-w-[130px]">${friendName}</span>
         </div>
-        <span class="font-title-md text-title-md text-on-surface font-semibold truncate">${f.name || 'Teman EduRank'}</span>
+        
+        <div class="flex items-center gap-1 shrink-0">
+          <button onclick="showFriendProfileModal('${f.id}')" title="Lihat Profil" class="p-1.5 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors">
+            <span class="material-symbols-outlined text-[16px]">account_circle</span>
+          </button>
+          <button onclick="inviteFriendDuel('${f.id}')" title="Undang Duel" class="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-colors">
+            <span class="material-symbols-outlined text-[16px]">swords</span>
+          </button>
+          <button onclick="showWhisperModal('${f.id}', '${encodeURIComponent(friendName)}')" title="Kirim Whisper" class="p-1.5 rounded-lg bg-secondary/10 text-secondary hover:bg-secondary hover:text-on-secondary transition-colors">
+            <span class="material-symbols-outlined text-[16px]">chat</span>
+          </button>
+          <button onclick="unfriendFriend('${f.id}', '${encodeURIComponent(friendName)}')" title="Hapus Teman" class="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-[16px]">person_remove</span>
+          </button>
+        </div>
       </div>
-      <button onclick="window.location.href='battle.html'" class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm hover:bg-primary transition-colors text-xs font-bold">
-        Ajak Duel
-      </button>
+    `;
+  }).join('');
+}
+
+// Global modal handlers for Friend actions
+window.showFriendProfileModal = async function(friendId) {
+  let modal = document.getElementById('friend-profile-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'friend-profile-modal';
+    modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="w-full max-w-xs bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface text-center animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex justify-end">
+        <button onclick="document.getElementById('friend-profile-modal').remove()" class="w-6 h-6 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+      <div id="friend-profile-content" class="py-2 flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-2xl text-outline animate-spin">progress_activity</span>
+        <p class="text-xs text-outline font-medium">Memuat data profil teman...</p>
+      </div>
     </div>
-  `).join('');
+  `;
+
+  try {
+    const res = await fetch(`/api/user/profile/${friendId}`);
+    const data = await res.json();
+    if (data.success && data.user) {
+      const u = data.user;
+      const total = Number(u.totalBattles) || 0;
+      const wins = Number(u.wins) || 0;
+      const winrate = total > 0 ? ((wins / total) * 100).toFixed(0) : '0';
+
+      document.getElementById('friend-profile-content').innerHTML = `
+        <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`}" class="w-16 h-16 rounded-full object-cover ring-4 ring-primary/10 mb-1">
+        <h4 class="font-extrabold text-sm text-on-surface">${u.name}</h4>
+        <span class="px-2.5 py-0.5 rounded-full bg-secondary/10 text-secondary text-[11px] font-bold border border-secondary/20">${u.rank || 'Silver'} • ${u.elo || 400} ELO</span>
+        
+        <div class="grid grid-cols-2 gap-2 w-full mt-3 pt-3 border-t border-outline-variant/20 text-xs">
+          <div class="bg-surface-container-low p-2 rounded-xl flex flex-col">
+            <span class="text-outline text-[10px] font-bold uppercase">Total Battle</span>
+            <span class="font-extrabold text-on-surface">${u.totalBattles || 0} Match</span>
+          </div>
+          <div class="bg-surface-container-low p-2 rounded-xl flex flex-col">
+            <span class="text-outline text-[10px] font-bold uppercase">Winrate</span>
+            <span class="font-extrabold text-emerald-600">${winrate}% (${u.wins || 0}W)</span>
+          </div>
+        </div>
+      `;
+    }
+  } catch (e) {
+    document.getElementById('friend-profile-content').innerHTML = '<p class="text-xs text-error">Gagal memuat statistik teman.</p>';
+  }
+};
+
+window.inviteFriendDuel = async function(friendId) {
+  const token = localStorage.getItem('edurank-token');
+  try {
+    const res = await fetch('/api/friends/invite-duel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ friendId, mode: 'custom' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToastModal('Tantangan Duel Dikirim! ⚔️', `Kode Room: ${data.roomCode}. Mengarahkan ke lobby duel...`, () => {
+        window.location.href = 'battle.html?mode=custom';
+      });
+    } else {
+      showToastModal('Gagal Mengundang', data.message || 'Gagal mengirim tantangan.');
+    }
+  } catch (e) {
+    showToastModal('Gagal Mengundang', 'Periksa koneksi internet kamu.');
+  }
+};
+
+window.showWhisperModal = function(friendId, encodedName) {
+  const name = decodeURIComponent(encodedName);
+  let modal = document.getElementById('whisper-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'whisper-modal';
+    modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="w-full max-w-xs bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+        <h4 class="font-bold text-xs flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-secondary text-sm">chat</span>
+          <span>Whisper ke ${name}</span>
+        </h4>
+        <button onclick="document.getElementById('whisper-modal').remove()" class="w-6 h-6 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
+          <span class="material-symbols-outlined text-xs">close</span>
+        </button>
+      </div>
+      <textarea id="whisper-input-text" rows="3" class="w-full p-2.5 rounded-xl border border-outline-variant/30 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-secondary" placeholder="Ketik pesan rahasia..."></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="document.getElementById('whisper-modal').remove()" class="px-3 py-1.5 rounded-lg bg-surface-container text-on-surface-variant font-bold text-xs">Batal</button>
+        <button id="btn-send-whisper" class="px-4 py-1.5 rounded-lg bg-secondary hover:bg-primary text-on-secondary font-bold text-xs transition-colors">Kirim</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-send-whisper').onclick = async () => {
+    const text = document.getElementById('whisper-input-text').value.trim();
+    if (!text) return;
+    const token = localStorage.getItem('edurank-token');
+    try {
+      const res = await fetch('/api/friends/whisper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ friendId, message: text })
+      });
+      const data = await res.json();
+      modal.remove();
+      showToastModal('Whisper Terkirim 💬', `Pesan berhasil dikirim ke ${name}.`);
+    } catch (e) {
+      modal.remove();
+      showToastModal('Gagal', 'Pesan tidak dapat terkirim.');
+    }
+  };
+};
+
+window.unfriendFriend = function(friendId, encodedName) {
+  const name = decodeURIComponent(encodedName);
+  let modal = document.getElementById('unfriend-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'unfriend-modal';
+    modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="w-full max-w-xs bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface space-y-3 text-center">
+      <div class="w-10 h-10 rounded-full bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-xl">person_remove</span>
+      </div>
+      <h4 class="font-extrabold text-sm text-on-surface">Hapus Pertemanan?</h4>
+      <p class="text-xs text-on-surface-variant">Apakah kamu yakin ingin menghapus <b>${name}</b> dari daftar teman?</p>
+      <div class="flex justify-center gap-2 pt-2 border-t border-outline-variant/20">
+        <button onclick="document.getElementById('unfriend-modal').remove()" class="px-4 py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-bold text-xs">Batal</button>
+        <button id="btn-confirm-unfriend" class="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors">Hapus</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-confirm-unfriend').onclick = async () => {
+    const token = localStorage.getItem('edurank-token');
+    try {
+      await fetch('/api/friends/unfriend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ friendId })
+      });
+      modal.remove();
+      window.location.reload();
+    } catch (e) {
+      modal.remove();
+    }
+  };
+};
+
+function showToastModal(title, msg, onOk) {
+  let modal = document.getElementById('toast-popup-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'toast-popup-modal';
+    modal.className = 'fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="w-full max-w-xs bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface space-y-3 text-center animate-in fade-in zoom-in-95 duration-150">
+      <h4 class="font-extrabold text-sm text-on-surface">${title}</h4>
+      <p class="text-xs text-on-surface-variant leading-relaxed">${msg}</p>
+      <div class="pt-2 border-t border-outline-variant/15 flex justify-center">
+        <button id="btn-toast-ok" class="px-5 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs transition-all shadow-xs">OK</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-toast-ok').onclick = () => {
+    modal.remove();
+    if (typeof onOk === 'function') onOk();
+  };
 }
 
 function showSearchFriendModal() {
@@ -435,23 +642,23 @@ function showSearchFriendModal() {
   }
 
   modal.innerHTML = `
-    <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface">
-      <div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
-        <h3 class="font-bold text-lg flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary">person_search</span> Cari & Tambah Teman
+    <div class="w-full max-w-xs bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+        <h3 class="font-bold text-xs flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary text-base">person_search</span> Cari Teman
         </h3>
-        <button onclick="document.getElementById('search-friend-modal').remove()" class="p-1 text-on-surface-variant hover:text-on-surface">
-          <span class="material-symbols-outlined">close</span>
+        <button onclick="document.getElementById('search-friend-modal').remove()" class="w-6 h-6 rounded-full bg-surface-container-low text-on-surface-variant flex items-center justify-center">
+          <span class="material-symbols-outlined text-xs">close</span>
         </button>
       </div>
-      <div class="flex gap-2 mb-4">
-        <input id="friend-search-input" type="text" placeholder="Ketik nama teman..." class="flex-1 px-3 py-2 rounded-xl bg-surface-container-low border border-outline-variant/30 text-body-md focus:outline-none focus:border-primary">
-        <button id="btn-do-search-friend" class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary-container transition-colors">
+      <div class="flex gap-1.5">
+        <input id="friend-search-input" type="text" placeholder="Nama teman..." class="flex-1 px-3 py-1.5 rounded-xl bg-surface-container-low border border-outline-variant/30 text-xs font-medium focus:outline-none focus:border-primary">
+        <button id="btn-do-search-friend" class="px-3 py-1.5 bg-primary text-on-primary rounded-xl font-bold text-xs hover:bg-primary-container transition-colors">
           Cari
         </button>
       </div>
-      <div id="friend-search-results" class="max-h-64 overflow-y-auto flex flex-col gap-2">
-        <p class="text-center text-outline py-4 text-xs">Masukkan nama untuk mencari teman baru.</p>
+      <div id="friend-search-results" class="max-h-56 overflow-y-auto flex flex-col gap-1.5 pt-1">
+        <p class="text-center text-outline py-3 text-[11px]">Ketik nama untuk mencari teman baru.</p>
       </div>
     </div>
   `;
@@ -464,13 +671,13 @@ function showSearchFriendModal() {
     const q = input.value.trim();
     if (!q) return;
 
-    resultsContainer.innerHTML = '<p class="text-center text-outline py-4 text-xs animate-pulse">Mencari...</p>';
+    resultsContainer.innerHTML = '<p class="text-center text-outline py-3 text-[11px] animate-pulse">Mencari...</p>';
     try {
       const res = await fetch(`/api/friends/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
 
       if (!data.users || data.users.length === 0) {
-        resultsContainer.innerHTML = '<p class="text-center text-outline py-4 text-xs">Teman tidak ditemukan.</p>';
+        resultsContainer.innerHTML = '<p class="text-center text-outline py-3 text-[11px]">Teman tidak ditemukan.</p>';
         return;
       }
 
@@ -478,11 +685,11 @@ function showSearchFriendModal() {
 
       resultsContainer.innerHTML = data.users.map(u => `
         <div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low border border-outline-variant/20">
-          <div class="flex items-center gap-2">
-            <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`}" class="w-8 h-8 rounded-full">
-            <span class="font-bold text-sm text-on-surface">${u.name}</span>
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`}" class="w-6 h-6 rounded-full shrink-0">
+            <span class="font-bold text-xs text-on-surface truncate">${u.name}</span>
           </div>
-          <button data-user-id="${u.id}" class="btn-add-friend-action px-3 py-1 rounded-lg bg-secondary text-on-secondary font-bold text-xs hover:bg-primary transition-colors">
+          <button data-user-id="${u.id}" class="btn-add-friend-action px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-bold text-[11px] hover:bg-primary transition-colors shrink-0">
             + Tambah
           </button>
         </div>
@@ -501,16 +708,17 @@ function showSearchFriendModal() {
               body: JSON.stringify({ receiverId })
             });
             const addData = await addRes.json();
-            alert(addData.message || 'Berhasil menambahkan teman!');
-            window.location.reload();
+            modal.remove();
+            showToastModal('Permintaan Pertemanan Terkirim! 📩', addData.message || 'Permintaan pertemanan berhasil dikirim.');
           } catch (e) {
-            alert('Gagal menambahkan teman.');
+            modal.remove();
+            showToastModal('Gagal', 'Gagal mengirim permintaan pertemanan.');
           }
         });
       });
 
     } catch (err) {
-      resultsContainer.innerHTML = '<p class="text-center text-error py-4 text-xs">Terjadi kesalahan pencarian.</p>';
+      resultsContainer.innerHTML = '<p class="text-center text-error py-3 text-[11px]">Terjadi kesalahan pencarian.</p>';
     }
   };
 
