@@ -318,17 +318,25 @@ function renderLeaderboardPreview(leaderboard, currentUser) {
 function renderFriends(friends) {
   const container = document.getElementById('home-friends-container');
   const countBadge = document.getElementById('friends-count');
+  const addBtn = document.getElementById('btn-add-friend');
   if (!container) return;
 
   const list = Array.isArray(friends) ? friends : [];
   if (countBadge) countBadge.textContent = `${list.length} Teman`;
+
+  if (addBtn && !addBtn.dataset.bound) {
+    addBtn.dataset.bound = 'true';
+    addBtn.addEventListener('click', () => {
+      showSearchFriendModal();
+    });
+  }
 
   if (list.length === 0) {
     container.innerHTML = `
       <div class="p-6 text-center text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/30 flex flex-col items-center gap-2">
         <span class="material-symbols-outlined text-3xl text-outline">group_off</span>
         <p class="font-semibold text-body-sm text-on-surface">Belum ada teman aktif</p>
-        <p class="font-body-sm text-outline text-xs">Ajak teman sekelasmu bergabung di EduRank untuk mulai bertanding bersama.</p>
+        <p class="font-body-sm text-outline text-xs">Klik tombol Cari untuk menemukan dan menambahkan teman baru.</p>
       </div>
     `;
     return;
@@ -344,8 +352,103 @@ function renderFriends(friends) {
         <span class="font-title-md text-title-md text-on-surface font-semibold truncate">${f.name || 'Teman EduRank'}</span>
       </div>
       <button onclick="window.location.href='battle.html'" class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm hover:bg-primary transition-colors text-xs font-bold">
-        Ajak Main
+        Ajak Duel
       </button>
     </div>
   `).join('');
+}
+
+function showSearchFriendModal() {
+  let modal = document.getElementById('search-friend-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'search-friend-modal';
+    modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface">
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
+        <h3 class="font-bold text-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">person_search</span> Cari & Tambah Teman
+        </h3>
+        <button onclick="document.getElementById('search-friend-modal').remove()" class="p-1 text-on-surface-variant hover:text-on-surface">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input id="friend-search-input" type="text" placeholder="Ketik nama teman..." class="flex-1 px-3 py-2 rounded-xl bg-surface-container-low border border-outline-variant/30 text-body-md focus:outline-none focus:border-primary">
+        <button id="btn-do-search-friend" class="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary-container transition-colors">
+          Cari
+        </button>
+      </div>
+      <div id="friend-search-results" class="max-h-64 overflow-y-auto flex flex-col gap-2">
+        <p class="text-center text-outline py-4 text-xs">Masukkan nama untuk mencari teman baru.</p>
+      </div>
+    </div>
+  `;
+
+  const input = document.getElementById('friend-search-input');
+  const searchBtn = document.getElementById('btn-do-search-friend');
+  const resultsContainer = document.getElementById('friend-search-results');
+
+  const doSearch = async () => {
+    const q = input.value.trim();
+    if (!q) return;
+
+    resultsContainer.innerHTML = '<p class="text-center text-outline py-4 text-xs animate-pulse">Mencari...</p>';
+    try {
+      const res = await fetch(`/api/friends/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+
+      if (!data.users || data.users.length === 0) {
+        resultsContainer.innerHTML = '<p class="text-center text-outline py-4 text-xs">Teman tidak ditemukan.</p>';
+        return;
+      }
+
+      const token = localStorage.getItem('edurank-token');
+
+      resultsContainer.innerHTML = data.users.map(u => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low border border-outline-variant/20">
+          <div class="flex items-center gap-2">
+            <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`}" class="w-8 h-8 rounded-full">
+            <span class="font-bold text-sm text-on-surface">${u.name}</span>
+          </div>
+          <button data-user-id="${u.id}" class="btn-add-friend-action px-3 py-1 rounded-lg bg-secondary text-on-secondary font-bold text-xs hover:bg-primary transition-colors">
+            + Tambah
+          </button>
+        </div>
+      `).join('');
+
+      resultsContainer.querySelectorAll('.btn-add-friend-action').forEach(b => {
+        b.addEventListener('click', async () => {
+          const receiverId = b.dataset.userId;
+          try {
+            const addRes = await fetch('/api/friends/request', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ receiverId })
+            });
+            const addData = await addRes.json();
+            alert(addData.message || 'Berhasil menambahkan teman!');
+            window.location.reload();
+          } catch (e) {
+            alert('Gagal menambahkan teman.');
+          }
+        });
+      });
+
+    } catch (err) {
+      resultsContainer.innerHTML = '<p class="text-center text-error py-4 text-xs">Terjadi kesalahan pencarian.</p>';
+    }
+  };
+
+  searchBtn.addEventListener('click', doSearch);
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') doSearch();
+  });
 }

@@ -178,58 +178,64 @@ html {
   
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
     <!-- Battle Mode Options (Left 7 Cols) -->
-    <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+    <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-space-md items-stretch">
       <!-- Ranked Card -->
-      <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-shadow">
+      <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-shadow h-full">
         <div>
           <div class="w-10 h-10 rounded-xl bg-secondary text-on-secondary flex items-center justify-center mb-3">
             <span class="material-symbols-outlined text-[20px]">swords</span>
           </div>
           <h4 class="font-title-md text-title-md font-bold text-on-surface">Ranked Match</h4>
-          <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Kompetisi resmi ELO rating 1v1.</p>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Kompetisi resmi ELO rating 1v1 terstandar nasional.</p>
         </div>
-        <button onclick="window.location.href='battle.html'" class="mt-4 w-full py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-primary transition-colors">
+        <button onclick="window.location.href='battle.html'" class="mt-4 w-full py-2.5 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-primary transition-colors">
           Main Ranked
         </button>
       </div>
       <!-- Classic Card -->
-      <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-shadow">
+      <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-shadow h-full">
         <div>
           <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center mb-3">
             <span class="material-symbols-outlined text-[20px]">smart_toy</span>
           </div>
           <h4 class="font-title-md text-title-md font-bold text-on-surface">Classic Match</h4>
-          <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Latihan santai tanpa risiko ELO.</p>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Latihan santai bebas penalti ELO &amp; uji materi.</p>
         </div>
-        <button onclick="window.location.href='battle.html'" class="mt-4 w-full py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary-container transition-colors">
+        <button onclick="window.location.href='battle.html'" class="mt-4 w-full py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary-container transition-colors">
           Main Classic
         </button>
       </div>
-      <!-- Custom Room Card -->
-      <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-shadow">
+      <!-- Custom Card -->
+      <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-shadow h-full">
         <div>
           <div class="w-10 h-10 rounded-xl bg-tertiary-container text-on-tertiary flex items-center justify-center mb-3">
             <span class="material-symbols-outlined text-[20px]">key</span>
           </div>
-          <h4 class="font-title-md text-title-md font-bold text-on-surface">Private Room</h4>
-          <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Buat ruang kode unik untuk kelompok.</p>
+          <h4 class="font-title-md text-title-md font-bold text-on-surface">Custom Scrim</h4>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Buat ruang kode unik tanding lawan teman atau AI.</p>
         </div>
-        <button onclick="window.location.href='battle.html'" class="mt-4 w-full py-2 rounded-lg bg-tertiary-container text-on-tertiary font-label-md text-label-md font-bold hover:bg-tertiary transition-colors">
-          Buat Room
+        <button onclick="window.location.href='battle.html'" class="mt-4 w-full py-2.5 rounded-lg bg-tertiary-container text-on-tertiary font-label-md text-label-md font-bold hover:bg-tertiary transition-colors">
+          Buat Custom
         </button>
       </div>
     </div>
 
     <!-- Friends List Container (Right 5 Cols) -->
-    <div class="lg:col-span-5 bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-sm">
+    <div class="lg:col-span-5 bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-sm h-full">
       <div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary text-[20px]">group</span>
           <h3 class="font-title-md text-title-md font-bold text-on-surface">Daftar Teman</h3>
         </div>
-        <span id="friends-count" class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-bold">0 Teman</span>
+        <div class="flex items-center gap-2">
+          <span id="friends-count" class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-bold">0 Teman</span>
+          <button id="btn-add-friend" type="button" class="p-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1 font-label-sm text-label-sm font-bold px-2">
+            <span class="material-symbols-outlined text-[16px]">person_add</span>
+            <span>Cari</span>
+          </button>
+        </div>
       </div>
-      <div id="home-friends-container" class="flex flex-col gap-2 min-h-[140px]">
+      <div id="home-friends-container" class="flex flex-col gap-2 min-h-[140px] flex-1">
         <div class="p-6 text-center text-outline">Memuat daftar teman...</div>
       </div>
     </div>
