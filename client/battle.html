@@ -86,11 +86,6 @@
       backdrop-filter: blur(16px);
       border: 1px solid rgba(199, 196, 216, 0.4);
     }
-    @keyframes pulse-subtle {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.85; transform: scale(1.02); }
-    }
-    .animate-pulse-subtle { animation: pulse-subtle 2s infinite ease-in-out; }
   </style>
 </head>
 <body class="bg-background font-body-md text-on-surface antialiased">
@@ -213,12 +208,12 @@
                   <span class="font-bold text-on-surface">1 vs 1 Duel</span>
                 </div>
                 <div class="flex justify-between items-center text-body-sm">
-                  <span class="text-on-surface-variant font-medium">Taruhan</span>
-                  <span class="font-bold text-secondary">±15 ELO Rating</span>
+                  <span class="text-on-surface-variant font-medium">Taruhan & Rewards</span>
+                  <span class="font-bold text-secondary">±15 ELO & +50 XP</span>
                 </div>
                 <div class="flex justify-between items-center text-body-sm">
-                  <span class="text-on-surface-variant font-medium">Jumlah Soal</span>
-                  <span class="font-bold text-on-surface">10 Soal Berwaktu</span>
+                  <span class="text-on-surface-variant font-medium">Fitur Pembahasan</span>
+                  <span class="font-bold text-tertiary">Resume & Analisis Grafik</span>
                 </div>
               </div>
 
@@ -255,11 +250,11 @@
               <div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-col gap-2">
                 <div class="flex justify-between items-center text-body-sm">
                   <span class="text-on-surface-variant font-medium">Mode Penilaian</span>
-                  <span class="font-bold text-tertiary">Bebas ELO (Latihan)</span>
+                  <span class="font-bold text-tertiary">0 ELO (Bebas Penalti)</span>
                 </div>
                 <div class="flex justify-between items-center text-body-sm">
-                  <span class="text-on-surface-variant font-medium">Hadiah</span>
-                  <span class="font-bold text-primary">+XP Pembelajaran</span>
+                  <span class="text-on-surface-variant font-medium">Hadiah & Pembahasan</span>
+                  <span class="font-bold text-primary">+XP & Resume Cara Jawaban</span>
                 </div>
               </div>
 
@@ -277,7 +272,7 @@
                 </div>
                 <div>
                   <h3 class="font-title-md text-title-md font-bold text-on-surface">Custom Room</h3>
-                  <p class="font-body-sm text-body-sm text-on-surface-variant">Main Lawan Teman atau Komputer AI</p>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Main Lawan Teman (0 XP, 0 ELO, Pembahasan Aktif)</p>
                 </div>
               </div>
 
@@ -289,23 +284,45 @@
 
               <!-- Room Code Sub-Panel -->
               <div id="custom-room-section" class="flex flex-col gap-space-sm">
-                <button id="btn-create-custom-room" type="button" class="w-full py-3 rounded-xl bg-tertiary-container hover:bg-tertiary text-on-tertiary font-label-lg text-label-lg font-bold transition-all shadow-sm flex items-center justify-center gap-2">
-                  <span class="material-symbols-outlined">add_circle</span>
-                  <span>Buat Room Baru</span>
-                </button>
                 
-                <div class="relative flex items-center my-1">
-                  <div class="flex-grow border-t border-outline-variant/30"></div>
-                  <span class="shrink-0 px-3 text-xs text-outline uppercase font-bold">atau</span>
-                  <div class="flex-grow border-t border-outline-variant/30"></div>
-                </div>
-
-                <div class="flex gap-2">
-                  <input id="input-room-code" type="text" placeholder="Masukkan 6 Digit Kode" maxlength="6" class="flex-1 px-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-lowest font-mono font-bold text-center tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary text-on-surface">
-                  <button id="btn-join-custom-room" type="button" class="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-label-lg text-label-lg font-bold transition-colors">
-                    Gabung
+                <!-- Created Room Container (Inline UI replaces alert) -->
+                <div id="created-room-box" class="hidden p-5 rounded-2xl bg-tertiary-container/10 border border-tertiary-container/30 flex flex-col items-center text-center gap-3">
+                  <span class="font-label-sm text-label-sm font-bold text-tertiary-container uppercase tracking-wider">Ruang Privat Dibuat</span>
+                  <div class="flex items-center gap-2 bg-surface-container-lowest px-4 py-2 rounded-xl border border-outline-variant/30">
+                    <span id="created-room-code" class="font-mono text-headline-sm font-black text-on-surface tracking-widest">849201</span>
+                    <button id="btn-copy-room-code" type="button" class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-bold text-xs flex items-center gap-1" title="Salin Kode">
+                      <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                    </button>
+                  </div>
+                  <span class="font-label-sm text-xs text-on-surface-variant flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+                    Menunggu teman bergabung menggunakan kode di atas...
+                  </span>
+                  <button id="btn-cancel-room" type="button" class="mt-1 px-4 py-1.5 rounded-lg bg-error/10 text-error hover:bg-error/20 text-xs font-bold transition-colors">
+                    Batalkan Room
                   </button>
                 </div>
+
+                <div id="room-input-group" class="flex flex-col gap-space-sm">
+                  <button id="btn-create-custom-room" type="button" class="w-full py-3 rounded-xl bg-tertiary-container hover:bg-tertiary text-on-tertiary font-label-lg text-label-lg font-bold transition-all shadow-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    <span>Buat Room Baru</span>
+                  </button>
+                  
+                  <div class="relative flex items-center my-1">
+                    <div class="flex-grow border-t border-outline-variant/30"></div>
+                    <span class="shrink-0 px-3 text-xs text-outline uppercase font-bold">atau</span>
+                    <div class="flex-grow border-t border-outline-variant/30"></div>
+                  </div>
+
+                  <div class="flex gap-2">
+                    <input id="input-room-code" type="text" placeholder="Masukkan 6 Digit Kode" maxlength="6" class="flex-1 px-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-lowest font-mono font-bold text-center tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary text-on-surface">
+                    <button id="btn-join-custom-room" type="button" class="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-label-lg text-label-lg font-bold transition-colors">
+                      Gabung
+                    </button>
+                  </div>
+                </div>
+
               </div>
 
               <!-- AI Sub-Panel -->
@@ -386,9 +403,10 @@
 
       </section>
 
-      <!-- VIEW 3: MATCH RESULT SCREEN (Hidden initially) -->
-      <section id="battle-result-view" class="hidden flex-col items-center justify-center gap-space-lg max-w-[600px] mx-auto py-8">
+      <!-- VIEW 3: MATCH RESULT SCREEN WITH ANALYTICS & PEMBAHASAN SOAL -->
+      <section id="battle-result-view" class="hidden flex-col gap-space-lg max-w-[950px] mx-auto py-6">
         
+        <!-- Result Banner Card -->
         <div class="w-full glass-panel p-space-xl rounded-3xl shadow-xl flex flex-col items-center text-center gap-space-lg relative overflow-hidden">
           <div id="result-bg-glow" class="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-tertiary/10 blur-3xl pointer-events-none"></div>
 
@@ -431,6 +449,73 @@
             </button>
           </div>
 
+        </div>
+
+        <!-- Visual Analytics Chart Section -->
+        <div class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-[24px]">analytics</span>
+              <h3 class="font-title-md text-title-md font-bold text-on-surface">Analisis Grafik Performa Pertandingan</h3>
+            </div>
+            <span id="res-accuracy-badge" class="px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm font-bold">Akurasi: 80%</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-center">
+            <!-- Canvas Performance Ring Chart -->
+            <div class="md:col-span-4 flex flex-col items-center justify-center p-4 bg-surface-container-low rounded-2xl">
+              <div class="relative w-36 h-36 flex items-center justify-center">
+                <canvas id="accuracy-chart-canvas" width="140" height="140"></canvas>
+                <div class="absolute flex flex-col items-center">
+                  <span id="chart-accuracy-num" class="font-headline-md text-headline-md font-black text-on-surface">80%</span>
+                  <span class="text-[10px] text-outline font-bold uppercase">Akurasi</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Performance Bars -->
+            <div class="md:col-span-8 flex flex-col gap-3 p-4 bg-surface-container-low rounded-2xl">
+              <div>
+                <div class="flex justify-between text-body-sm font-bold mb-1">
+                  <span class="text-emerald-600">Jawaban Benar</span>
+                  <span id="chart-correct-count" class="text-on-surface">8 / 10 Soal</span>
+                </div>
+                <div class="w-full bg-surface-container rounded-full h-3">
+                  <div id="bar-correct" class="bg-emerald-500 h-3 rounded-full transition-all duration-500" style="width: 80%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-body-sm font-bold mb-1">
+                  <span class="text-rose-600">Jawaban Salah / Waktu Habis</span>
+                  <span id="chart-incorrect-count" class="text-on-surface">2 / 10 Soal</span>
+                </div>
+                <div class="w-full bg-surface-container rounded-full h-3">
+                  <div id="bar-incorrect" class="bg-rose-500 h-3 rounded-full transition-all duration-500" style="width: 20%"></div>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-outline-variant/30 flex justify-between items-center text-xs text-on-surface-variant font-medium">
+                <span>Rata-Rata Waktu Jawab: <strong>4.2 Detik / Soal</strong></span>
+                <span>Efisiensi: <strong class="text-secondary">Sangat Baik</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pembahasan Soal Container (Resume Soal, Jawaban, Pembahasan & Cara) -->
+        <div class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-secondary text-[24px]">menu_book</span>
+              <h3 class="font-title-md text-title-md font-bold text-on-surface">Pembahasan Soal &amp; Resume Jawaban</h3>
+            </div>
+            <span class="text-body-sm text-outline font-semibold">10 Pembahasan Lengkap</span>
+          </div>
+
+          <div id="pembahasan-list-container" class="flex flex-col gap-space-md">
+            <!-- Dynamic Pembahasan cards injected by battle.js -->
+          </div>
         </div>
 
       </section>

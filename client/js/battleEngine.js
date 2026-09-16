@@ -1,11 +1,12 @@
 /**
- * EduRank Battle Engine v2.0
- * Standardized battle controller for Classic, Ranked, Custom, and VS AI matches.
+ * EduRank Battle Engine v3.0
+ * Supports Ranked (XP+ELO), Classic (XP only), Custom (0 XP, 0 ELO),
+ * detailed question explanations, and real-time backend DB sync.
  */
 class BattleEngine {
   constructor(options = {}) {
-    this.mode = options.mode || 'classic'; // classic, ranked, custom, ai
-    this.difficulty = options.difficulty || 'medium'; // easy, medium, hard
+    this.mode = options.mode || 'classic'; // ranked, classic, custom, ai
+    this.difficulty = options.difficulty || 'medium';
     this.subject = options.subject || 'Fisika';
     this.subjectId = options.subjectId || 1;
     this.user = JSON.parse(localStorage.getItem('edurank-user') || '{}');
@@ -15,81 +16,78 @@ class BattleEngine {
     this.userScore = 0;
     this.opponentScore = 0;
     this.questions = [];
-    this.userAnswers = [];
-    this.opponentAnswers = [];
+    this.userAnswersHistory = [];
     this.timer = null;
     this.secondsLeft = 30;
     this.maxTime = 30;
     this.isAnswered = false;
-    this.socket = null;
+    this.socket = options.socket || null;
     this.roomId = options.roomId || null;
     this.opponent = options.opponent || { name: 'AI Computer', isAi: true };
 
     this.init();
   }
 
-  async init() {
+  init() {
     this.loadQuestionBank();
     this.bindUI();
 
-    if (this.mode === 'ai') {
+    if (this.opponent.isAi) {
       this.setupAiOpponent();
-      this.startQuestion();
-    } else {
-      this.initSocket();
     }
+    
+    this.startQuestion();
   }
 
   loadQuestionBank() {
-    // Dynamic question bank per subject
     const subjectQuestions = {
       'Fisika': [
-        { q: 'Berapakah percepatan gravitasi standar di bumi?', options: ['9.8 m/s²', '8.9 m/s²', '10.5 m/s²', '12 m/s²'], answer: 0 },
-        { q: 'Hukum Newton II dirumuskan sebagai:', options: ['F = m / a', 'F = m × a', 'F = m + a', 'F = m² × a'], answer: 1 },
-        { q: 'Satuan Standar Internasional (SI) untuk usaha adalah:', options: ['Watt', 'Pascal', 'Joule', 'Newton'], answer: 2 },
-        { q: 'Energi kinetik suatu benda bermassa m bermuatan v adalah:', options: ['½ m v²', 'm v', 'm g h', '½ m² v'], answer: 0 },
-        { q: 'Kecepatan cahaya di ruang hampa adalah sebesar:', options: ['3 × 10⁸ m/s', '3 × 10⁶ m/s', '1.5 × 10⁸ m/s', '3 × 10¹⁰ m/s'], answer: 0 },
-        { q: 'Bunyi merambat paling cepat pada medium:', options: ['Udara', 'Air', 'Padat (Besi)', 'Hampa Udara'], answer: 2 },
-        { q: 'Alat untuk mengukur arus listrik adalah:', options: ['Voltmeter', 'Ampermeter', 'Ohmmeter', 'Thermometer'], answer: 1 },
-        { q: 'Pernyataan bahwa tekanan berbanding terbalik dengan volume adalah:', options: ['Hukum Pascal', 'Hukum Archimedes', 'Hukum Boyle', 'Hukum Hooke'], answer: 2 },
-        { q: 'Lensa cembung bersifat:', options: ['Mengumpulkan cahaya (Konvergen)', 'Menyebarkan cahaya (Divergen)', 'Membiaskan lurus', 'Memantulkan sempurna'], answer: 0 },
-        { q: 'Besaran yang memiliki nilai dan arah disebut:', options: ['Besaran Skalar', 'Besaran Vektor', 'Besaran Turunan', 'Besaran Pokok'], answer: 1 }
+        { q: 'Berapakah percepatan gravitasi standar di bumi?', options: ['9.8 m/s²', '8.9 m/s²', '10.5 m/s²', '12 m/s²'], answer: 0, explanation: 'Percepatan gravitasi rata-rata di permukaan bumi didefinisikan secara internasional sebesar g = 9.80665 m/s² (biasa dibulatkan 9.8 m/s² atau 10 m/s²).' },
+        { q: 'Hukum Newton II dirumuskan sebagai:', options: ['F = m / a', 'F = m × a', 'F = m + a', 'F = m² × a'], answer: 1, explanation: 'Hukum II Newton menyatakan bahwa percepatan sebanding dengan total gaya dan berbanding terbalik dengan massa: a = F / m -> F = m × a.' },
+        { q: 'Satuan Standar Internasional (SI) untuk usaha adalah:', options: ['Watt', 'Pascal', 'Joule', 'Newton'], answer: 2, explanation: 'Usaha (W = F × s) diukur dalam satuan Joule (J) di mana 1 Joule = 1 Newton.meter.' },
+        { q: 'Energi kinetik suatu benda bermassa m bergerak dengan kecepatan v adalah:', options: ['½ m v²', 'm v', 'm g h', '½ m² v'], answer: 0, explanation: 'Rumus energi kinetik benda bergerak: Ek = ½ m v².' },
+        { q: 'Kecepatan cahaya di ruang hampa adalah sebesar:', options: ['3 × 10⁸ m/s', '3 × 10⁶ m/s', '1.5 × 10⁸ m/s', '3 × 10¹⁰ m/s'], answer: 0, explanation: 'Konstanta kecepatan cahaya c di hampa udara adalah tepat 299.792.458 m/s (~3 × 10⁸ m/s).' },
+        { q: 'Bunyi merambat paling cepat pada medium:', options: ['Udara', 'Air', 'Padat (Besi)', 'Hampa Udara'], answer: 2, explanation: 'Gelombang bunyi merambat paling cepat dalam zat padat (besi ~5000 m/s) karena kerapatan partikel molekulnya sangat rapat.' },
+        { q: 'Alat untuk mengukur arus listrik adalah:', options: ['Voltmeter', 'Ampermeter', 'Ohmmeter', 'Thermometer'], answer: 1, explanation: 'Ampermeter digunakan untuk mengukur kuat arus listrik (Ampere) dalam rangkaian.' },
+        { q: 'Pernyataan bahwa tekanan berbanding terbalik dengan volume pada suhu tetap adalah:', options: ['Hukum Pascal', 'Hukum Archimedes', 'Hukum Boyle', 'Hukum Hooke'], answer: 2, explanation: 'Hukum Boyle: P × V = Konstan (bila temperatur konstan).' },
+        { q: 'Lensa cembung bersifat:', options: ['Mengumpulkan cahaya (Konvergen)', 'Menyebarkan cahaya (Divergen)', 'Membiaskan lurus', 'Memantulkan sempurna'], answer: 0, explanation: 'Lensa cembung (konveks) bernilai positif dan bersifat mengumpulkan sinar (konvergen).' },
+        { q: 'Besaran yang memiliki nilai dan arah disebut:', options: ['Besaran Skalar', 'Besaran Vektor', 'Besaran Turunan', 'Besaran Pokok'], answer: 1, explanation: 'Besaran Vektor memiliki magnitude (nilai) dan direction (arah), seperti kecepatan dan gaya.' }
       ],
       'Matematika': [
-        { q: 'Turunan pertama dari f(x) = 3x² + 5x - 4 adalah:', options: ['6x + 5', '3x + 5', '6x² + 5', '6x - 4'], answer: 0 },
-        { q: 'Hasil dari ∫ (2x + 3) dx adalah:', options: ['x² + 3x + C', '2x² + 3x + C', 'x² + C', '3x² + C'], answer: 0 },
-        { q: 'Jika sin(A) = 3/5 pada segitiga siku-siku, berapa cos(A)?', options: ['4/5', '3/4', '5/4', '2/5'], answer: 0 },
-        { q: 'Akar-akar dari persamaan kuadrat x² - 5x + 6 = 0 adalah:', options: ['2 dan 3', '-2 dan -3', '1 dan 6', '-1 dan -6'], answer: 0 },
-        { q: 'Nilai dari log₁₀(1000) adalah:', options: ['3', '2', '10', '100'], answer: 0 },
-        { q: 'Suku ke-10 dari barisan aritmatika 2, 5, 8, 11... adalah:', options: ['29', '27', '31', '30'], answer: 0 },
-        { q: 'Determinant matriks [[2, 3], [1, 4]] adalah:', options: ['5', '8', '10', '11'], answer: 0 },
-        { q: 'Berapakah nilai dari 5! (5 faktorial)?', options: ['120', '100', '60', '24'], answer: 0 },
-        { q: 'Persamaan lingkaran berpuncak di (0,0) ber-jari-jari 5 adalah:', options: ['x² + y² = 25', 'x² + y² = 5', 'x + y = 25', 'x² - y² = 25'], answer: 0 },
-        { q: 'Berapakah luas segitiga dengan alas 10 cm dan tinggi 8 cm?', options: ['40 cm²', '80 cm²', '20 cm²', '50 cm²'], answer: 0 }
+        { q: 'Turunan pertama dari f(x) = 3x² + 5x - 4 adalah:', options: ['6x + 5', '3x + 5', '6x² + 5', '6x - 4'], answer: 0, explanation: 'Aturan pangkat turunan: d/dx (axⁿ) = n·a·xⁿ⁻¹. f\'(x) = 2·3x²⁻¹ + 5 = 6x + 5.' },
+        { q: 'Hasil dari ∫ (2x + 3) dx adalah:', options: ['x² + 3x + C', '2x² + 3x + C', 'x² + C', '3x² + C'], answer: 0, explanation: 'Integral tak tentu: ∫ 2x dx = x², ∫ 3 dx = 3x. Hasil = x² + 3x + C.' },
+        { q: 'Jika sin(A) = 3/5 pada segitiga siku-siku, berapa nilai cos(A)?', options: ['4/5', '3/4', '5/4', '2/5'], answer: 0, explanation: 'Pada segitiga siku-siku 3-4-5: depan = 3, miring = 5, maka samping = √(5² - 3²) = 4. cos(A) = samping/miring = 4/5.' },
+        { q: 'Akar-akar dari persamaan kuadrat x² - 5x + 6 = 0 adalah:', options: ['2 dan 3', '-2 dan -3', '1 dan 6', '-1 dan -6'], answer: 0, explanation: 'Faktorisasi: (x - 2)(x - 3) = 0 -> x = 2 atau x = 3.' },
+        { q: 'Nilai dari log₁₀(1000) adalah:', options: ['3', '2', '10', '100'], answer: 0, explanation: '1000 = 10³, maka log₁₀(10³) = 3.' },
+        { q: 'Suku ke-10 dari barisan aritmatika 2, 5, 8, 11... adalah:', options: ['29', '27', '31', '30'], answer: 0, explanation: 'a = 2, b = 3. U₁₀ = a + 9b = 2 + 9(3) = 2 + 27 = 29.' },
+        { q: 'Determinant matriks [[2, 3], [1, 4]] adalah:', options: ['5', '8', '10', '11'], answer: 0, explanation: 'det([[a,b],[c,d]]) = ad - bc = (2)(4) - (3)(1) = 8 - 3 = 5.' },
+        { q: 'Berapakah nilai dari 5! (5 faktorial)?', options: ['120', '100', '60', '24'], answer: 0, explanation: '5! = 5 × 4 × 3 × 2 × 1 = 120.' },
+        { q: 'Persamaan lingkaran berpusat di (0,0) ber-jari-jari 5 adalah:', options: ['x² + y² = 25', 'x² + y² = 5', 'x + y = 25', 'x² - y² = 25'], answer: 0, explanation: 'Persamaan baku lingkaran pusat (0,0): x² + y² = r² = 5² = 25.' },
+        { q: 'Luas segitiga dengan alas 10 cm dan tinggi 8 cm adalah:', options: ['40 cm²', '80 cm²', '20 cm²', '50 cm²'], answer: 0, explanation: 'Luas = ½ × alas × tinggi = ½ × 10 × 8 = 40 cm².' }
       ],
       'Bahasa Inggris': [
-        { q: 'Choose the correct passive voice: "She reads a book."', options: ['A book is read by her.', 'A book was read by her.', 'A book is reading by her.', 'A book has read by her.'], answer: 0 },
-        { q: 'What is the synonym of "Vast"?', options: ['Huge', 'Small', 'Tiny', 'Narrow'], answer: 0 },
-        { q: 'If I ___ rich, I would travel the world.', options: ['were', 'was', 'am', 'be'], answer: 0 },
-        { q: 'Identify the noun in: "He runs quickly."', options: ['He', 'runs', 'quickly', 'None'], answer: 0 },
-        { q: 'She has been working here ___ 2020.', options: ['since', 'for', 'during', 'by'], answer: 0 },
-        { q: 'What is the antonym of "Generous"?', options: ['Stingy', 'Kind', 'Polite', 'Brave'], answer: 0 },
-        { q: 'They ___ to the cinema last night.', options: ['went', 'go', 'gone', 'going'], answer: 0 },
-        { q: 'The sun ___ in the east.', options: ['rises', 'rose', 'rising', 'is rise'], answer: 0 },
-        { q: 'Which word is spelled correctly?', options: ['Necessary', 'Neccessary', 'Necesary', 'Nessessary'], answer: 0 },
-        { q: 'Could you please ___ me the salt?', options: ['pass', 'passed', 'passing', 'passes'], answer: 0 }
+        { q: 'Choose the correct passive voice: "She reads a book."', options: ['A book is read by her.', 'A book was read by her.', 'A book is reading by her.', 'A book has read by her.'], answer: 0, explanation: 'Simple Present Passive pattern: Subject + is/am/are + V3 + by Object. "A book is read by her."' },
+        { q: 'What is the synonym of "Vast"?', options: ['Huge', 'Small', 'Tiny', 'Narrow'], answer: 0, explanation: '"Vast" means immense or extremely large. Synonyms include Huge, Massive, or Enormous.' },
+        { q: 'If I ___ rich, I would travel the world.', options: ['were', 'was', 'am', 'be'], answer: 0, explanation: 'Second Conditional (hypothetical present): If + Subject + WERE (subjunctive mood) + Subject + WOULD + V1.' },
+        { q: 'Identify the noun in: "He runs quickly."', options: ['He', 'runs', 'quickly', 'None'], answer: 0, explanation: '"He" is a pronoun. "Runs" is a verb. "Quickly" is an adverb.' },
+        { q: 'She has been working here ___ 2020.', options: ['since', 'for', 'during', 'by'], answer: 0, explanation: '"Since" indicates the starting point of time (since 2020), while "for" indicates duration.' },
+        { q: 'What is the antonym of "Generous"?', options: ['Stingy', 'Kind', 'Polite', 'Brave'], answer: 0, explanation: '"Generous" means giving and liberal. The opposite (antonym) is "Stingy" (pelit/kikir).' },
+        { q: 'They ___ to the cinema last night.', options: ['went', 'go', 'gone', 'going'], answer: 0, explanation: '"Last night" signals Simple Past Tense, requiring the V2 form "went".' },
+        { q: 'The sun ___ in the east.', options: ['rises', 'rose', 'rising', 'is rise'], answer: 0, explanation: 'General truth / scientific fact uses Simple Present Tense (third person singular + s): "rises".' },
+        { q: 'Which word is spelled correctly?', options: ['Necessary', 'Neccessary', 'Necesary', 'Nessessary'], answer: 0, explanation: 'The correct spelling has ONE \'c\' and TWO \'s\'s: N-E-C-E-S-S-A-R-Y.' },
+        { q: 'Could you please ___ me the salt?', options: ['pass', 'passed', 'passing', 'passes'], answer: 0, explanation: 'Modal verbs (could, would, can) are followed by the base form of the verb (bare infinitive): "pass".' }
       ],
       'Informatika': [
-        { q: 'Struktur data mana yang menggunakan prinsip LIFO (Last In First Out)?', options: ['Stack', 'Queue', 'Array', 'Linked List'], answer: 0 },
-        { q: 'Komponen hardware yang berfungsi sebagai otak utama komputer adalah:', options: ['CPU', 'RAM', 'Harddisk', 'GPU'], answer: 0 },
-        { q: 'Bahasa pemrograman yang sering digunakan untuk pengembangan web frontend adalah:', options: ['JavaScript', 'C++', 'Assembly', 'SQL'], answer: 0 },
-        { q: 'Protokol standar yang digunakan untuk transfer data web yang aman adalah:', options: ['HTTPS', 'HTTP', 'FTP', 'SMTP'], answer: 0 },
-        { q: 'Kompleksitas waktu pencarian (search) pada Binary Search Tree ideal adalah:', options: ['O(log n)', 'O(n)', 'O(n²)', 'O(1)'], answer: 0 },
-        { q: 'Perintah SQL untuk menambahkan data baru ke dalam tabel adalah:', options: ['INSERT INTO', 'UPDATE', 'CREATE TABLE', 'SELECT'], answer: 0 },
-        { q: 'Penulisan alamat IPv4 terdiri dari berapa bit?', options: ['32 bit', '64 bit', '128 bit', '16 bit'], answer: 0 },
-        { q: 'Prinsip OOP di mana satu class mewarisi sifat dari class lain disebut:', options: ['Inheritance', 'Encapsulation', 'Polymorphism', 'Abstraction'], answer: 0 },
-        { q: 'Perangkat keras penukar sinyal digital ke analog dan sebaliknya adalah:', options: ['Modem', 'Router', 'Switch', 'Hub'], answer: 0 },
-        { q: 'Istilah untuk kesalahan logika atau sintaks pada program adalah:', options: ['Bug', 'Glitch', 'Virus', 'Malware'], answer: 0 }
+        { q: 'Struktur data mana yang menggunakan prinsip LIFO (Last In First Out)?', options: ['Stack', 'Queue', 'Array', 'Linked List'], answer: 0, explanation: 'Stack (tumpukan) menerapkan LIFO: elemen terakhir yang masuk akan menjadi elemen pertama yang keluar.' },
+        { q: 'Komponen hardware yang berfungsi sebagai otak utama pemrosesan instruksi adalah:', options: ['CPU', 'RAM', 'Harddisk', 'GPU'], answer: 0, explanation: 'CPU (Central Processing Unit) berfungsi mengeksekusi instruksi aritmatika dan logika utama komputer.' },
+        { q: 'Bahasa pemrograman yang digunakan secara luas untuk logika interaktif di web browser adalah:', options: ['JavaScript', 'C++', 'Assembly', 'SQL'], answer: 0, explanation: 'JavaScript adalah bahasa pemrograman standar utama web browser untuk logika interaktif dinamis.' },
+        { q: 'Protokol standar terenkripsi untuk enkripsi data web aman adalah:', options: ['HTTPS', 'HTTP', 'FTP', 'SMTP'], answer: 0, explanation: 'HTTPS (Hypertext Transfer Protocol Secure) menggunakan TLS/SSL untuk mengamankan komunikasi data.' },
+        { q: 'Kompleksitas waktu pencarian (search) pada Binary Search Tree ideal adalah:', options: ['O(log n)', 'O(n)', 'O(n²)', 'O(1)'], answer: 0, explanation: 'Binary Search membagi ruang pencarian menjadi setengah pada setiap langkah, sehingga kompleksitasnya O(log n).' },
+        { q: 'Perintah SQL untuk menambahkan record data baru ke dalam tabel adalah:', options: ['INSERT INTO', 'UPDATE', 'CREATE TABLE', 'SELECT'], answer: 0, explanation: 'Perintah Data Manipulation Language (DML) untuk menambah baris data baru adalah INSERT INTO.' },
+        { q: 'Penulisan alamat IPv4 terdiri dari berapa bit?', options: ['32 bit', '64 bit', '128 bit', '16 bit'], answer: 0, explanation: 'IPv4 terdiri dari 32-bit bilangan biner yang dibagi menjadi 4 oktet (misal 192.168.1.1).' },
+        { q: 'Prinsip OOP di mana satu class mewarisi atribut dari class induk disebut:', options: ['Inheritance', 'Encapsulation', 'Polymorphism', 'Abstraction'], answer: 0, explanation: 'Inheritance (pewarisan) memungkinkan sub-class mewarisi metode dan properti dari parent class.' },
+        { q: 'Perangkat keras pengubah sinyal digital ke analog dan sebaliknya adalah:', options: ['Modem', 'Router', 'Switch', 'Hub'], answer: 0, explanation: 'Modem (Modulator Demodulator) mengubah sinyal digital menjadi analog dan sebaliknya.' },
+        { q: 'Istilah untuk kesalahan dalam kode pemrograman yang menyebabkan bug/cacat adalah:', options: ['Bug', 'Glitch', 'Virus', 'Malware'], answer: 0, explanation: 'Bug merujuk pada kesalahan logika atau sintaksis dalam kode perangkat lunak.' }
       ]
     };
 
@@ -109,7 +107,6 @@ class BattleEngine {
       accuracy: config.accuracy,
       delayRange: config.delayRange
     };
-    
     this.updatePlayerUI();
   }
 
@@ -119,11 +116,11 @@ class BattleEngine {
     this.timerEl = document.getElementById('countdown-timer');
     this.questionNumEl = document.getElementById('question-number');
     
-    // Player 1 UI
+    // Player 1
     this.p1NameEl = document.getElementById('p1-name');
     this.p1ScoreEl = document.getElementById('p1-score');
     
-    // Player 2 UI
+    // Player 2
     this.p2NameEl = document.getElementById('p2-name');
     this.p2ScoreEl = document.getElementById('p2-score');
 
@@ -134,7 +131,7 @@ class BattleEngine {
     if (this.p1NameEl) this.p1NameEl.textContent = this.user.name || 'Kamu';
     if (this.p1ScoreEl) this.p1ScoreEl.textContent = `Skor: ${this.userScore}`;
     
-    if (this.p2NameEl) this.p2NameEl.textContent = this.opponent.name;
+    if (this.p2NameEl) this.p2NameEl.textContent = this.opponent.name || 'Lawan';
     if (this.p2ScoreEl) this.p2ScoreEl.textContent = `Skor: ${this.opponentScore}`;
   }
 
@@ -159,7 +156,7 @@ class BattleEngine {
     this.startTimer();
 
     if (this.opponent.isAi) {
-      this.scheduleAiAnswer(qData);
+      this.scheduleAiAnswer();
     }
   }
 
@@ -193,10 +190,21 @@ class BattleEngine {
     if (isCorrect) {
       this.userScore += 10;
     }
-    this.userAnswers.push(isCorrect);
+
+    // Push detailed record for result review
+    this.userAnswersHistory.push({
+      questionNum: this.currentQuestionIndex + 1,
+      question: qData.q,
+      options: qData.options,
+      selectedIndex: selectedIdx,
+      correctIndex: qData.answer,
+      isCorrect: isCorrect,
+      explanation: qData.explanation || 'Pembahasan terstandar Kurikulum Merdeka.'
+    });
+
     this.updatePlayerUI();
 
-    // Visual feedback on options
+    // Visual feedback
     const btns = this.optionsContainerEl.querySelectorAll('.option-btn');
     btns.forEach((btn, idx) => {
       btn.disabled = true;
@@ -210,7 +218,7 @@ class BattleEngine {
     });
 
     if (this.socket && this.roomId) {
-      this.socket.emit('battle_answer', { roomId: this.roomId, correct: isCorrect });
+      this.socket.emit('battle_answer', { roomId: this.roomId, score: this.userScore });
     }
 
     setTimeout(() => {
@@ -228,7 +236,6 @@ class BattleEngine {
       if (isCorrect) {
         this.opponentScore += 10;
       }
-      this.opponentAnswers.push(isCorrect);
       this.updatePlayerUI();
     }, delay);
   }
@@ -250,7 +257,7 @@ class BattleEngine {
       if (this.secondsLeft <= 0) {
         clearInterval(this.timer);
         if (!this.isAnswered) {
-          this.submitAnswer(-1); // Time out answer
+          this.submitAnswer(-1); // Timeout
         }
       }
     }, 1000);
@@ -267,12 +274,25 @@ class BattleEngine {
     const isDraw = this.userScore === this.opponentScore;
     
     let eloChange = 0;
+    let xpGained = 0;
+
+    // Rules per user request:
+    // Ranked: +XP, +ELO / -ELO
+    // Classic: +XP, 0 ELO
+    // Custom: 0 XP, 0 ELO
     if (this.mode === 'ranked') {
       eloChange = isWin ? 15 : (isDraw ? 0 : -10);
+      xpGained = isWin ? 50 : (isDraw ? 25 : 10);
+    } else if (this.mode === 'classic') {
+      eloChange = 0;
+      xpGained = isWin ? 40 : (isDraw ? 20 : 10);
+    } else {
+      // Custom mode
+      eloChange = 0;
+      xpGained = 0;
     }
-    const xpGained = isWin ? 50 : (isDraw ? 25 : 10);
 
-    // Save battle stats to user profile if user email exists
+    // Persist to MySQL database & update local session
     if (this.user && this.user.email) {
       try {
         const wins = (Number(this.user.wins) || 0) + (isWin ? 1 : 0);
@@ -281,8 +301,9 @@ class BattleEngine {
         const currentElo = Number(this.user.elo) || 400;
         const newElo = Math.max(0, currentElo + eloChange);
         const currentXp = Number(this.user.xp) || 0;
+        const newXp = currentXp + xpGained;
 
-        await fetch('/api/user/update', {
+        const res = await fetch('/api/user/update', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -291,14 +312,24 @@ class BattleEngine {
           body: JSON.stringify({
             email: this.user.email,
             elo: newElo,
-            xp: currentXp + xpGained,
+            xp: newXp,
             wins,
             losses,
             draws
           })
         });
+
+        const data = await res.json();
+        if (data.success && data.user) {
+          // Sync local storage & update Header UI immediately
+          localStorage.setItem('edurank-user', JSON.stringify(data.user));
+          if (window.headerComponent && typeof window.headerComponent.init === 'function') {
+            window.headerComponent.user = data.user;
+            window.headerComponent.updateUserInfo();
+          }
+        }
       } catch (err) {
-        console.error('Failed to update user stats post battle:', err);
+        console.error('Failed to save battle results to DB:', err);
       }
     }
 
@@ -312,25 +343,10 @@ class BattleEngine {
         isWin,
         isDraw,
         eloChange,
-        xpGained
+        xpGained,
+        answersHistory: this.userAnswersHistory
       });
     }
-  }
-
-  initSocket() {
-    if (typeof io === 'undefined') return;
-    this.socket = io({ auth: { token: this.token } });
-
-    this.socket.on('battle_update', (data) => {
-      if (data.score) {
-        this.opponentScore = data.score;
-        this.updatePlayerUI();
-      }
-    });
-
-    this.socket.on('battle_finish', () => {
-      this.finishBattle();
-    });
   }
 }
 
