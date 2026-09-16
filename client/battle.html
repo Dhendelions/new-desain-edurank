@@ -515,25 +515,52 @@
           </div>
         </div>
 
-        <!-- Pembahasan Soal Container (Resume Soal, Jawaban, Pembahasan & Cara) -->
-        <div class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
-          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-secondary text-[24px]">menu_book</span>
-              <h3 class="font-title-md text-title-md font-bold text-on-surface">Pembahasan Soal &amp; Resume Jawaban</h3>
-            </div>
-            <span class="text-body-sm text-outline font-semibold">10 Pembahasan Lengkap</span>
+        <!-- Pembahasan Soal Button -->
+        <div class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md items-center text-center">
+          <div class="w-16 h-16 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center mb-2">
+            <span class="material-symbols-outlined text-[32px]">menu_book</span>
           </div>
-
-          <div id="pembahasan-list-container" class="flex flex-col gap-space-md">
-            <!-- Dynamic Pembahasan cards injected by battle.js -->
-          </div>
+          <h3 class="font-title-md text-title-md font-bold text-on-surface">Pelajari Kesalahanmu</h3>
+          <p class="text-body-sm text-outline mb-2">Lihat kembali soal-soal yang sudah dikerjakan beserta pembahasan lengkapnya.</p>
+          <button id="btn-tinjau-pembahasan" type="button" class="px-8 py-3 rounded-xl bg-secondary hover:bg-secondary-container text-on-secondary font-label-lg font-bold transition-all shadow-md">
+            Tinjau Pembahasan
+          </button>
         </div>
 
       </section>
 
     </div>
   </main>
+
+  <!-- MODAL TINJAU PEMBAHASAN -->
+  <div id="review-modal" class="fixed inset-0 z-[100] hidden bg-on-surface/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6">
+    <div class="bg-surface-container-lowest max-w-3xl w-full max-h-[90vh] rounded-3xl shadow-2xl border border-outline-variant/30 flex flex-col relative overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-5 md:p-6 border-b border-outline-variant/20 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-xl">menu_book</span>
+          </div>
+          <div>
+            <h3 class="font-title-lg font-bold text-on-surface text-lg leading-tight">Pembahasan & Resume</h3>
+            <p class="text-sm text-outline">Pelajari jawaban yang benar dan cara pengerjaannya</p>
+          </div>
+        </div>
+        <button id="btn-close-review-modal" class="w-9 h-9 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 md:p-6 overflow-y-auto flex-1 custom-scrollbar">
+        <div id="pembahasan-list-container" class="flex flex-col gap-6">
+          <!-- Dynamic Pembahasan cards injected by battle.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/utils.js"></script>

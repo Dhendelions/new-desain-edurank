@@ -376,6 +376,34 @@ class BattlePageManager {
         window.location.href = 'home.html';
       });
     }
+
+    // Review Modal Buttons
+    const btnTinjau = document.getElementById('btn-tinjau-pembahasan');
+    const btnCloseReview = document.getElementById('btn-close-review-modal');
+    const reviewModal = document.getElementById('review-modal');
+
+    if (btnTinjau && reviewModal) {
+      btnTinjau.addEventListener('click', () => {
+        reviewModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      });
+    }
+
+    if (btnCloseReview && reviewModal) {
+      btnCloseReview.addEventListener('click', () => {
+        reviewModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      });
+    }
+
+    if (reviewModal) {
+      reviewModal.addEventListener('click', (e) => {
+        if (e.target === reviewModal) {
+          reviewModal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }
+      });
+    }
   }
 
   startBattle(mode, opponentConfig = {}) {

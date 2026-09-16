@@ -103,20 +103,28 @@ function renderProfile(user, subjectsData, battles) {
   const btnCancelEdit = document.getElementById('btn-cancel-edit-modal');
   const editForm = document.getElementById('edit-profile-form');
   const inputName = document.getElementById('edit-input-name');
-  const inputEmail = document.getElementById('edit-input-email');
-  const inputPhoto = document.getElementById('edit-input-photo');
+  const inputPhotoFile = document.getElementById('edit-input-photo-file');
+  const imgPreview = document.getElementById('img-preview');
+  
+  let base64Photo = user.photo || '';
 
   if (btnEdit && editModal) {
     btnEdit.onclick = () => {
       if (inputName) inputName.value = user.name || '';
-      if (inputEmail) inputEmail.value = user.email || '';
-      if (inputPhoto) inputPhoto.value = user.photo || '';
+      if (imgPreview) imgPreview.src = user.photo || 'img/default-avatar.png';
+      base64Photo = user.photo || '';
+      if (inputPhotoFile) inputPhotoFile.value = '';
+      
+      document.body.style.overflow = 'hidden'; // block scrolling
       editModal.classList.remove('hidden');
     };
   }
 
   const closeEditModal = () => {
-    if (editModal) editModal.classList.add('hidden');
+    if (editModal) {
+      editModal.classList.add('hidden');
+      document.body.style.overflow = ''; // restore scrolling
+    }
   };
 
   if (btnCloseEdit) btnCloseEdit.onclick = closeEditModal;
@@ -125,6 +133,27 @@ function renderProfile(user, subjectsData, battles) {
     editModal.onclick = (e) => {
       if (e.target === editModal) closeEditModal();
     };
+  }
+
+  // Handle file preview and conversion to base64
+  if (inputPhotoFile) {
+    inputPhotoFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran file maksimal 2MB!');
+        inputPhotoFile.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        base64Photo = event.target.result;
+        if (imgPreview) imgPreview.src = base64Photo;
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   if (editForm) {
@@ -138,8 +167,6 @@ function renderProfile(user, subjectsData, battles) {
 
       try {
         const newName = inputName.value.trim();
-        const newEmailVal = inputEmail.value.trim().toLowerCase();
-        const newPhotoVal = inputPhoto.value.trim();
 
         const token = localStorage.getItem('edurank-token');
         const res = await fetch(getApiUrl('/api/user/update'), {
@@ -151,8 +178,7 @@ function renderProfile(user, subjectsData, battles) {
           body: JSON.stringify({
             email: user.email,
             name: newName,
-            newEmail: newEmailVal,
-            photo: newPhotoVal
+            photo: base64Photo
           })
         });
 

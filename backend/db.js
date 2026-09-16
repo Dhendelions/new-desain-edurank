@@ -35,13 +35,20 @@ async function initDb() {
         \`total_battles\` INT NOT NULL DEFAULT 0,
         \`correct_answers\` INT NOT NULL DEFAULT 0,
         \`incorrect_answers\` INT NOT NULL DEFAULT 0,
-        \`photo\` VARCHAR(255) DEFAULT '',
+        \`photo\` LONGTEXT,
         \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (\`id\`),
         UNIQUE KEY \`idx_users_email\` (\`email\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // Upgrade existing photo columns from VARCHAR(255) to LONGTEXT to support base64 images
+    try {
+      await connection.query('ALTER TABLE `users` MODIFY `photo` LONGTEXT');
+    } catch (e) {
+      console.log('Note: Photo column already longtext or could not be altered.');
+    }
 
     connection.release();
     console.log('✅ MySQL Table `users` is ready.');
