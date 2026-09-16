@@ -89,6 +89,23 @@ async function initDb() {
       await connection.query('ALTER TABLE `user_daily_missions` ADD COLUMN `claimed` BOOLEAN NOT NULL DEFAULT FALSE');
     } catch (e) {}
 
+    // Seed default daily missions if empty
+    try {
+      const [existingMissions] = await connection.query('SELECT COUNT(*) as count FROM `daily_missions`');
+      if (existingMissions[0].count === 0) {
+        await connection.query(`
+          INSERT INTO \`daily_missions\` (\`mission_key\`, \`title\`, \`description\`, \`mission_type\`, \`target\`, \`reward_xp\`, \`is_active\`) VALUES
+          ('play_1_battle', 'Pendekar Arena', 'Mainkan 1 pertandingan di mode Ranked atau Classic', 'matches', 1, 50, TRUE),
+          ('answer_5_correct', 'Cendekiawan Soal', 'Jawab 5 soal dengan benar di mode pertandingan apapun', 'correct_answers', 5, 75, TRUE),
+          ('win_1_ranked', 'Juara Ranked', 'Raih 1 kemenangan di mode Ranked Battle', 'ranked_wins', 1, 100, TRUE),
+          ('win_2_battles', 'Dominasi Lapangan', 'Menangkan total 2 pertandingan di mode apapun', 'wins', 2, 120, TRUE);
+        `);
+        console.log('✅ Default daily missions seeded successfully.');
+      }
+    } catch (e) {
+      console.warn('Note: daily_missions seeding skipped or table not initialized:', e.message);
+    }
+
     connection.release();
     console.log('✅ MySQL Table `users` is ready.');
   } catch (err) {

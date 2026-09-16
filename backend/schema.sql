@@ -141,6 +141,12 @@ CREATE TABLE IF NOT EXISTS `daily_missions` (
   `reward_xp` INT NOT NULL DEFAULT 0,
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+INSERT IGNORE INTO `daily_missions` (`id`, `mission_key`, `title`, `description`, `mission_type`, `target`, `reward_xp`, `is_active`) VALUES
+(1, 'play_1_battle', 'Pendekar Arena', 'Mainkan 1 pertandingan di mode Ranked atau Classic', 'matches', 1, 50, TRUE),
+(2, 'answer_5_correct', 'Cendekiawan Soal', 'Jawab 5 soal dengan benar di mode pertandingan apapun', 'correct_answers', 5, 75, TRUE),
+(3, 'win_1_ranked', 'Juara Ranked', 'Raih 1 kemenangan di mode Ranked Battle', 'ranked_wins', 1, 100, TRUE),
+(4, 'win_2_battles', 'Dominasi Lapangan', 'Menangkan total 2 pertandingan di mode apapun', 'wins', 2, 120, TRUE);
 CREATE TABLE IF NOT EXISTS `user_daily_missions` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `user_id` VARCHAR(100) NOT NULL,
