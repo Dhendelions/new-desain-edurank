@@ -32,6 +32,25 @@ class BattleEngine {
     this.loadQuestionBank();
     this.bindUI();
 
+    if (this.socket) {
+      this.socket.on('battle_update', (room) => {
+        if (!room || !room.players) return;
+        const opp = room.players.find(p => String(p.id) !== String(this.user.id));
+        if (opp) {
+          if (room.score && room.score[opp.id] !== undefined) {
+            this.opponentScore = room.score[opp.id];
+          }
+          if (room.progress && room.progress[opp.id] !== undefined) {
+            this.opponentProgress = room.progress[opp.id];
+          }
+          if (opp.name && !this.opponent.isAi) {
+            this.opponent.name = opp.name;
+          }
+          this.updatePlayerUI();
+        }
+      });
+    }
+
     if (this.opponent.isAi) {
       this.setupAiOpponent();
     }
@@ -129,10 +148,11 @@ class BattleEngine {
 
   updatePlayerUI() {
     if (this.p1NameEl) this.p1NameEl.textContent = this.user.name || 'Kamu';
-    if (this.p1ScoreEl) this.p1ScoreEl.textContent = `Skor: ${this.userScore}`;
+    if (this.p1ScoreEl) this.p1ScoreEl.textContent = `Skor: ${this.userScore} (Soal ${Math.min(10, this.currentQuestionIndex + 1)}/10)`;
     
     if (this.p2NameEl) this.p2NameEl.textContent = this.opponent.name || 'Lawan';
-    if (this.p2ScoreEl) this.p2ScoreEl.textContent = `Skor: ${this.opponentScore}`;
+    const oppQ = this.opponentProgress ? ` • Soal ${this.opponentProgress}/10` : '';
+    if (this.p2ScoreEl) this.p2ScoreEl.textContent = `Skor: ${this.opponentScore}${oppQ}`;
   }
 
   startQuestion() {
@@ -218,7 +238,11 @@ class BattleEngine {
     });
 
     if (this.socket && this.roomId) {
-      this.socket.emit('battle_answer', { roomId: this.roomId, score: this.userScore });
+      this.socket.emit('battle_answer', {
+        roomId: this.roomId,
+        score: this.userScore,
+        questionIndex: this.currentQuestionIndex + 1
+      });
     }
 
     setTimeout(() => {

@@ -24,7 +24,7 @@ function calculateWinrate(wins, losses, draws) {
 
 // Calculate level from XP
 function calculateLevel(xp) {
-  return Math.floor(Math.max(0, Number(xp || 0)) / 100) + 1;
+  return Math.floor(Math.max(0, Number(xp || 0)) / 500) + 1;
 }
 
 // Subject icons mapping

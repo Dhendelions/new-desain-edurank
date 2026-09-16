@@ -348,9 +348,9 @@ app.get('/api/home', async (req, res) => {
     const [classesRows] = await pool.query('SELECT * FROM classes WHERE is_active = TRUE');
     const [subjectsRows] = await pool.query('SELECT * FROM subjects');
 
-    // Get Friends
+    // Get Friends (Distinct to prevent duplicate rendering)
     const [friends] = await pool.query(`
-      SELECT u.id, u.name, u.photo
+      SELECT DISTINCT u.id, u.name, u.photo
       FROM friends f
       JOIN users u ON (f.user_id_1 = u.id OR f.user_id_2 = u.id)
       WHERE (f.user_id_1 = ? OR f.user_id_2 = ?) AND u.id != ?
@@ -445,8 +445,7 @@ app.post('/api/friends/accept', async (req, res) => {
     const { senderId, notificationId } = req.body;
 
     if (senderId) {
-      await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (?, ?)', [senderId, userId]);
-      await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (?, ?)', [userId, senderId]);
+      await pool.query('INSERT IGNORE INTO friends (user_id_1, user_id_2) VALUES (LEAST(?, ?), GREATEST(?, ?))', [senderId, userId, senderId, userId]);
 
       const [userRows] = await pool.query('SELECT name FROM users WHERE id = ?', [userId]);
       const userName = userRows[0] ? userRows[0].name : 'Teman EduRank';

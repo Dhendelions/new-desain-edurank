@@ -57,10 +57,10 @@ function renderProfile(user, subjectsData, battles) {
   }
 
   const xp = Math.max(0, Number(user.xp) || 0);
-  const level = Math.floor(xp / 100) + 1;
-  const nextLevelXp = level * 100;
-  const currentLevelXp = (level - 1) * 100;
-  const progress = Math.min(100, Math.max(0, ((xp - currentLevelXp) / 100) * 100));
+  const level = Math.floor(xp / 500) + 1;
+  const nextLevelXp = level * 500;
+  const currentLevelXp = (level - 1) * 500;
+  const progress = Math.min(100, Math.max(0, ((xp - currentLevelXp) / 500) * 100));
 
   const valXp = document.getElementById('val-user-xp');
   const valLevel = document.getElementById('val-user-level');

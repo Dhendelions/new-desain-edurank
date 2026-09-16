@@ -83,7 +83,7 @@ function renderUserStats(user) {
   if (!container) return;
 
   const xp = Math.max(0, Number(user.xp) || 0);
-  const level = Math.floor(xp / 100) + 1;
+  const level = Math.floor(xp / 500) + 1;
   const elo = Math.max(0, Number(user.elo) || 0);
   const totalBattles = Math.max(0, Number(user.totalBattles) || 0);
   const wins = Math.max(0, Number(user.wins) || 0);

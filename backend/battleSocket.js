@@ -24,7 +24,8 @@ function configureBattleSocket(server, secret) {
     subject: room.subject,
     status: room.status,
     players: room.players.map(({ id, name, photo }) => ({ id, name, photo })),
-    score: room.score,
+    score: room.score || {},
+    progress: room.progress || {},
     winner: room.winner || null
   });
 
@@ -145,12 +146,17 @@ function configureBattleSocket(server, secret) {
       emitRoom(room, 'match_found');
     });
 
-    // LIVE BATTLE SCORE UPDATE
-    socket.on('battle_answer', ({ roomId, score }) => {
+    // LIVE BATTLE SCORE & PROGRESS UPDATE
+    socket.on('battle_answer', ({ roomId, score, questionIndex }) => {
       const room = rooms.get(roomId);
       if (!room) return;
+      if (!room.score) room.score = {};
+      if (!room.progress) room.progress = {};
       if (score !== undefined) {
         room.score[player.id] = score;
+      }
+      if (questionIndex !== undefined) {
+        room.progress[player.id] = questionIndex;
       }
       emitRoom(room, 'battle_update');
     });
