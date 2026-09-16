@@ -1,59 +1,64 @@
-﻿# EduRank Indonesia - Project Context
+# EduRank Indonesia - Project Context
 
 ## Tech Stack
-- **Backend**: Node.js + Express + MySQL (mysql2/promise) + Socket.IO
-- **Frontend**: HTML + Tailwind CSS + Vanilla JS
-- **Auth**: JWT (7d expiry), stored as `edurank-token` in localStorage
+- **Backend**: Node.js, Express, MySQL (`mysql2/promise`), Socket.IO
+- **Frontend**: HTML5, Vanilla JavaScript, Tailwind CSS
+- **Authentication**: JWT token stored in localStorage (`edurank-token`), verified via `Bearer <token>` in authorization headers.
 
 ## Project Structure
 ```
 New EduRank/
 ├── backend/
-│   ├── server.js        # Main API server (all REST endpoints)
-│   ├── db.js            # MySQL pool + initDb migrations
-│   ├── schema.sql       # Reference schema
-│   ├── battleSocket.js  # Socket.IO battle engine
-│   └── materials.js     # PDF/DOCX material reader
+│   ├── server.js          # Express API server with all REST endpoints & auth
+│   ├── db.js              # MySQL connection pool, table schema setup & migrations
+│   ├── schema.sql         # Reference SQL schema definition
+│   ├── battleSocket.js    # Socket.IO battle room handling & real-time PvP engine
+│   └── materials.js       # PDF/DOCX material parsing helper
 ├── client/
-│   ├── *.html           # Pages: home, battle, materi, profile, leaderboard, etc.
-│   ├── css/
+│   ├── *.html             # HTML pages: home, battle, materi, profile, leaderboard, etc.
+│   ├── css/               # Standard CSS files
 │   └── js/
-│       ├── header.js    # Reusable header component
-│       ├── app.js       # Auth, register, login, routing
-│       ├── home.js      # Home page rendering
-│       ├── battle.js    # Battle lobby logic
-│       ├── battleEngine.js # Real-time battle game logic
-│       ├── profile.js   # Profile page
-│       ├── leaderboard.js  # Leaderboard page
-│       └── utils.js     # Shared utilities
-└── materi/              # PDF/DOCX learning materials
+│       ├── header.js      # Global navigation header component
+│       ├── app.js         # Client authentication, route protection & utility init
+│       ├── home.js        # Home page dashboard, 6-stat card rendering & mission claiming
+│       ├── battle.js      # Battle lobby management & mode selection
+│       ├── battleEngine.js# Real-time question rendering & answer handling
+│       ├── profile.js     # Profile UI, subject ELO ranks, match history & streak stats
+│       ├── leaderboard.js # Leaderboard filtering & ranking display (Class 10, 11, 12)
+│       └── utils.js       # Formatters & shared helper utilities
+└── materi/                # Learning resources storage (PDF/DOCX)
 ```
 
-## Key APIs
-| Endpoint | Description |
-|---|---|
-| POST /api/register | Register - redirects to home.html (VARK removed) |
-| POST /api/login | Login - always redirects to home.html |
-| GET /api/me | Current user with totalELO + currentStreak + longestStreak |
-| GET /api/home | Full home data incl. winstreak |
-| GET /api/battles | Battle history (shows actual opponent name, not EduBot) |
-| POST /api/battles/record | Record battle (accepts opponentId + opponentName) |
-| GET /api/leaderboard | With ?subject=ID&classLevel=10 filters |
+## Data Flow (Frontend ↔ Backend ↔ Database)
+1. **Frontend**: Makes HTTP `fetch()` requests with JWT in `Authorization` header to `/api/*` endpoints, or establishes Socket.IO websocket connections for real-time PvP.
+2. **Backend**: Express middleware validates JWT, executes SQL queries on MySQL via `db.pool`, formats response data, and returns JSON.
+3. **Database**: MySQL database (`edu_pvp_new`) stores users, ranks, classes, subjects, user_subjects ELO, battle logs, daily missions, user daily mission progress, and notifications.
 
-## Leaderboard Filter Fix
-- Param order fixed: `[subjectId, classLevel]` (JOIN comes before WHERE)
+## Authentication Flow
+- User logs in (`POST /api/login`) or registers (`POST /api/register`).
+- Server returns a JWT token signed with `JWT_SECRET`.
+- Client stores token in `localStorage.setItem('edurank-token', token)`.
+- Client attaches `Authorization: Bearer <token>` on API requests (`/api/me`, `/api/home`, etc.).
+- Protected routes inspect `req.headers.authorization` via `authenticateToken` middleware.
 
-## Winstreak
-- Computed from battles table at query time - no schema change needed
-- `currentStreak` = consecutive wins from latest battle backwards
-- `longestStreak` = longest win streak in history
-- Available in /api/me and /api/home responses
+## Important APIs
+- `GET /api/me` - Profile overview, user level, total ELO, `dailyStreak`, `currentStreak`, `longestStreak`.
+- `GET /api/home` - Home dashboard dataset including missions, stats, and streaks.
+- `POST /api/missions/claim` - Claim daily mission reward XP & trigger status update.
+- `GET /api/leaderboard` - Class & subject filterable leaderboard data.
+- `GET /api/battles` - User battle history.
+- `POST /api/battles/record` - End-of-battle result logging & ELO calculation.
 
-## Removed
-- VARK learning style: learning-style.html deleted, no more redirects to it
+## Socket.IO / Battle System
+- Real-time PvP matching & room creation via `battleSocket.js`.
+- Event flow: `joinRoom`, `matchFound`, `submitAnswer`, `roundResult`, `battleEnd`.
+- Handles Ranked, Classic, Private Room, and VS AI modes seamlessly.
 
-## Constraints
-- Never expose raw filesystem paths for materials
-- Use GREATEST(0, elo+delta) to prevent negative ELO
-- user_subjects table holds per-subject ELO; users.elo is secondary
-- Migrations done in db.js initDb() with try/catch
+## Important Project Rules & Constraints
+- Retain existing layout styling (Tailwind CSS) & core user features.
+- Never write dummy mock data when real MySQL queries can produce live statistics.
+- ELO floor is capped at 0 using `GREATEST(0, elo + delta)`.
+- Per-subject rankings calculate user positioning via subject ELO (`user_subjects` table).
+
+## Current Known Issues / Notes
+- Node process auto-runs on port 3000; ensure background process is active and schema migrations run safely via `initDb()`.

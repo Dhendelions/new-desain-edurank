@@ -62,8 +62,36 @@ function formatUserResponse(row) {
     photo: row.photo || '',
     createdAt: row.created_at,
     currentStreak: Number(row.current_streak) || 0,
-    longestStreak: Number(row.longest_streak) || 0
+    longestStreak: Number(row.longest_streak) || 0,
+    dailyStreak: Number(row.daily_streak) || 1
   };
+}
+
+async function updateDailyStreak(userId) {
+  try {
+    const [rows] = await pool.query('SELECT daily_streak, last_login_date FROM users WHERE id = ? LIMIT 1', [userId]);
+    if (!rows || rows.length === 0) return;
+
+    const user = rows[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastLoginStr = user.last_login_date ? new Date(user.last_login_date).toISOString().split('T')[0] : null;
+
+    if (!lastLoginStr) {
+      await pool.query('UPDATE users SET daily_streak = 1, last_login_date = CURDATE() WHERE id = ?', [userId]);
+    } else if (lastLoginStr !== todayStr) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (lastLoginStr === yesterdayStr) {
+        await pool.query('UPDATE users SET daily_streak = daily_streak + 1, last_login_date = CURDATE() WHERE id = ?', [userId]);
+      } else {
+        await pool.query('UPDATE users SET daily_streak = 1, last_login_date = CURDATE() WHERE id = ?', [userId]);
+      }
+    }
+  } catch (e) {
+    console.error('Update Daily Streak Error:', e);
+  }
 }
 
 function generateUserId(email) {
@@ -74,8 +102,6 @@ function generateUserId(email) {
 async function getDailyMissions(userId) {
   const [definitions] = await pool.query('SELECT * FROM daily_missions WHERE is_active = TRUE ORDER BY id');
   if (definitions.length === 0) return [];
-  // Rotate up to four real mission definitions by server date; assignments remain
-  // immutable for that user/date after they have been created.
   const today = new Date();
   const start = ((Math.floor(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) / 86400000) % definitions.length) + definitions.length) % definitions.length;
   const missionCount = Math.min(4, definitions.length);
@@ -88,7 +114,7 @@ async function getDailyMissions(userId) {
   }
   const [rows] = await pool.query(`
     SELECT udm.id, dm.title, dm.description, dm.target, dm.reward_xp, dm.mission_type,
-           udm.progress, udm.completed, udm.assigned_date, udm.completed_at,
+           udm.progress, udm.completed, COALESCE(udm.claimed, FALSE) as claimed, udm.assigned_date, udm.completed_at,
            TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(CURDATE(), INTERVAL 1 DAY)) AS seconds_until_reset
     FROM user_daily_missions udm JOIN daily_missions dm ON dm.id = udm.mission_id
     WHERE udm.user_id = ? AND udm.assigned_date = CURDATE() ORDER BY dm.id`, [userId]);
@@ -233,6 +259,8 @@ app.get('/api/me', async (req, res) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET);
 
+    await updateDailyStreak(decoded.id);
+
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [decoded.id]);
     if (!rows || rows.length === 0) {
       return res.status(401).json({ success: false, message: 'User tidak ditemukan.' });
@@ -262,6 +290,60 @@ app.get('/api/me', async (req, res) => {
     return res.json({ success: true, user });
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Sesi telah kadaluarsa.' });
+  }
+});
+
+// CLAIM DAILY MISSION REWARD API
+app.post('/api/missions/claim', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Sesi tidak valid.' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { missionId } = req.body;
+
+    if (!missionId) {
+      return res.status(400).json({ success: false, message: 'Mission ID required.' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT udm.*, dm.title, dm.reward_xp 
+       FROM user_daily_missions udm 
+       JOIN daily_missions dm ON dm.id = udm.mission_id 
+       WHERE udm.id = ? AND udm.user_id = ?`,
+      [missionId, decoded.id]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Misi tidak ditemukan.' });
+    }
+
+    const mission = rows[0];
+    if (!mission.completed) {
+      return res.status(400).json({ success: false, message: 'Misi belum selesai.' });
+    }
+    if (mission.claimed) {
+      return res.status(400).json({ success: false, message: 'Hadiah sudah diklaim.' });
+    }
+
+    await pool.query('UPDATE user_daily_missions SET claimed = TRUE WHERE id = ?', [missionId]);
+    await pool.query('UPDATE users SET xp = xp + ? WHERE id = ?', [mission.reward_xp, decoded.id]);
+
+    const [userRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [decoded.id]);
+    const updatedUser = formatUserResponse(userRows[0]);
+
+    return res.json({
+      success: true,
+      message: `Selamat! Kamu telah mengklaim +${mission.reward_xp} XP dari misi "${mission.title}"! 🎉`,
+      rewardXp: mission.reward_xp,
+      title: mission.title,
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('Claim Mission Error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal mengklaim hadiah.' });
   }
 });
 
@@ -319,6 +401,8 @@ app.get('/api/home', async (req, res) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.id;
+
+    await updateDailyStreak(userId);
 
     // Get User Profile with total ELO
     const [userRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
@@ -400,20 +484,22 @@ app.get('/api/home', async (req, res) => {
       const [allSubjectRanks] = await pool.query(`
         SELECT u.id, COALESCE(MAX(us.elo), 100) as elo
         FROM users u
-        LEFT JOIN user_subjects us ON us.user_id = u.id
-        LEFT JOIN subjects s ON us.subject_id = s.id AND s.name = ?
+        INNER JOIN user_subjects us ON us.user_id = u.id
+        INNER JOIN subjects s ON us.subject_id = s.id
+        WHERE s.name = ?
         GROUP BY u.id, u.created_at
         ORDER BY elo DESC, u.created_at ASC
       `, [sub.subjectName]);
 
       const myPos = allSubjectRanks.findIndex(row => String(row.id) === String(userId));
-      const rankPos = myPos !== -1 ? (myPos + 1) : 1;
+      const rankPos = myPos !== -1 ? `#${myPos + 1}` : 'N/A';
+      const userRankElo = myPos !== -1 ? allSubjectRanks[myPos].elo : eloVal;
 
       return {
         ...sub,
-        elo: eloVal,
-        rank: r.length > 0 ? r[0].name : calculateRank(eloVal),
-        rankPos: `#${rankPos}`
+        elo: userRankElo,
+        rank: r.length > 0 ? r[0].name : calculateRank(userRankElo),
+        rankPos: rankPos
       };
     }));
 
@@ -717,9 +803,11 @@ app.post('/api/battles/record', async (req, res) => {
     await pool.query(
       `UPDATE users 
        SET wins = wins + ?, losses = losses + ?, draws = draws + ?, total_battles = total_battles + 1,
-           xp = xp + ?, elo = GREATEST(0, elo + ?), correct_answers = correct_answers + ?, incorrect_answers = incorrect_answers + ?
+           xp = xp + ?, elo = GREATEST(0, elo + ?), correct_answers = correct_answers + ?, incorrect_answers = incorrect_answers + ?,
+           current_streak = CASE WHEN ? = 1 THEN current_streak + 1 ELSE 0 END,
+           longest_streak = GREATEST(longest_streak, CASE WHEN ? = 1 THEN current_streak + 1 ELSE 0 END)
        WHERE id = ?`,
-      [isWin, isLoss, isDraw, xpDelta, eloDelta, correctAdd, incorrectAdd, userId]
+      [isWin, isLoss, isDraw, xpDelta, eloDelta, correctAdd, incorrectAdd, isWin, isWin, userId]
     );
 
     // 4. Update user_subjects table for subject ELO
@@ -792,9 +880,9 @@ app.get('/api/leaderboard', async (req, res) => {
         SELECT u.id, u.name, u.photo, u.xp, COALESCE(MAX(us.elo), 100) as elo,
                u.wins, u.total_battles, u.class_level
         FROM users u
-        LEFT JOIN user_subjects us ON us.user_id = u.id
-        LEFT JOIN subjects s ON us.subject_id = s.id AND s.name = ?
-        ${classFilter}
+        INNER JOIN user_subjects us ON us.user_id = u.id
+        INNER JOIN subjects s ON us.subject_id = s.id
+        WHERE s.name = ? ${classLevel ? 'AND u.class_level = ?' : ''}
         GROUP BY u.id, u.name, u.photo, u.xp, u.wins, u.total_battles, u.class_level, u.created_at
         ORDER BY elo DESC, u.created_at ASC
         LIMIT 100

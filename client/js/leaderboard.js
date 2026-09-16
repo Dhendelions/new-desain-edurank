@@ -42,8 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Error fetching subjects:', err);
   }
 
-  // Initial load — Semua Mapel
-  await fetchAndRenderLeaderboard(null);
+  // Initial load — Kelas X, Semua Mapel
+  currentClassLevel = '10';
+  await fetchAndRenderLeaderboard(null, currentClassLevel);
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -54,14 +55,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!container) return;
     
     const classes = [
-      { id: null, name: 'Semua Kelas', icon: 'school' },
       { id: '10', name: 'Kelas X', icon: 'looks_one' },
       { id: '11', name: 'Kelas XI', icon: 'looks_two' },
       { id: '12', name: 'Kelas XII', icon: 'looks_3' }
     ];
 
     container.innerHTML = classes.map(c => `
-      <button class="subject-tab ${c.id === null ? 'active' : ''}" data-class-level="${c.id || ''}">
+      <button class="subject-tab ${c.id === '10' ? 'active' : ''}" data-class-level="${c.id}">
         <span class="material-symbols-outlined text-[16px]">${c.icon}</span>
         ${c.name}
       </button>
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       tab.addEventListener('click', async () => {
         container.querySelectorAll('.subject-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        const classLevel = tab.dataset.classLevel || null;
+        const classLevel = tab.dataset.classLevel || '10';
         currentClassLevel = classLevel;
         await fetchAndRenderLeaderboard(currentSubjectId, currentClassLevel);
       });

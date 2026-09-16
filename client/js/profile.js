@@ -219,11 +219,11 @@ function renderProfile(user, subjectsData, battles) {
 }
 
 function updateQuickStats(user) {
-  // Current Winstreak
-  const streakEl = document.getElementById('stat-current-streak');
+  // Daily Streak
+  const streakEl = document.getElementById('stat-daily-streak');
   if (streakEl) {
-    const streak = Number(user.currentStreak) || 0;
-    streakEl.innerHTML = `${streak} 🔥`;
+    const streak = Math.max(1, Number(user.dailyStreak) || 1);
+    streakEl.innerHTML = `${streak} 📅`;
   }
 
   // Join Date
@@ -341,6 +341,7 @@ function renderSubjectRanks(subjectsData) {
 function renderWinStreak(user) {
   const currentStreak = Number(user.currentStreak) || 0;
   const longestStreak = Number(user.longestStreak) || 0;
+  const dailyStreak = Math.max(1, Number(user.dailyStreak) || 1);
 
   const section = document.getElementById('winstreak-section');
   if (!section) return;
@@ -348,18 +349,23 @@ function renderWinStreak(user) {
   section.innerHTML = `
     <div class="flex items-center gap-space-xs">
       <span class="material-symbols-outlined text-orange-500 text-[22px]">local_fire_department</span>
-      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Statistik Win Streak</h3>
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Statistik Streak Aktivitas</h3>
     </div>
-    <div class="bg-surface-container-low/70 rounded-2xl p-space-md flex flex-col sm:flex-row gap-space-md border border-outline-variant/20">
-      <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs">
+    <div class="bg-surface-container-low/70 rounded-2xl p-space-md grid grid-cols-1 md:grid-cols-3 gap-space-md border border-outline-variant/20">
+      <div class="flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs hover:shadow-sm transition-all">
         <span class="text-3xl font-black text-orange-500">${currentStreak} 🔥</span>
-        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Current Streak</span>
+        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Current Win Streak</span>
         <span class="font-body-sm text-body-sm text-on-surface-variant">Kemenangan beruntun saat ini</span>
       </div>
-      <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs">
+      <div class="flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs hover:shadow-sm transition-all">
         <span class="text-3xl font-black text-amber-500">${longestStreak} 🏆</span>
-        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Longest Streak</span>
+        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Longest Win Streak</span>
         <span class="font-body-sm text-body-sm text-on-surface-variant">Rekor kemenangan beruntun terbaikmu</span>
+      </div>
+      <div class="flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs hover:shadow-sm transition-all">
+        <span class="text-3xl font-black text-emerald-600">${dailyStreak} 📅</span>
+        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Daily Login Streak</span>
+        <span class="font-body-sm text-body-sm text-on-surface-variant">Hari berturut-turut membuka EduRank</span>
       </div>
     </div>
   `;

@@ -507,7 +507,7 @@ class BattleEngine {
           userScore: this.userScore,
           opponentScore: this.opponentScore,
           subject_name: this.subject || 'Fisika',
-          opponent_name: this.opponent.name || 'Lawan EduBot',
+          opponent_name: this.opponent.name || 'Lawan',
           created_at: new Date().toISOString()
         });
         localStorage.setItem('edurank-battle-history', JSON.stringify(historyList.slice(0, 20)));

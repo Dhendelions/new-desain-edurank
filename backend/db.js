@@ -56,11 +56,24 @@ async function initDb() {
       await connection.query('ALTER TABLE `users` ADD COLUMN `class_level` INT NOT NULL DEFAULT 12 AFTER `role`');
       console.log('✅ Added class_level column to users table.');
     } catch (e) {
-      // Duplicate column error code is 1060
       if (e.code !== 'ER_DUP_FIELDNAME') {
         console.log('Note: class_level column already exists or could not be altered.');
       }
     }
+
+    // Add streak columns
+    try {
+      await connection.query('ALTER TABLE `users` ADD COLUMN `daily_streak` INT NOT NULL DEFAULT 1');
+    } catch (e) {}
+    try {
+      await connection.query('ALTER TABLE `users` ADD COLUMN `last_login_date` DATE DEFAULT NULL');
+    } catch (e) {}
+    try {
+      await connection.query('ALTER TABLE `users` ADD COLUMN `current_streak` INT NOT NULL DEFAULT 0');
+    } catch (e) {}
+    try {
+      await connection.query('ALTER TABLE `users` ADD COLUMN `longest_streak` INT NOT NULL DEFAULT 0');
+    } catch (e) {}
 
     // Add opponent_name to battles if not exists
     try {
@@ -71,6 +84,11 @@ async function initDb() {
         console.log('Note: opponent_name column already exists or battles table not yet created.');
       }
     }
+
+    // Add claimed column to user_daily_missions if not exists
+    try {
+      await connection.query('ALTER TABLE `user_daily_missions` ADD COLUMN `claimed` BOOLEAN NOT NULL DEFAULT FALSE');
+    } catch (e) {}
 
     connection.release();
     console.log('✅ MySQL Table `users` is ready.');

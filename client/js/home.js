@@ -87,36 +87,41 @@ function renderUserStats(user) {
   const elo = Math.max(0, Number(user.elo) || 0);
   const totalBattles = Math.max(0, Number(user.totalBattles) || 0);
   const wins = Math.max(0, Number(user.wins) || 0);
-  const losses = Math.max(0, Number(user.losses) || 0);
-  const draws = Math.max(0, Number(user.draws) || 0);
   const winrate = totalBattles > 0 ? ((wins / totalBattles) * 100).toFixed(1) : 0;
   const currentStreak = Math.max(0, Number(user.currentStreak) || 0);
+  const longestStreak = Math.max(0, Number(user.longestStreak) || 0);
+  const dailyStreak = Math.max(1, Number(user.dailyStreak) || 1);
 
   container.innerHTML = `
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
-      <span class="material-symbols-outlined text-secondary text-headline-sm">bolt</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-bold">${xp.toLocaleString('id-ID')}</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant">Total XP</span>
-    </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
       <span class="material-symbols-outlined text-primary text-headline-sm">workspace_premium</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-bold">Level ${level}</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant">Level Akun</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">Level ${level}</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Level Akun</span>
     </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
       <span class="material-symbols-outlined text-tertiary-container text-headline-sm">military_tech</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-bold">${elo.toLocaleString('id-ID')}</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant">Total ELO</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${elo.toLocaleString('id-ID')}</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Total ELO</span>
     </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
       <span class="material-symbols-outlined text-secondary text-headline-sm">emoji_events</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-bold">${winrate}%</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant">Win Rate</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${winrate}%</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Win Rate</span>
     </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
       <span class="material-symbols-outlined text-orange-500 text-headline-sm">local_fire_department</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-bold">${currentStreak}🔥</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant">Win Streak</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${currentStreak} 🔥</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Current Streak</span>
+    </div>
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
+      <span class="material-symbols-outlined text-amber-500 text-headline-sm">workspace_premium</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${longestStreak} 🏆</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Longest Streak</span>
+    </div>
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
+      <span class="material-symbols-outlined text-emerald-600 text-headline-sm">calendar_today</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${dailyStreak} 📅</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Daily Streak</span>
     </div>
   `;
 }
@@ -156,15 +161,24 @@ function renderMissions(missions) {
     const description = typeof m.description === 'string' ? m.description.trim() : 'Selesaikan aktivitas belajar untuk mendapatkan reward.';
     const missionIcon = ({ matches: 'sports_esports', wins: 'emoji_events', ranked_wins: 'military_tech', answers: 'quiz', accuracy: 'target' })[m.mission_type] || 'task_alt';
     const isCompleted = Boolean(m.completed) || progress >= target;
+    const isClaimed = Boolean(m.claimed);
     const progressPercent = Math.min(100, Math.round((progress / target) * 100));
+
+    let actionButton = '';
+    if (isClaimed) {
+      actionButton = `<span class="px-2.5 py-1 rounded-lg bg-surface-container text-outline font-label-sm font-bold text-xs shrink-0 ml-2">Terklaim ✅</span>`;
+    } else if (isCompleted) {
+      actionButton = `<button class="claim-mission-btn px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-label-sm font-bold text-xs shrink-0 ml-2 shadow-xs transition-all animate-pulse" data-mission-id="${m.id}">Klaim Hadiah 🎁</button>`;
+    } else {
+      actionButton = `<span class="font-label-sm text-label-sm text-secondary font-bold shrink-0 ml-2">${progress}/${target}</span>`;
+    }
+
     return `
       <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-2 min-h-[100px]">
         <div class="flex flex-col gap-1">
           <div class="flex items-center justify-between">
             <span class="flex min-w-0 items-center gap-1.5 font-label-md text-label-md text-on-surface font-bold truncate"><span class="material-symbols-outlined text-[17px] text-secondary">${missionIcon}</span><span class="truncate">${title}</span></span>
-            <span class="font-label-sm text-label-sm ${isCompleted ? 'text-tertiary-container' : 'text-secondary'} font-bold shrink-0 ml-2">
-              ${isCompleted ? 'Selesai' : `${progress}/${target}`}
-            </span>
+            ${actionButton}
           </div>
           <p class="font-body-sm text-on-surface-variant line-clamp-2">${description} · +${rewardXp} XP</p>
         </div>
@@ -174,6 +188,64 @@ function renderMissions(missions) {
       </div>
     `;
   }).join('');
+
+  // Wire claim buttons
+  container.querySelectorAll('.claim-mission-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const missionId = btn.dataset.missionId;
+      const token = localStorage.getItem('edurank-token');
+      btn.disabled = true;
+      btn.textContent = 'Mengklaim...';
+      try {
+        const res = await fetch(getApiUrl('/api/missions/claim'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ missionId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showClaimSuccessModal(data.title, data.rewardXp);
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          alert(data.message || 'Gagal mengklaim hadiah.');
+          btn.disabled = false;
+          btn.textContent = 'Klaim Hadiah 🎁';
+        }
+      } catch (e) {
+        alert('Terjadi kesalahan saat mengklaim hadiah.');
+        btn.disabled = false;
+        btn.textContent = 'Klaim Hadiah 🎁';
+      }
+    });
+  });
+}
+
+function showClaimSuccessModal(title, rewardXp) {
+  let modal = document.getElementById('claim-success-modal');
+  if (modal) modal.remove();
+  
+  modal = document.createElement('div');
+  modal.id = 'claim-success-modal';
+  modal.className = 'fixed inset-0 z-[200] bg-black/50 backdrop-blur-md flex items-center justify-center p-4';
+  modal.innerHTML = `
+    <div class="bg-surface-container-lowest max-w-sm w-full rounded-3xl p-6 text-center shadow-2xl border border-outline-variant/30 space-y-4">
+      <div class="w-16 h-16 rounded-2xl bg-amber-500/15 text-amber-600 mx-auto flex items-center justify-center">
+        <span class="material-symbols-outlined text-4xl animate-bounce">emoji_events</span>
+      </div>
+      <div>
+        <h3 class="font-headline-sm font-extrabold text-on-surface">Hadiah Misi Diklaim! 🎉</h3>
+        <p class="text-xs text-on-surface-variant mt-1 font-semibold">${title}</p>
+      </div>
+      <div class="p-3 bg-secondary/10 rounded-2xl border border-secondary/20 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-secondary font-bold">bolt</span>
+        <span class="font-bold text-secondary text-lg">+${rewardXp} XP</span>
+      </div>
+      <button onclick="document.getElementById('claim-success-modal')?.remove()" class="w-full py-2.5 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-container transition-all">
+        Mantap!
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
 }
 
 
