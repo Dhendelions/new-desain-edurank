@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Keep the competitive path together: ranks and daily missions are followed
   // by battle history
   const token = localStorage.getItem('edurank-token');
@@ -90,6 +90,7 @@ function renderUserStats(user) {
   const losses = Math.max(0, Number(user.losses) || 0);
   const draws = Math.max(0, Number(user.draws) || 0);
   const winrate = totalBattles > 0 ? ((wins / totalBattles) * 100).toFixed(1) : 0;
+  const currentStreak = Math.max(0, Number(user.currentStreak) || 0);
 
   container.innerHTML = `
     <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
@@ -112,8 +113,14 @@ function renderUserStats(user) {
       <span class="font-label-lg text-label-lg text-on-surface font-bold">${winrate}%</span>
       <span class="font-label-sm text-label-sm text-on-surface-variant">Win Rate</span>
     </div>
+    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1">
+      <span class="material-symbols-outlined text-orange-500 text-headline-sm">local_fire_department</span>
+      <span class="font-label-lg text-label-lg text-on-surface font-bold">${currentStreak}🔥</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Win Streak</span>
+    </div>
   `;
 }
+
 
 function renderQuickMatch(user) {
   // Add Quick Match button functionality to hero section
@@ -225,7 +232,7 @@ function renderBattles(battles) {
               <span class="font-title-md text-title-md font-bold text-on-surface">${b.subject_name || 'Pertandingan Umum'}</span>
               <span class="px-2 py-0.5 rounded-full border text-[11px] font-bold ${modeInfo.class}">${modeInfo.name}</span>
             </div>
-            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'Lawan EduBot'}</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'Lawan'}</span>
           </div>
         </div>
         <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-outline-variant/10">

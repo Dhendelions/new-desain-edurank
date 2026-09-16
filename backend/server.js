@@ -60,7 +60,9 @@ function formatUserResponse(row) {
     incorrectAnswers: Number(row.incorrect_answers) || 0,
     classLevel: Number(row.class_level) || 12,
     photo: row.photo || '',
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    currentStreak: Number(row.current_streak) || 0,
+    longestStreak: Number(row.longest_streak) || 0
   };
 }
 
@@ -231,11 +233,26 @@ app.get('/api/me', async (req, res) => {
     user.elo = computedElo;
     user.rank = calculateRank(computedElo);
 
+    // Compute winstreak
+    const [streakRows] = await pool.query(
+      `SELECT result FROM battles WHERE user_id = ? ORDER BY created_at DESC LIMIT 100`,
+      [decoded.id]
+    );
+    let calcCurrent = 0;
+    for (const b of streakRows) { if (b.result === 'win') calcCurrent++; else break; }
+    let calcLongest = 0, run = 0;
+    for (const b of [...streakRows].reverse()) {
+      if (b.result === 'win') { run++; if (run > calcLongest) calcLongest = run; } else run = 0;
+    }
+    user.currentStreak = calcCurrent;
+    user.longestStreak = calcLongest;
+
     return res.json({ success: true, user });
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Sesi telah kadaluarsa.' });
   }
 });
+
 
 // 4. UPDATE USER PROFILE (LEARNING STYLE, STATS, DISPLAY NAME, PHOTO, EMAIL)
 app.put('/api/user/update', async (req, res) => {
@@ -314,6 +331,39 @@ app.get('/api/home', async (req, res) => {
     // Get rank from database or calculateRank helper
     const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [user.elo, user.elo]);
     user.rank = rankRows.length > 0 ? rankRows[0].name : calculateRank(user.elo);
+
+    // Compute winstreak from battles table
+    const [streakRows] = await pool.query(
+      `SELECT result FROM battles WHERE user_id = ? ORDER BY created_at DESC LIMIT 100`,
+      [userId]
+    );
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 0;
+    for (const b of streakRows) {
+      if (b.result === 'win') {
+        if (currentStreak === 0 && tempStreak === 0) currentStreak++; else if (tempStreak > 0) currentStreak = tempStreak + 1;
+        tempStreak++;
+        if (tempStreak > longestStreak) longestStreak = tempStreak;
+      } else {
+        if (tempStreak === 0) currentStreak = 0;
+        tempStreak = 0;
+      }
+    }
+    // Recalculate current streak simply
+    let calcCurrent = 0;
+    for (const b of streakRows) {
+      if (b.result === 'win') calcCurrent++;
+      else break;
+    }
+    let calcLongest = 0;
+    let run = 0;
+    for (const b of [...streakRows].reverse()) {
+      if (b.result === 'win') { run++; if (run > calcLongest) calcLongest = run; }
+      else run = 0;
+    }
+    user.currentStreak = calcCurrent;
+    user.longestStreak = calcLongest;
 
     // Get User Subjects Data (excluding Matematika Lanjut)
     const [userSubjects] = await pool.query(`
@@ -596,19 +646,20 @@ app.post('/api/battles/record', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.id;
 
-    const { opponentName, subjectId, result, eloChange, mode, correctCount, incorrectCount } = req.body;
+    const { opponentName, opponentId, subjectId, result, eloChange, mode, correctCount, incorrectCount } = req.body;
     const battleMode = mode || 'classic';
     const battleResult = result || 'draw';
     const eloDelta = Number(eloChange) || 0;
     const subjId = Number(subjectId) || 1;
 
     const oppName = String(opponentName || 'Lawan').substring(0, 100);
+    const oppId = opponentId || null;
 
     // 1. Insert battle history record
     await pool.query(
       `INSERT INTO battles (user_id, opponent_id, opponent_name, subject_id, result, elo_change, mode, created_at)
-       VALUES (?, NULL, ?, ?, ?, ?, ?, NOW())`,
-      [userId, oppName, subjId, battleResult, eloDelta, battleMode]
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [userId, oppId, oppName, subjId, battleResult, eloDelta, battleMode]
     );
 
     // 2. Determine XP & ELO deltas
@@ -666,8 +717,8 @@ app.get('/api/battles', async (req, res) => {
 
     const [battles] = await pool.query(`
       SELECT b.id, b.result, b.elo_change, b.mode, b.created_at, 
-             COALESCE(b.opponent_name, u.name, 'Lawan EduBot') as opponent_name, 
-             COALESCE(s.name, 'Fisika') as subject_name
+             COALESCE(u.name, b.opponent_name, 'Lawan') as opponent_name, 
+             COALESCE(s.name, 'Pertandingan Umum') as subject_name
       FROM battles b
       LEFT JOIN users u ON b.opponent_id = u.id
       LEFT JOIN subjects s ON b.subject_id = s.id
@@ -698,7 +749,6 @@ app.get('/api/leaderboard', async (req, res) => {
 
     if (subjectId) {
       // Leaderboard per mapel (includes all users with default 100 ELO if not in user_subjects)
-      queryParams.push(subjectId);
       const [rows] = await pool.query(`
         SELECT u.id, u.name, u.photo, u.xp, COALESCE(us.elo, 100) as elo,
                u.wins, u.total_battles, u.class_level
@@ -707,7 +757,7 @@ app.get('/api/leaderboard', async (req, res) => {
         ${classFilter}
         ORDER BY elo DESC, u.created_at ASC
         LIMIT 100
-      `, classLevel ? [classLevel, subjectId] : [subjectId]);
+      `, classLevel ? [subjectId, classLevel] : [subjectId]);
 
       const leaderboard = await Promise.all(rows.map(async (row, index) => {
         const eloVal = Number(row.elo) || 100;

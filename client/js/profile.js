@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const token = localStorage.getItem('edurank-token');
   if (!token) {
     window.location.href = 'login.html';
@@ -51,9 +51,7 @@ function renderProfile(user, subjectsData, battles) {
     profilePhoto.src = user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random&size=128`;
   }
   if (profileBio) {
-    profileBio.textContent = user.learningStyle 
-      ? `Gaya belajar: ${user.learningStyle}. Bergabung sejak ${user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'belum diketahui'}.`
-      : 'Belum ada bio. Selesaikan tes gaya belajar untuk melihat informasi gaya belajar kamu.';
+    profileBio.textContent = `Bergabung sejak ${user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'belum diketahui'}.`;
   }
 
   const xp = Math.max(0, Number(user.xp) || 0);
@@ -80,8 +78,8 @@ function renderProfile(user, subjectsData, battles) {
   // Subject Ranks Section
   renderSubjectRanks(subjectsData);
 
-  // Learning Style Section
-  renderLearningStyle(user);
+  // Winstreak Section
+  renderWinStreak(user);
 
   // Activity Timeline Section
   renderActivityTimeline(battles);
@@ -221,11 +219,18 @@ function renderProfile(user, subjectsData, battles) {
 }
 
 function updateQuickStats(user) {
-  // Learning Style
-  const learningStyleEl = document.getElementById('stat-learning-style');
-  if (learningStyleEl) {
-    learningStyleEl.innerHTML = user.learningStyle || 'Belum tersedia';
+  // Current Winstreak
+  const streakEl = document.getElementById('stat-learning-style');
+  if (streakEl) {
+    const streak = Number(user.currentStreak) || 0;
+    streakEl.innerHTML = `${streak} 🔥`;
   }
+
+  // Stat label - update parent label text if present
+  const streakLabel = streakEl ? streakEl.closest('.flex.flex-col')?.querySelector('.font-label-sm.text-on-surface-variant') : null;
+  if (streakLabel) streakLabel.textContent = 'Win Streak';
+  const streakIcon = streakEl ? streakEl.closest('.flex.items-center')?.querySelector('.material-symbols-outlined') : null;
+  if (streakIcon) streakIcon.textContent = 'local_fire_department';
 
   // Join Date
   const joinDateEl = document.getElementById('stat-join-date');
@@ -340,28 +345,32 @@ function renderSubjectRanks(subjectsData) {
   }).join('');
 }
 
-function renderLearningStyle(user) {
-  const learningStyleEl = document.getElementById('learning-style-name');
-  const learningStyleScore = document.getElementById('learning-style-score');
-  const learningStyleDesc = document.getElementById('learning-style-desc');
-  const learningStyleTips = document.getElementById('learning-style-tips');
-  
-  if (learningStyleEl) {
-    learningStyleEl.innerHTML = user.learningStyle || 'Belum ditentukan';
-  }
-  if (learningStyleScore) {
-    learningStyleScore.textContent = user.learningStyle ? 'Tersedia' : 'Belum ada';
-  }
-  if (learningStyleDesc) {
-    learningStyleDesc.innerHTML = user.learningStyle
-      ? `Gaya belajar kamu adalah ${user.learningStyle}. Pelajari materi dengan cara yang paling efektif untukmu.`
-      : 'Selesaikan tes gaya belajar untuk mengetahui metode belajar yang paling cocok untukmu.';
-  }
-  if (learningStyleTips) {
-    learningStyleTips.textContent = user.learningStyle
-      ? `Gunakan metode ${user.learningStyle} untuk hasil belajar yang optimal.`
-      : 'Ikuti tes gaya belajar untuk mendapatkan tips personal.';
-  }
+function renderWinStreak(user) {
+  const currentStreak = Number(user.currentStreak) || 0;
+  const longestStreak = Number(user.longestStreak) || 0;
+
+  // Find the LEARNING STYLE section in profile and replace its content with winstreak
+  const section = document.querySelector('section.glass-card');
+  if (!section) return;
+
+  section.innerHTML = `
+    <div class="flex items-center gap-space-xs">
+      <span class="material-symbols-outlined text-orange-500 text-[22px]">local_fire_department</span>
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Win Streak</h3>
+    </div>
+    <div class="bg-surface-container-low/70 rounded-2xl p-space-md flex gap-space-md border border-outline-variant/20">
+      <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs">
+        <span class="text-3xl font-black text-orange-500">${currentStreak} 🔥</span>
+        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Current Streak</span>
+        <span class="font-body-sm text-body-sm text-on-surface-variant">Kemenangan beruntun saat ini</span>
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs">
+        <span class="text-3xl font-black text-amber-500">${longestStreak} 🏆</span>
+        <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Longest Streak</span>
+        <span class="font-body-sm text-body-sm text-on-surface-variant">Rekor kemenangan beruntun terbaikmu</span>
+      </div>
+    </div>
+  `;
 }
 
 function renderActivityTimeline(battles) {
@@ -415,7 +424,7 @@ function renderActivityTimeline(battles) {
               <span class="font-title-md text-title-md font-bold text-on-surface">${b.subject_name || 'Pertandingan Umum'}</span>
               <span class="px-2 py-0.5 rounded-full border text-[10px] font-bold ${modeInfo.class}">${modeInfo.name}</span>
             </div>
-            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'Lawan EduBot'}</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'Lawan'}</span>
           </div>
         </div>
         <span class="font-label-sm text-label-sm text-outline shrink-0">${dateStr}</span>

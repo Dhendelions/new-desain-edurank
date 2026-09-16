@@ -1,4 +1,4 @@
-﻿const APP_STORAGE_KEY = 'edurank-session';
+const APP_STORAGE_KEY = 'edurank-session';
 const USERS_STORAGE_KEY = 'edurank-users';
 const LEARNING_KEY = 'edurank-learning-style';
 const DEFAULT_ELO = 400;
@@ -11,8 +11,7 @@ const PAGE_ROUTES = {
   feedback: 'feedback.html',
   profile: 'profile.html',
   login: 'login.html',
-  register: 'register.html',
-  learningStyle: 'learning-style.html'
+  register: 'register.html'
 };
 
 const MATERI_DATA = [
@@ -361,10 +360,10 @@ function initAuth() {
             setUserSession(result.user);
             if (result.token) localStorage.setItem('edurank-token', result.token);
             if (result.user) localStorage.setItem('edurank-user', JSON.stringify(result.user));
-            setNotice('Registrasi berhasil! Mengarahkan ke learning style...', true);
+            setNotice('Registrasi berhasil! Mengarahkan ke dashboard...', true);
             shouldRedirect = true;
             setTimeout(() => {
-              window.location.href = 'learning-style.html';
+              window.location.href = 'home.html';
             }, 500);
             return;
           } else if (result && result.message) {
@@ -411,10 +410,10 @@ function initAuth() {
           notifications: []
         });
         setUserSession(newUser);
-        setNotice('Registrasi berhasil (Local Mode)! Mengarahkan ke learning style...', true);
+        setNotice('Registrasi berhasil (Local Mode)! Mengarahkan ke dashboard...', true);
         shouldRedirect = true;
         setTimeout(() => {
-          window.location.href = 'learning-style.html';
+          window.location.href = 'home.html';
         }, 500);
       } catch (error) {
         console.error('Registration error:', error);
@@ -482,11 +481,10 @@ function initAuth() {
             if (result.token) localStorage.setItem('edurank-token', result.token);
             if (result.user) localStorage.setItem('edurank-user', JSON.stringify(result.user));
             setNotice('Login berhasil! Mengarahkan ke dashboard...', true);
-            // Check if user already has learning style
-            const targetPage = result.user.learningStyle ? 'home.html' : 'learning-style.html';
+            // Go directly to home
             shouldRedirect = true;
             setTimeout(() => {
-              window.location.href = targetPage;
+              window.location.href = 'home.html';
             }, 500);
             return;
           } else if (result && result.message) {
@@ -520,10 +518,9 @@ function initAuth() {
         setUserSession(normalized);
         // Do NOT set a dummy JWT token, local mode doesn't use it
         setNotice('Login berhasil (Local Mode)! Mengarahkan...', true);
-        const targetPage = normalized.learningStyle ? 'home.html' : 'learning-style.html';
         shouldRedirect = true;
         setTimeout(() => {
-          window.location.href = targetPage;
+          window.location.href = 'home.html';
         }, 500);
       } catch (error) {
         console.error('Login error:', error);
@@ -1288,8 +1285,6 @@ function initGameInteractions() {
 
     if (/daftar akun baru|buat akun|register/.test(label)) {
       route = 'register.html';
-    } else if (/tes gaya belajar|gaya belajar/.test(label)) {
-      route = 'learning-style.html';
     } else if (/masuk.*login|sudah punya akun|login di sini/.test(label)) {
       route = 'login.html';
     } else if (/buat room|custom scrim|custom room|quick match|mulai match|cari lawan|mulai mode ranked|classic mode/.test(label)) {
