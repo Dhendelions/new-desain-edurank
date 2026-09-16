@@ -100,7 +100,14 @@ async function getDailyMissions(userId) {
       const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND mode = 'ranked' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
     }
     const completed = progress >= mission.target;
+    const isNewlyCompleted = !mission.completed && completed;
+
     await pool.query('UPDATE user_daily_missions SET progress = ?, completed = ?, completed_at = CASE WHEN ? AND completed_at IS NULL THEN NOW() ELSE completed_at END WHERE id = ?', [progress, completed, completed, mission.id]);
+    
+    if (isNewlyCompleted && mission.reward_xp > 0) {
+      await pool.query('UPDATE users SET xp = xp + ? WHERE id = ?', [mission.reward_xp, userId]);
+    }
+    
     mission.progress = progress; mission.completed = completed;
   }
   return rows;

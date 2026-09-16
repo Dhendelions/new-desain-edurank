@@ -240,9 +240,13 @@ class BattlePageManager {
 
   hideLobbyLoaders() {
     const matchmakingBox = document.getElementById('matchmaking-box');
+    const matchmakingBoxClassic = document.getElementById('matchmaking-box-classic');
     const btnStartRanked = document.getElementById('btn-start-ranked');
+    const btnStartClassic = document.getElementById('btn-start-classic');
     if (matchmakingBox) matchmakingBox.classList.add('hidden');
+    if (matchmakingBoxClassic) matchmakingBoxClassic.classList.add('hidden');
     if (btnStartRanked) btnStartRanked.classList.remove('hidden');
+    if (btnStartClassic) btnStartClassic.classList.remove('hidden');
     this.hideCreatedRoomUI();
   }
 
@@ -272,12 +276,23 @@ class BattlePageManager {
 
     // Classic Matchmaking
     const btnStartClassic = document.getElementById('btn-start-classic');
+    const matchmakingBoxClassic = document.getElementById('matchmaking-box-classic');
+    const btnCancelMatchmakingClassic = document.getElementById('btn-cancel-matchmaking-classic');
+
     if (btnStartClassic) {
       btnStartClassic.addEventListener('click', () => {
-        if (matchmakingBox) matchmakingBox.classList.remove('hidden');
+        if (matchmakingBoxClassic) matchmakingBoxClassic.classList.remove('hidden');
+        btnStartClassic.classList.add('hidden');
         if (this.socket) {
           this.socket.emit('queue_classic', { subject: this.selectedSubject.name });
         }
+      });
+    }
+
+    if (btnCancelMatchmakingClassic) {
+      btnCancelMatchmakingClassic.addEventListener('click', () => {
+        if (this.socket) this.socket.emit('cancel_queue');
+        this.hideLobbyLoaders();
       });
     }
 

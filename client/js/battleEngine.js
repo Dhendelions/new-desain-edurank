@@ -49,6 +49,26 @@ class BattleEngine {
           this.updatePlayerUI();
         }
       });
+
+      this.socket.on('next_question', (data) => {
+        // Hapus notice menunggu lawan
+        const delayNotice = document.getElementById('battle-delay-notice');
+        if (delayNotice) delayNotice.remove();
+        
+        this.nextQuestion();
+      });
+
+      this.socket.on('opponent_disconnected', (data) => {
+        // Lawan keluar, otomatis menang
+        const delayNotice = document.getElementById('battle-delay-notice');
+        if (delayNotice) delayNotice.remove();
+        
+        // Buat score opponent kalah telak agar player menang
+        this.opponentScore = -999;
+        
+        // Selesaikan battle
+        this.finishBattle('disconnected');
+      });
     }
 
     if (this.opponent.isAi) {
@@ -206,6 +226,48 @@ class BattleEngine {
 
   submitAnswer(selectedIdx) {
     if (this.isAnswered) return;
+    
+    // Smooth visual selection transition
+    const btns = this.optionsContainerEl.querySelectorAll('.option-btn');
+    btns.forEach((btn, idx) => {
+      btn.classList.remove('border-primary', 'bg-surface-container-low', 'transform', '-translate-y-1', 'shadow-md');
+      if (idx === selectedIdx) {
+        btn.classList.add('border-primary', 'bg-surface-container-low', 'transform', '-translate-y-1', 'shadow-md');
+      }
+    });
+
+    // Check if confirmation box already exists
+    let confirmBox = document.getElementById('battle-confirm-box');
+    if (!confirmBox) {
+      confirmBox = document.createElement('div');
+      confirmBox.id = 'battle-confirm-box';
+      confirmBox.className = 'w-full mt-4 p-4 rounded-2xl bg-surface-container border border-outline-variant/30 flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom-2';
+      if (this.optionsContainerEl && this.optionsContainerEl.parentNode) {
+        this.optionsContainerEl.parentNode.insertBefore(confirmBox, this.optionsContainerEl.nextSibling);
+      }
+    }
+
+    confirmBox.innerHTML = `
+      <span class="font-bold text-on-surface">Yakin dengan jawaban ini?</span>
+      <div class="flex gap-2 w-full md:w-auto">
+        <button id="btn-confirm-no" class="flex-1 md:flex-none px-6 py-2 rounded-xl border border-outline-variant font-bold text-on-surface-variant hover:bg-surface-container-highest transition-all">Tidak</button>
+        <button id="btn-confirm-yes" class="flex-1 md:flex-none px-6 py-2 rounded-xl bg-primary text-on-primary font-bold shadow-sm hover:bg-primary/90 transition-all">OK</button>
+      </div>
+    `;
+
+    document.getElementById('btn-confirm-no').addEventListener('click', () => {
+      confirmBox.remove();
+      btns.forEach(btn => btn.classList.remove('border-primary', 'bg-surface-container-low', 'transform', '-translate-y-1', 'shadow-md'));
+    });
+
+    document.getElementById('btn-confirm-yes').addEventListener('click', () => {
+      confirmBox.remove();
+      this.lockAnswer(selectedIdx);
+    });
+  }
+
+  lockAnswer(selectedIdx) {
+    if (this.isAnswered) return;
     this.isAnswered = true;
     clearInterval(this.timer);
 
@@ -229,11 +291,12 @@ class BattleEngine {
 
     this.updatePlayerUI();
 
-    // Smooth visual feedback transitions
+    // Smooth visual feedback transitions (Green/Red)
     const btns = this.optionsContainerEl.querySelectorAll('.option-btn');
     btns.forEach((btn, idx) => {
       btn.disabled = true;
       btn.classList.add('transition-all', 'duration-300');
+      btn.classList.remove('transform', '-translate-y-1'); // remove hover effect
       if (idx === qData.answer) {
         btn.className = 'option-btn w-full p-4 rounded-xl border-2 border-emerald-500 bg-emerald-500/20 text-emerald-800 font-bold transition-all duration-300 transform scale-[1.02] shadow-md flex items-center gap-3';
       } else if (idx === selectedIdx && !isCorrect) {
@@ -247,41 +310,54 @@ class BattleEngine {
         score: this.userScore,
         questionIndex: this.currentQuestionIndex + 1
       });
+      
+      this.socket.emit('player_ready_next', {
+        roomId: this.roomId,
+        questionIndex: this.currentQuestionIndex + 1
+      });
     }
 
-    // 5-second delay before next question with interactive UI countdown notice
-    if (this.nextQuestionInterval) clearInterval(this.nextQuestionInterval);
-    if (this.nextQuestionTimeout) clearTimeout(this.nextQuestionTimeout);
-
+    // Menunggu jawaban lawan notice
     let delayNotice = document.getElementById('battle-delay-notice');
     if (!delayNotice) {
       delayNotice = document.createElement('div');
       delayNotice.id = 'battle-delay-notice';
-      delayNotice.className = 'w-full mt-4 p-3.5 rounded-2xl bg-primary/10 border border-primary/30 text-primary font-bold text-center flex items-center justify-center gap-2 shadow-sm animate-pulse';
+      delayNotice.className = 'w-full mt-4 p-3.5 rounded-2xl bg-secondary/10 border border-secondary/30 text-secondary font-bold text-center flex items-center justify-center gap-2 shadow-sm animate-pulse';
       if (this.optionsContainerEl && this.optionsContainerEl.parentNode) {
         this.optionsContainerEl.parentNode.insertBefore(delayNotice, this.optionsContainerEl.nextSibling);
       }
     }
 
-    let delaySeconds = 5;
-    delayNotice.innerHTML = `
-      <span class="material-symbols-outlined text-xl animate-spin">hourglass_top</span>
-      <span>Jawaban terdaftar! Menyiapkan soal berikutnya dalam <b id="delay-countdown-val" class="text-secondary underline font-extrabold text-base">${delaySeconds}</b> detik...</span>
-    `;
+    if (this.opponent.isAi) {
+      delayNotice.innerHTML = `
+        <span class="material-symbols-outlined text-xl animate-spin">hourglass_top</span>
+        <span>Jawaban terkunci! Menunggu AI menjawab...</span>
+      `;
+      // AI answers eventually, then we go next
+      // We don't have socket for AI, so we rely on scheduleAiAnswer
+      // scheduleAiAnswer is called at startQuestion. When AI is done, we can just transition.
+      // But we need to make sure AI actually finishes. 
+      // Instead of waiting, let's just trigger next if AI is already done, or set a flag.
+      this.checkAiReady();
+    } else {
+      delayNotice.innerHTML = `
+        <span class="material-symbols-outlined text-xl animate-spin">hourglass_top</span>
+        <span>Jawaban terkunci! Menunggu lawan menjawab...</span>
+      `;
+    }
+  }
 
-    this.nextQuestionInterval = setInterval(() => {
-      delaySeconds--;
-      const valEl = document.getElementById('delay-countdown-val');
-      if (valEl) valEl.textContent = Math.max(0, delaySeconds);
-      if (delaySeconds <= 0) {
-        clearInterval(this.nextQuestionInterval);
-      }
-    }, 1000);
-
-    this.nextQuestionTimeout = setTimeout(() => {
+  checkAiReady() {
+    // If AI hasn't answered this question yet (opponentProgress < currentQuestionIndex + 1), wait.
+    // We can just poll or rely on scheduleAiAnswer to call nextQuestion.
+    if ((this.opponentProgress || 0) >= this.currentQuestionIndex + 1) {
+      const delayNotice = document.getElementById('battle-delay-notice');
       if (delayNotice) delayNotice.remove();
-      this.nextQuestion();
-    }, 5000);
+      setTimeout(() => this.nextQuestion(), 1000);
+    } else {
+      // Check again shortly
+      setTimeout(() => this.checkAiReady(), 500);
+    }
   }
 
   scheduleAiAnswer() {

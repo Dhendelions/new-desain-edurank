@@ -161,6 +161,20 @@ function configureBattleSocket(server, secret) {
       emitRoom(room, 'battle_update');
     });
 
+    // PLAYER READY FOR NEXT QUESTION
+    socket.on('player_ready_next', ({ roomId, questionIndex }) => {
+      const room = rooms.get(roomId);
+      if (!room) return;
+      if (!room.readyForNext) room.readyForNext = {};
+      room.readyForNext[player.id] = questionIndex;
+
+      // Check if all real players (or 2 players if standard) are ready
+      const allPlayersReady = room.players.every(p => room.readyForNext[p.id] === questionIndex);
+      if (allPlayersReady) {
+        io.to(room.id).emit('next_question', { questionIndex });
+      }
+    });
+
     // BATTLE FINISH
     socket.on('battle_finish', ({ roomId }) => {
       const room = rooms.get(roomId);
@@ -176,7 +190,11 @@ function configureBattleSocket(server, secret) {
       }
       for (const room of rooms.values()) {
         if (room.players.some((p) => p.socketId === socket.id) && room.status !== 'finished') {
-          io.to(room.id).emit('opponent_disconnected', { message: 'Lawan telah keluar dari permainan.' });
+          room.status = 'finished'; // Immediately finish the room
+          io.to(room.id).emit('opponent_disconnected', { 
+            message: 'Lawan telah keluar dari permainan.',
+            disconnectedPlayerId: player.id 
+          });
         }
       }
     });
