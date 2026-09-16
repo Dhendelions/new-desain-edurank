@@ -661,9 +661,10 @@ function renderHeaderAndFooter() {
       <div class="w-full max-w-[1360px] mx-auto px-margin flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
           <span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
-          <span>© 2025 EduRank Indonesia. All rights reserved.</span>
+          <span>© 2026 EduRank Indonesia. All rights reserved.</span>
         </div>
         <div class="flex items-center gap-6 text-on-surface-variant font-label-sm text-label-sm">
+          <a href="feedback.html" class="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer"><span class="material-symbols-outlined text-[16px]">rate_review</span>Feedback</a>
           <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-tertiary">shield</span>Bebas Malware</span>
           <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">verified</span>100% Bebas Iklan Komersial</span>
         </div>
