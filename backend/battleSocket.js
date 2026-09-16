@@ -202,6 +202,13 @@ function configureBattleSocket(server, secret) {
       emitRoom(room, 'battle_finish');
     });
 
+    // BATTLE FORFEIT (Anti-cheat)
+    socket.on('battle_forfeit', ({ roomId }) => {
+      const room = rooms.get(roomId);
+      if (!room) return;
+      socket.to(roomId).emit('opponent_forfeited');
+    });
+
     // DISCONNECT HANDLER
     socket.on('disconnect', () => {
       for (const [key, queued] of queues.entries()) {

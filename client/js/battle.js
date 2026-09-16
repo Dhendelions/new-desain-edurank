@@ -117,9 +117,8 @@ class BattlePageManager {
           <div class="w-10 h-10 rounded-xl ${isSelected ? 'bg-primary text-on-primary' : 'bg-surface-container text-primary'} flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[22px]">${icon}</span>
           </div>
-          <div class="flex flex-col min-w-0">
+          <div class="flex flex-col min-w-0 justify-center">
             <span class="font-title-md text-title-md font-bold text-on-surface">${subject.name}</span>
-            <span class="font-body-sm text-body-sm text-on-surface-variant">${subject.name}</span>
           </div>
         </button>
       `;

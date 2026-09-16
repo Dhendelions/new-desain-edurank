@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+﻿document.addEventListener('DOMContentLoaded', async () => {
   // Keep the competitive path together: ranks and daily missions are followed
   // by battle history
   const token = localStorage.getItem('edurank-token');
@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderHero(data.user);
     renderUserStats(data.user);
     renderSubjects(data.subjectsData);
-    renderLeaderboardPreview(data.leaderboard, data.user);
     renderFriends(data.friends);
     renderMissions(data.missions);
     renderBattles(data.battles);
@@ -219,7 +218,7 @@ function renderBattles(battles) {
       <div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-surface-container transition-colors shadow-xs">
         <div class="flex items-center gap-3">
           <div class="px-3 py-1.5 rounded-xl border font-label-md text-label-md font-bold whitespace-nowrap ${bgClass}">
-            ${isWin ? 'Menang' : (isDraw ? 'Seri' : 'Kalah')} ${b.mode === 'ranked' ? `(${sign}${Math.abs(b.elo_change || 0)} LP)` : ''}
+            ${isWin ? 'Menang' : (isDraw ? 'Seri' : 'Kalah')} ${b.mode === 'ranked' ? `(${sign}${Math.abs(b.elo_change || 0)} ELO)` : ''}
           </div>
           <div class="flex flex-col">
             <div class="flex items-center gap-2">
@@ -304,84 +303,7 @@ function renderSubjects() {
   `).join('');
 }
 
-function renderLeaderboardPreview(leaderboard, currentUser) {
-  const container = document.getElementById('home-leaderboard-container');
-  if (!container) return;
 
-  const rawList = Array.isArray(leaderboard) ? leaderboard : [];
-  const displayRows = [...rawList.slice(0, 10)];
-  while (displayRows.length < 10) {
-    displayRows.push({ isPlaceholder: true });
-  }
-
-  const rankClassMap = {
-    'Bronze': 'bg-amber-900/10 text-amber-900 border-amber-800/20',
-    'Silver': 'bg-slate-400/15 text-slate-800 border-slate-500/20',
-    'Gold': 'bg-amber-400/15 text-amber-800 border-amber-500/30',
-    'Diamond': 'bg-sky-400/15 text-sky-800 border-sky-500/30',
-    'Master': 'bg-purple-400/15 text-purple-900 border-purple-500/30',
-    'Profesor': 'bg-rose-400/15 text-rose-900 border-rose-500/30'
-  };
-
-  container.innerHTML = `
-    <div class="overflow-x-auto">
-      <table class="w-full text-left font-body-md border-collapse">
-        <thead>
-          <tr class="border-b border-outline-variant/20 text-on-surface-variant font-label-sm uppercase tracking-wider">
-            <th class="py-3 px-4 text-center w-12">#</th>
-            <th class="py-3 px-4">Siswa</th>
-            <th class="py-3 px-4 text-center">Rank Tier</th>
-            <th class="py-3 px-4 text-right">Rating ELO (LP)</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-outline-variant/10">
-          ${displayRows.map((u, i) => {
-            const rankNum = i + 1;
-            let badge = `<span class="font-bold text-on-surface-variant">#${rankNum}</span>`;
-            if (rankNum === 1) badge = `<span class="w-7 h-7 rounded-full bg-amber-400 text-amber-950 font-extrabold flex items-center justify-center text-xs mx-auto shadow-xs">1</span>`;
-            else if (rankNum === 2) badge = `<span class="w-7 h-7 rounded-full bg-slate-300 text-slate-900 font-extrabold flex items-center justify-center text-xs mx-auto shadow-xs">2</span>`;
-            else if (rankNum === 3) badge = `<span class="w-7 h-7 rounded-full bg-amber-600 text-white font-extrabold flex items-center justify-center text-xs mx-auto shadow-xs">3</span>`;
-
-            if (u.isPlaceholder) {
-              return `
-                <tr class="opacity-50">
-                  <td class="py-3 px-4 text-center">${badge}</td>
-                  <td class="py-3 px-4"><span class="text-outline font-bold pl-2">-</span></td>
-                  <td class="py-3 px-4 text-center"><span class="text-outline font-bold">-</span></td>
-                  <td class="py-3 px-4 text-right"><span class="text-outline font-bold pr-2">-</span></td>
-                </tr>
-              `;
-            }
-
-            const isMe = currentUser && u.id === currentUser.id;
-            const eloVal = Number(u.total_elo || u.elo || 400);
-            const rankName = u.rank_name || calculateRank(eloVal);
-            const badgeStyle = rankClassMap[rankName] || 'bg-surface-container-low text-on-surface';
-
-            return `
-              <tr class="${isMe ? 'bg-primary-container/10 font-bold' : 'hover:bg-surface-container-low'} transition-colors">
-                <td class="py-3 px-4 text-center">${badge}</td>
-                <td class="py-3 px-4">
-                  <div class="flex items-center gap-3">
-                    <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'User')}&background=random`}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="${u.name}">
-                    <span class="font-title-md text-title-md text-on-surface truncate">${escapeHtml(u.name || 'Pelajar EduRank')}</span>
-                    ${isMe ? '<span class="px-2 py-0.5 text-[10px] bg-primary text-on-primary rounded font-bold">Kamu</span>' : ''}
-                  </div>
-                </td>
-                <td class="py-3 px-4 text-center">
-                  <span class="px-3 py-1 rounded-full border text-xs font-bold ${badgeStyle}">${rankName}</span>
-                </td>
-                <td class="py-3 px-4 text-right font-bold text-on-surface">
-                  ${eloVal.toLocaleString('id-ID')} LP
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
 
 function renderFriends(friends) {
   const container = document.getElementById('home-friends-container');

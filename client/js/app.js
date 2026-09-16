@@ -1,4 +1,4 @@
-const APP_STORAGE_KEY = 'edurank-session';
+﻿const APP_STORAGE_KEY = 'edurank-session';
 const USERS_STORAGE_KEY = 'edurank-users';
 const LEARNING_KEY = 'edurank-learning-style';
 const DEFAULT_ELO = 400;
@@ -1174,8 +1174,8 @@ function hydrateUser() {
   const textReplacements = new Map([
     ['Arga Pratama', name],
     ['Ahmad Rizky', name],
-    ['1,420 LP', `${user.elo.toLocaleString('id-ID')} LP`],
-    ['2,480 LP', `${user.elo.toLocaleString('id-ID')} LP`],
+    ['1,420 ELO', `${user.elo.toLocaleString('id-ID')} ELO`],
+    ['2,480 ELO', `${user.elo.toLocaleString('id-ID')} ELO`],
     ['Tier Platinum', `Tier ${rankText}`],
     ['Platinum III', rankText]
   ]);
@@ -1196,7 +1196,7 @@ function hydrateUser() {
     if (nameEl) nameEl.textContent = name;
 
     const eloEl = userRow.querySelector('td:nth-child(5)');
-    if (eloEl) eloEl.textContent = `${user.elo.toLocaleString('id-ID')} LP`;
+    if (eloEl) eloEl.textContent = `${user.elo.toLocaleString('id-ID')} ELO`;
 
     const rankTierEl = userRow.querySelector('td:nth-child(4) span');
     if (rankTierEl) rankTierEl.textContent = rankText;

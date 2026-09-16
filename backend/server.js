@@ -686,17 +686,28 @@ app.get('/api/battles', async (req, res) => {
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const subjectId = req.query.subject;
+    const classLevel = req.query.classLevel;
+
+    let classFilter = '';
+    let queryParams = [];
+
+    if (classLevel) {
+      classFilter = 'WHERE u.class_level = ?';
+      queryParams.push(classLevel);
+    }
 
     if (subjectId) {
       // Leaderboard per mapel (includes all users with default 100 ELO if not in user_subjects)
+      queryParams.push(subjectId);
       const [rows] = await pool.query(`
         SELECT u.id, u.name, u.photo, u.xp, COALESCE(us.elo, 100) as elo,
-               u.wins, u.total_battles
+               u.wins, u.total_battles, u.class_level
         FROM users u
         LEFT JOIN user_subjects us ON us.user_id = u.id AND us.subject_id = ?
+        ${classFilter}
         ORDER BY elo DESC, u.created_at ASC
         LIMIT 100
-      `, [subjectId]);
+      `, classLevel ? [classLevel, subjectId] : [subjectId]);
 
       const leaderboard = await Promise.all(rows.map(async (row, index) => {
         const eloVal = Number(row.elo) || 100;
@@ -711,7 +722,8 @@ app.get('/api/leaderboard', async (req, res) => {
           elo: eloVal,
           rank_name: rankRows.length > 0 ? rankRows[0].name : calculateRank(eloVal),
           wins: row.wins,
-          total_battles: row.total_battles
+          total_battles: row.total_battles,
+          class_level: row.class_level
         };
       }));
 
@@ -720,13 +732,14 @@ app.get('/api/leaderboard', async (req, res) => {
       // Leaderboard semua mapel (total ELO)
       const [rows] = await pool.query(`
         SELECT u.id, u.name, u.photo, u.xp, COALESCE(SUM(us.elo), u.elo, 400) as total_elo,
-               u.wins, u.total_battles
+               u.wins, u.total_battles, u.class_level
         FROM users u
         LEFT JOIN user_subjects us ON u.id = us.user_id
-        GROUP BY u.id, u.name, u.photo, u.xp, u.wins, u.total_battles, u.elo, u.created_at
+        ${classFilter}
+        GROUP BY u.id, u.name, u.photo, u.xp, u.wins, u.total_battles, u.elo, u.created_at, u.class_level
         ORDER BY total_elo DESC, u.created_at ASC
         LIMIT 100
-      `);
+      `, queryParams);
 
       const leaderboard = await Promise.all(rows.map(async (row, index) => {
         const elo = Number(row.total_elo) || 0;

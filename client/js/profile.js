@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+﻿document.addEventListener('DOMContentLoaded', async () => {
   const token = localStorage.getItem('edurank-token');
   if (!token) {
     window.location.href = 'login.html';
@@ -408,7 +408,7 @@ function renderActivityTimeline(battles) {
       <div class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/20 hover:bg-surface-container transition-colors">
         <div class="flex items-center gap-3">
           <div class="px-2.5 py-1 rounded-lg border font-label-sm text-label-sm font-bold ${bgClass}">
-            ${isWin ? 'Menang' : (isDraw ? 'Seri' : 'Kalah')} ${b.mode === 'ranked' ? `(${sign}${Math.abs(b.elo_change || 0)} LP)` : ''}
+            ${isWin ? 'Menang' : (isDraw ? 'Seri' : 'Kalah')} ${b.mode === 'ranked' ? `(${sign}${Math.abs(b.elo_change || 0)} ELO)` : ''}
           </div>
           <div class="flex flex-col">
             <div class="flex items-center gap-2">

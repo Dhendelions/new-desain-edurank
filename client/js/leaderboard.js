@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // State
   let currentSubjectId = null; // null = Semua Mapel
+  let currentClassLevel = null; // null = Semua Kelas
   let subjectsList = [];
 
   // Get current user info
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const subData = await subRes.json();
     if (subData.success) {
       subjectsList = subData.subjects;
+      renderClassTabs();
       renderFilterTabs(subjectsList);
     }
   } catch (err) {
@@ -80,6 +82,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
+  }
+
+  function renderClassTabs() {
+    const container = document.getElementById('class-tabs');
+    if (!container) return;
+    
+    const classes = [
+      { id: null, name: 'Semua Kelas', icon: 'school' },
+      { id: '10', name: 'Kelas X', icon: 'looks_one' },
+      { id: '11', name: 'Kelas XI', icon: 'looks_two' },
+      { id: '12', name: 'Kelas XII', icon: 'looks_3' }
+    ];
+
+    container.innerHTML = classes.map(c => `
+      <button class="subject-tab ${c.id === null ? 'active' : ''}" data-class-level="${c.id || ''}">
+        <span class="material-symbols-outlined text-[16px]">${c.icon}</span>
+        ${c.name}
+      </button>
+    `).join('');
+
+    container.querySelectorAll('.subject-tab').forEach(tab => {
+      tab.addEventListener('click', async () => {
+        container.querySelectorAll('.subject-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const classLevel = tab.dataset.classLevel || null;
+        currentClassLevel = classLevel;
+        await fetchAndRenderLeaderboard(currentSubjectId, currentClassLevel);
+      });
+    });
   }
 
   function renderFilterTabs(subjects) {
@@ -132,12 +163,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         tab.classList.add('active');
         const subjectId = tab.dataset.subjectId || null;
         currentSubjectId = subjectId;
-        await fetchAndRenderLeaderboard(subjectId);
+        await fetchAndRenderLeaderboard(currentSubjectId, currentClassLevel);
       });
     });
   }
 
-  async function fetchAndRenderLeaderboard(subjectId) {
+  async function fetchAndRenderLeaderboard(subjectId, classLevel = null) {
     const container = document.getElementById('leaderboard-table-container');
     if (!container) return;
 
@@ -154,7 +185,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       let url = '/api/leaderboard';
-      if (subjectId) url += `?subject=${subjectId}`;
+      const params = new URLSearchParams();
+      if (subjectId) params.append('subject', subjectId);
+      if (classLevel) params.append('classLevel', classLevel);
+      
+      if (params.toString()) {
+        url += '?' + params.toString();
+      }
 
       const res = await fetch(getApiUrl(url));
       const data = await res.json();
@@ -198,7 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       }
 
-      // Render table for 10 entries (sorted by ELO LP)
+      // Render table for 10 entries (sorted by ELO ELO)
       let tableHtml = `
         <table class="leaderboard-table">
           <thead>
@@ -206,7 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <th class="text-center" style="width: 60px">#</th>
               <th>Siswa</th>
               <th>Rank Tier</th>
-              <th class="text-right">Rating ELO (LP)</th>
+              <th class="text-right">Rating ELO</th>
             </tr>
           </thead>
           <tbody>
@@ -260,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               </div>
             </td>
             <td><span class="rank-label ${badgeClass}">${rankTier}</span></td>
-            <td class="text-right"><span class="elo-value">${userElo.toLocaleString('id-ID')} LP</span></td>
+            <td class="text-right"><span class="elo-value">${userElo.toLocaleString('id-ID')} ELO</span></td>
           </tr>
         `;
       });
@@ -293,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                      class="w-10 h-10 rounded-full object-cover border-2 border-surface-container-highest" alt="${userData.name}">
                 <div class="text-right">
                   <div class="font-label-md text-label-md text-on-surface font-bold">${escapeHtml(userData.name)}</div>
-                  <div class="font-body-sm text-body-sm text-on-surface-variant font-bold text-primary">${totalUserElo.toLocaleString('id-ID')} LP · Tier ${userRankName}</div>
+                  <div class="font-body-sm text-body-sm text-on-surface-variant font-bold text-primary">${totalUserElo.toLocaleString('id-ID')} ELO · Tier ${userRankName}</div>
                 </div>
               </div>
             </div>
@@ -307,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
                 <div>
                   <h4 class="font-title-md font-bold text-on-surface">Statistik Poin Kamu</h4>
-                  <p class="font-body-sm text-on-surface-variant">${totalUserElo.toLocaleString('id-ID')} LP · Tier ${userRankName}</p>
+                  <p class="font-body-sm text-on-surface-variant">${totalUserElo.toLocaleString('id-ID')} ELO · Tier ${userRankName}</p>
                 </div>
               </div>
               <a href="battle.html" class="px-4 py-2 rounded-xl bg-primary text-on-primary font-bold text-sm">Tanding untuk Naik Rank</a>
