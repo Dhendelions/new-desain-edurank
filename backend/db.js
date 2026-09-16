@@ -25,6 +25,7 @@ async function initDb() {
         \`email\` VARCHAR(255) NOT NULL,
         \`password\` VARCHAR(255) NOT NULL,
         \`role\` VARCHAR(50) NOT NULL DEFAULT 'student',
+        \`class_level\` INT NOT NULL DEFAULT 12,
         \`phone_number\` VARCHAR(50) DEFAULT NULL,
         \`learning_style\` VARCHAR(50) DEFAULT '',
         \`elo\` INT NOT NULL DEFAULT 100,
@@ -48,6 +49,17 @@ async function initDb() {
       await connection.query('ALTER TABLE `users` MODIFY `photo` LONGTEXT');
     } catch (e) {
       console.log('Note: Photo column already longtext or could not be altered.');
+    }
+    
+    // Add class_level if not exists
+    try {
+      await connection.query('ALTER TABLE `users` ADD COLUMN `class_level` INT NOT NULL DEFAULT 12 AFTER `role`');
+      console.log('✅ Added class_level column to users table.');
+    } catch (e) {
+      // Duplicate column error code is 1060
+      if (e.code !== 'ER_DUP_FIELDNAME') {
+        console.log('Note: class_level column already exists or could not be altered.');
+      }
     }
 
     connection.release();

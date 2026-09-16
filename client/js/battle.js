@@ -302,8 +302,10 @@ class BattlePageManager {
       btnCreateRoom.addEventListener('click', () => {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         this.showCreatedRoomUI(code);
+        const customClassSelect = document.getElementById('custom-class-select');
+        const cLevel = customClassSelect ? Number(customClassSelect.value) : 12;
         if (this.socket) {
-          this.socket.emit('create_room', { subject: this.selectedSubject.name, roomCode: code });
+          this.socket.emit('create_room', { subject: this.selectedSubject.name, classLevel: cLevel, roomCode: code });
         }
       });
     }
@@ -357,7 +359,9 @@ class BattlePageManager {
     const btnStartAi = document.getElementById('btn-start-ai');
     if (btnStartAi) {
       btnStartAi.addEventListener('click', () => {
-        this.startBattle('custom', { isAi: true, name: 'EduBot AI PRO' });
+        const customClassSelect = document.getElementById('custom-class-select');
+        const cLevel = customClassSelect ? Number(customClassSelect.value) : 12;
+        this.startBattle('custom', { isAi: true, name: 'EduBot AI PRO', classLevel: cLevel });
       });
     }
 

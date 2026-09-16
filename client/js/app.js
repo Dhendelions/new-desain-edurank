@@ -313,6 +313,7 @@ function initAuth() {
         const password = String(data.get('password') || document.querySelector('#password')?.value || document.querySelector('#studentPassword')?.value || '');
         const confirmPassword = String(data.get('confirmPassword') || document.querySelector('#confirmPassword')?.value || document.querySelector('#studentConfirmPassword')?.value || '');
         const phoneNumber = String(data.get('phoneNumber') || document.querySelector('#phoneNumber')?.value || '').trim();
+        const classLevel = Number(data.get('classLevel') || document.querySelector('#classLevel')?.value || 12);
 
         // Validation
         if (!name) {
@@ -340,7 +341,7 @@ function initAuth() {
           const response = await fetch(getApiUrl('/api/register'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, phoneNumber })
+            body: JSON.stringify({ name, email, password, phoneNumber, classLevel })
           });
           const result = await response.json().catch(() => null);
           if (response.ok && result && result.success && result.user) {
@@ -383,6 +384,7 @@ function initAuth() {
           name,
           email,
           password,
+          classLevel,
           learningStyle: '',
           elo: DEFAULT_ELO,
           xp: 0,

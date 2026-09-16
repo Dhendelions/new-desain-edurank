@@ -57,6 +57,8 @@
 <p class="font-body-sm text-[11px] text-on-surface-variant mt-1">Domain .sch.id / .ac.id akan langsung terverifikasi instan.</p>
 </div>
 </div>
+<!-- Grid: Phone & Class -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
 <!-- Nomor WhatsApp / Telepon -->
 <div>
 <label class="block font-label-md text-label-md text-on-surface mb-1.5 font-bold" for="phoneNumber">
@@ -70,7 +72,28 @@
 </div>
 <input class="w-full pl-20 pr-4 py-2.5 rounded-lg bg-surface-container-low text-on-surface placeholder:text-outline font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm" id="phoneNumber" name="phoneNumber" placeholder="812-3456-7890" type="tel">
 </div>
-<p class="font-body-sm text-[11px] text-on-surface-variant mt-1">Digunakan untuk menerima kode OTP verifikasi akun dan notifikasi beasiswa penting.</p>
+<p class="font-body-sm text-[11px] text-on-surface-variant mt-1">Digunakan untuk menerima notifikasi.</p>
+</div>
+<!-- Tingkat Kelas -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5 font-bold" for="classLevel">
+                  Tingkat Kelas <span class="text-error">*</span>
+</label>
+<div class="relative flex items-center">
+<div class="absolute left-3.5 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">school</span>
+</div>
+<select class="w-full pl-10 pr-10 py-2.5 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer appearance-none" id="classLevel" name="classLevel" required="">
+<option value="10">Kelas 10 SMA/Sederajat</option>
+<option value="11">Kelas 11 SMA/Sederajat</option>
+<option value="12" selected>Kelas 12 SMA/Sederajat</option>
+</select>
+<div class="absolute right-3.5 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+<p class="font-body-sm text-[11px] text-on-surface-variant mt-1">Menentukan soal dan matchmaking.</p>
+</div>
 </div>
 <!-- ================= HIGHLIGHTED CARD CONTAINER: Verifikasi Pelajar ================= -->
 <div class="p-space-md rounded-xl bg-surface-container-low shadow-sm">

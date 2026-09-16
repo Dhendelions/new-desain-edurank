@@ -313,7 +313,7 @@ class BattleEngine {
       
       this.socket.emit('player_ready_next', {
         roomId: this.roomId,
-        questionIndex: this.currentQuestionIndex + 1
+        questionIndex: Number(this.currentQuestionIndex + 1)
       });
     }
 
@@ -333,11 +333,6 @@ class BattleEngine {
         <span class="material-symbols-outlined text-xl animate-spin">hourglass_top</span>
         <span>Jawaban terkunci! Menunggu AI menjawab...</span>
       `;
-      // AI answers eventually, then we go next
-      // We don't have socket for AI, so we rely on scheduleAiAnswer
-      // scheduleAiAnswer is called at startQuestion. When AI is done, we can just transition.
-      // But we need to make sure AI actually finishes. 
-      // Instead of waiting, let's just trigger next if AI is already done, or set a flag.
       this.checkAiReady();
     } else {
       delayNotice.innerHTML = `
@@ -348,14 +343,11 @@ class BattleEngine {
   }
 
   checkAiReady() {
-    // If AI hasn't answered this question yet (opponentProgress < currentQuestionIndex + 1), wait.
-    // We can just poll or rely on scheduleAiAnswer to call nextQuestion.
     if ((this.opponentProgress || 0) >= this.currentQuestionIndex + 1) {
       const delayNotice = document.getElementById('battle-delay-notice');
       if (delayNotice) delayNotice.remove();
       setTimeout(() => this.nextQuestion(), 1000);
     } else {
-      // Check again shortly
       setTimeout(() => this.checkAiReady(), 500);
     }
   }
@@ -370,6 +362,7 @@ class BattleEngine {
       if (isCorrect) {
         this.opponentScore += 10;
       }
+      this.opponentProgress = this.currentQuestionIndex + 1; // Mark AI progress
       this.updatePlayerUI();
     }, delay);
   }
@@ -410,10 +403,6 @@ class BattleEngine {
     let eloChange = 0;
     let xpGained = 0;
 
-    // Rules per user request:
-    // Ranked: +XP, +ELO / -ELO
-    // Classic: +XP, 0 ELO
-    // Custom: 0 XP, 0 ELO
     if (this.mode === 'ranked') {
       eloChange = isWin ? 15 : (isDraw ? 0 : -10);
       xpGained = isWin ? 50 : (isDraw ? 25 : 10);
@@ -421,16 +410,19 @@ class BattleEngine {
       eloChange = 0;
       xpGained = isWin ? 40 : (isDraw ? 20 : 10);
     } else {
-      // Custom mode
       eloChange = 0;
       xpGained = 0;
     }
 
-    // Record battle history & update stats in MySQL database
     if (this.token) {
       const resultType = isWin ? 'win' : (isDraw ? 'draw' : 'loss');
       const correctCount = this.userAnswersHistory.filter(a => a.isCorrect).length;
       const incorrectCount = this.userAnswersHistory.filter(a => !a.isCorrect).length;
+      
+      let opponentNameForDb = this.opponent.name || 'Lawan';
+      if (this.opponent.isAi) {
+        opponentNameForDb = `Bot - ${this.opponent.name}`;
+      }
 
       try {
         const res = await fetch(getApiUrl('/api/battles/record'), {
@@ -440,7 +432,7 @@ class BattleEngine {
             'Authorization': `Bearer ${this.token}`
           },
           body: JSON.stringify({
-            opponentName: this.opponent.name || 'AI Bot',
+            opponentName: opponentNameForDb,
             subjectId: this.subjectId || 1,
             result: resultType,
             eloChange,

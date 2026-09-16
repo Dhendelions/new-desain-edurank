@@ -43,7 +43,8 @@ function configureBattleSocket(server, secret) {
 
     // QUEUE RANKED
     socket.on('queue_ranked', ({ subject }) => {
-      const key = `ranked_${String(subject || 'Fisika').toLowerCase()}`;
+      const cLevel = socket.user.classLevel || 12;
+      const key = `ranked_${String(subject || 'Fisika').toLowerCase()}_${cLevel}`;
       const existing = queues.get(key);
 
       if (existing && existing.id !== player.id) {
@@ -73,7 +74,8 @@ function configureBattleSocket(server, secret) {
 
     // QUEUE CLASSIC
     socket.on('queue_classic', ({ subject }) => {
-      const key = `classic_${String(subject || 'Fisika').toLowerCase()}`;
+      const cLevel = socket.user.classLevel || 12;
+      const key = `classic_${String(subject || 'Fisika').toLowerCase()}_${cLevel}`;
       const existing = queues.get(key);
 
       if (existing && existing.id !== player.id) {
@@ -112,13 +114,14 @@ function configureBattleSocket(server, secret) {
     });
 
     // CREATE PRIVATE CUSTOM ROOM WITH 6-DIGIT CODE
-    socket.on('create_room', ({ subject, roomCode }) => {
+    socket.on('create_room', ({ subject, classLevel, roomCode }) => {
       const code = roomCode || Math.floor(100000 + Math.random() * 900000).toString();
       const room = {
         id: code,
         roomCode: code,
         mode: 'custom',
         subject: subject || 'Fisika',
+        classLevel: classLevel || 12,
         players: [player],
         score: { [player.id]: 0 },
         status: 'lobby'
@@ -166,12 +169,25 @@ function configureBattleSocket(server, secret) {
       const room = rooms.get(roomId);
       if (!room) return;
       if (!room.readyForNext) room.readyForNext = {};
-      room.readyForNext[player.id] = questionIndex;
+      
+      const qIdx = Number(questionIndex);
+      room.readyForNext[String(player.id)] = qIdx;
 
-      // Check if all real players (or 2 players if standard) are ready
-      const allPlayersReady = room.players.every(p => room.readyForNext[p.id] === questionIndex);
-      if (allPlayersReady) {
-        io.to(room.id).emit('next_question', { questionIndex });
+      // Check if all players are ready for this question
+      const readyCount = room.players.filter(p => room.readyForNext[String(p.id)] === qIdx).length;
+      
+      if (readyCount === room.players.length) {
+        if (room.forceNextTimeout) clearTimeout(room.forceNextTimeout);
+        io.to(room.id).emit('next_question', { questionIndex: qIdx });
+      } else {
+        // Start a failsafe timer if not already started for this question
+        if (room.currentFailsafeQuestion !== qIdx) {
+          if (room.forceNextTimeout) clearTimeout(room.forceNextTimeout);
+          room.currentFailsafeQuestion = qIdx;
+          room.forceNextTimeout = setTimeout(() => {
+            io.to(room.id).emit('next_question', { questionIndex: qIdx });
+          }, 15000); // 15 seconds maximum wait time
+        }
       }
     });
 

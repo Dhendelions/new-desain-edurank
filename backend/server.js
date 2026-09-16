@@ -58,6 +58,7 @@ function formatUserResponse(row) {
     totalBattles: Number(row.total_battles) || (wins + losses + draws),
     correctAnswers: Number(row.correct_answers) || 0,
     incorrectAnswers: Number(row.incorrect_answers) || 0,
+    classLevel: Number(row.class_level) || 12,
     photo: row.photo || '',
     createdAt: row.created_at
   };
@@ -122,6 +123,7 @@ app.post('/api/register', async (req, res) => {
     const email = String(req.body.email || req.body.studentEmail || '').trim().toLowerCase();
     const password = String(req.body.password || '');
     const phoneNumber = String(req.body.phoneNumber || '').trim();
+    const classLevel = Number(req.body.classLevel) || 12;
 
     if (!name) {
       return res.status(400).json({ success: false, message: 'Nama lengkap wajib diisi.' });
@@ -142,9 +144,9 @@ app.post('/api/register', async (req, res) => {
     const userId = generateUserId(email);
 
     await pool.query(
-      `INSERT INTO users (id, name, email, password, role, phone_number, learning_style, elo, xp, wins, losses, draws, total_battles, correct_answers, incorrect_answers)
-       VALUES (?, ?, ?, ?, 'student', ?, '', 400, 0, 0, 0, 0, 0, 0, 0)`,
-      [userId, name, email, hashedPassword, phoneNumber]
+      `INSERT INTO users (id, name, email, password, role, class_level, phone_number, learning_style, elo, xp, wins, losses, draws, total_battles, correct_answers, incorrect_answers)
+       VALUES (?, ?, ?, ?, 'student', ?, ?, '', 400, 0, 0, 0, 0, 0, 0, 0)`,
+      [userId, name, email, hashedPassword, classLevel, phoneNumber]
     );
 
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
@@ -157,7 +159,7 @@ app.post('/api/register', async (req, res) => {
       await pool.query('INSERT IGNORE INTO user_subjects (user_id, subject_id, elo) VALUES ?', [insertData]);
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, classLevel: user.classLevel }, JWT_SECRET, { expiresIn: '7d' });
 
     return res.status(201).json({
       success: true,
@@ -193,7 +195,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const user = formatUserResponse(dbUser);
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, classLevel: user.classLevel }, JWT_SECRET, { expiresIn: '7d' });
 
     return res.status(200).json({
       success: true,

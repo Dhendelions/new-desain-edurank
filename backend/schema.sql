@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(255) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `role` VARCHAR(50) NOT NULL DEFAULT 'student',
+  `class_level` INT NOT NULL DEFAULT 12,
   `phone_number` VARCHAR(50) DEFAULT NULL,
   `learning_style` VARCHAR(50) DEFAULT '',
   `elo` INT NOT NULL DEFAULT 400,
