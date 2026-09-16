@@ -54,7 +54,7 @@ New EduRank/
 - `GET /api/notifications` - Get user notifications
 
 ## Database Schema
-- `users` - User accounts with stats and learning styles
+- `users` - User accounts with stats
 - `ranks` - Rank configurations (Bronze, Silver, Gold, etc.)
 - `classes` - Class levels (10, 11, 12)
 - `subjects` - Available subjects per class
@@ -91,7 +91,6 @@ New EduRank/
 - `/feedback.html` - Feedback page (accessible via footer)
 - `/login.html` - Login page
 - `/register.html` - Registration page
-- `/learning-style.html` - Learning style assessment
 
 ## Important Notes
 - The project uses real data from the MySQL database, not dummy data

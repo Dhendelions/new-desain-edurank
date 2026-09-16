@@ -49,7 +49,6 @@ function formatUserResponse(row) {
     email: row.email,
     role: row.role || 'student',
     phoneNumber: row.phone_number || '',
-    learningStyle: row.learning_style || '',
     elo: elo,
     rank: calculateRank(elo),
     xp: Number(row.xp) || 0,
@@ -188,8 +187,8 @@ app.post('/api/register', async (req, res) => {
     const userId = generateUserId(email);
 
     await pool.query(
-      `INSERT INTO users (id, name, email, password, role, class_level, phone_number, learning_style, elo, xp, wins, losses, draws, total_battles, correct_answers, incorrect_answers)
-       VALUES (?, ?, ?, ?, 'student', ?, ?, '', 400, 0, 0, 0, 0, 0, 0, 0)`,
+      `INSERT INTO users (id, name, email, password, role, class_level, phone_number, elo, xp, wins, losses, draws, total_battles, correct_answers, incorrect_answers)
+       VALUES (?, ?, ?, ?, 'student', ?, ?, 400, 0, 0, 0, 0, 0, 0, 0)`,
       [userId, name, email, hashedPassword, classLevel, phoneNumber]
     );
 
@@ -352,10 +351,10 @@ app.post('/api/missions/claim', async (req, res) => {
 });
 
 
-// 4. UPDATE USER PROFILE (LEARNING STYLE, STATS, DISPLAY NAME, PHOTO, EMAIL)
+// 4. UPDATE USER PROFILE (STATS, DISPLAY NAME, PHOTO, EMAIL)
 app.put('/api/user/update', async (req, res) => {
   try {
-    const { email, name, photo, newEmail, learningStyle, elo, wins, losses, draws, xp, correctAnswers, incorrectAnswers } = req.body;
+    const { email, name, photo, newEmail, elo, wins, losses, draws, xp, correctAnswers, incorrectAnswers } = req.body;
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email required.' });
     }
@@ -370,7 +369,6 @@ app.put('/api/user/update', async (req, res) => {
     const updatedPhoto = photo !== undefined ? String(photo).trim() : current.photo;
     const updatedEmail = newEmail !== undefined && String(newEmail).trim() ? String(newEmail).trim().toLowerCase() : current.email;
 
-    const updatedStyle = learningStyle !== undefined ? learningStyle : current.learning_style;
     const updatedElo = elo !== undefined ? Number(elo) : current.elo;
     const updatedWins = wins !== undefined ? Number(wins) : current.wins;
     const updatedLosses = losses !== undefined ? Number(losses) : current.losses;
@@ -382,9 +380,9 @@ app.put('/api/user/update', async (req, res) => {
 
     await pool.query(
       `UPDATE users 
-       SET name = ?, email = ?, photo = ?, learning_style = ?, elo = ?, xp = ?, wins = ?, losses = ?, draws = ?, total_battles = ?, correct_answers = ?, incorrect_answers = ?
+       SET name = ?, email = ?, photo = ?, elo = ?, xp = ?, wins = ?, losses = ?, draws = ?, total_battles = ?, correct_answers = ?, incorrect_answers = ?
        WHERE id = ?`,
-      [updatedName, updatedEmail, updatedPhoto, updatedStyle, updatedElo, updatedXp, updatedWins, updatedLosses, updatedDraws, totalBattles, updatedCorrect, updatedIncorrect, current.id]
+      [updatedName, updatedEmail, updatedPhoto, updatedElo, updatedXp, updatedWins, updatedLosses, updatedDraws, totalBattles, updatedCorrect, updatedIncorrect, current.id]
     );
 
     const [updatedRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [current.id]);

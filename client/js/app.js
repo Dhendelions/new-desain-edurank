@@ -1,6 +1,5 @@
 const APP_STORAGE_KEY = 'edurank-session';
 const USERS_STORAGE_KEY = 'edurank-users';
-const LEARNING_KEY = 'edurank-learning-style';
 const DEFAULT_ELO = 400;
 
 const PAGE_ROUTES = {
@@ -149,8 +148,7 @@ function readJson(key, fallback) {
 function clearStaleUserData() {
   const keysToRemove = [
     'edurank-user',
-    'edurank-battle-history',
-    LEARNING_KEY
+    'edurank-battle-history'
   ];
   keysToRemove.forEach(k => localStorage.removeItem(k));
 }
@@ -202,7 +200,6 @@ function normalizeUser(user) {
     name: sanitizeName(user.name || user.fullName || 'Pelajar EduRank'),
     email: String(user.email || user.studentEmail || '').trim().toLowerCase(),
     password: String(user.password || ''),
-    learningStyle: user.learningStyle || localStorage.getItem(LEARNING_KEY) || '',
     elo: typeof user.elo === 'number' ? Math.max(0, user.elo) : DEFAULT_ELO,
     xp: Math.max(0, Number(user.xp) || 0),
     wins: wins,
@@ -397,7 +394,6 @@ function initAuth() {
           email,
           password,
           classLevel,
-          learningStyle: '',
           elo: DEFAULT_ELO,
           xp: 0,
           wins: 0,
@@ -538,117 +534,7 @@ function initAuth() {
   }
 }
 
-function initLearningStyle() {
-  const form = document.querySelector('#learning-style-form, #learning-form');
-  if (!form) return;
-
-  // Check auth: accept either localStorage session OR JWT token
-  const user = getCurrentUser();
-  const hasToken = !!localStorage.getItem('edurank-token');
-  if (!user && !hasToken) {
-    window.location.href = 'login.html';
-    return;
-  }
-
-  // If user already has learning style and arrived here from normal navigation (not register),
-  // let them stay to view/update their learning style (don't force redirect)
-  if (user && user.learningStyle) {
-    const matchingRadio = form.querySelector(`input[value="${user.learningStyle.toLowerCase()}"]`);
-    if (matchingRadio) matchingRadio.checked = true;
-  }
-
-  let resultCard = document.getElementById('learning-style-result-card');
-  if (!resultCard) {
-    resultCard = document.createElement('div');
-    resultCard.id = 'learning-style-result-card';
-    resultCard.className = 'hidden p-5 mb-6 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 shadow-sm';
-    const formTop = form.querySelector('.mb-6') || form.firstChild;
-    if (formTop) formTop.after(resultCard);
-  }
-
-  const calculateResult = () => {
-    const checkedRadios = Array.from(form.querySelectorAll('input[type="radio"]:checked'));
-    const counts = {};
-    checkedRadios.forEach((r) => {
-      const val = r.value.toLowerCase();
-      counts[val] = (counts[val] || 0) + 1;
-    });
-
-    let topVal = 'visual';
-    let maxCount = -1;
-    Object.entries(counts).forEach(([val, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        topVal = val;
-      }
-    });
-
-    let displayStyle = 'Visual';
-    let description = 'Kamu paling efektif belajar melalui gambaran visual, diagram, warna, dan peta konsep.';
-    if (topVal === 'kinestetik') {
-      displayStyle = 'Kinestetik';
-      description = 'Kamu paling efektif belajar melalui praktik langsung, eksperimen, dan gerakan interaktif.';
-    } else if (topVal === 'readwrite' || topVal === 'membaca') {
-      displayStyle = 'Membaca/Menulis';
-      description = 'Kamu paling efektif belajar dengan membaca modul terstruktur, mencatat, dan merangkum.';
-    } else if (topVal === 'auditori') {
-      displayStyle = 'Auditori';
-      description = 'Kamu paling efektif belajar melalui penjelasan lisan, diskusi, dan materi audio.';
-    }
-
-    return { displayStyle, description };
-  };
-
-  const showResultUI = () => {
-    const { displayStyle, description } = calculateResult();
-    resultCard.innerHTML = `
-      <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shrink-0">🎯</div>
-        <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-blue-700">Hasil Analisis Gaya Belajar Kamu</span>
-          <h3 class="text-xl font-black text-blue-950 mt-0.5">Gaya Belajar: ${displayStyle}</h3>
-          <p class="text-sm text-blue-800 mt-1 leading-relaxed">${description}</p>
-        </div>
-      </div>
-    `;
-    resultCard.classList.remove('hidden');
-    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  };
-
-  form.querySelectorAll('input[type="radio"]').forEach((radio) => {
-    radio.addEventListener('change', showResultUI);
-  });
-
-  const handleSaveStyle = async (event) => {
-    if (event) event.preventDefault();
-    const { displayStyle } = calculateResult();
-
-    // Save locally
-    if (user) {
-      const updatedUser = { ...user, learningStyle: displayStyle };
-      saveUser(updatedUser);
-    }
-    localStorage.setItem(LEARNING_KEY, displayStyle);
-
-    // Also save to backend API so database persists the learning style
-    try {
-      const email = user ? user.email : '';
-      if (email) {
-        await fetch(getApiUrl('/api/user/update'), {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, learningStyle: displayStyle })
-        });
-      }
-    } catch (err) {
-      console.warn('Could not save learning style to API:', err);
-    }
-
-    window.location.href = 'home.html';
-  };
-
-  form.addEventListener('submit', handleSaveStyle);
-}
+// Learning style functionality removed.
 
 function renderHeaderAndFooter() {
   // Header is now handled by header.js, so we skip this
@@ -1149,25 +1035,10 @@ function hydrateUser() {
   const totalBattles = user.wins + user.losses + user.draws;
   const accuracyTotal = user.correctAnswers + user.incorrectAnswers;
   const accuracyText = accuracyTotal ? `${Math.round((user.correctAnswers / accuracyTotal) * 100)}%` : '0%';
-  const learningStyleText = user.learningStyle || 'Belum dipilih';
-  const rankText = calculateRank(user.elo);
-
-  // Update header user data
-  const headerUserName = document.getElementById('header-user-name');
-  const headerUserPhoto = document.getElementById('header-user-photo');
-  const headerUserRank = document.getElementById('header-user-rank');
-  
-  if (headerUserName) headerUserName.textContent = name;
-  if (headerUserPhoto) {
-    headerUserPhoto.src = user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-  }
-  if (headerUserRank) headerUserRank.textContent = rankText;
-
   document.querySelectorAll('[data-user-name]').forEach((el) => { el.textContent = name; });
   document.querySelectorAll('[data-user-email]').forEach((el) => { el.textContent = user.email; });
   document.querySelectorAll('[data-user-elo]').forEach((el) => { el.textContent = user.elo.toLocaleString('id-ID'); });
   document.querySelectorAll('[data-user-rank]').forEach((el) => { el.textContent = rankText; });
-  document.querySelectorAll('[data-user-learning-style]').forEach((el) => { el.textContent = learningStyleText; });
 
   const textReplacements = new Map([
     ['Arga Pratama', name],
@@ -1308,7 +1179,6 @@ function initGameInteractions() {
 document.addEventListener('DOMContentLoaded', async () => {
   redirectIfLoggedOut();
   initAuth();
-  initLearningStyle();
   
   // Load user data before rendering header
   await loadUserData();

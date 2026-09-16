@@ -27,7 +27,6 @@ async function initDb() {
         \`role\` VARCHAR(50) NOT NULL DEFAULT 'student',
         \`class_level\` INT NOT NULL DEFAULT 12,
         \`phone_number\` VARCHAR(50) DEFAULT NULL,
-        \`learning_style\` VARCHAR(50) DEFAULT '',
         \`elo\` INT NOT NULL DEFAULT 100,
         \`xp\` INT NOT NULL DEFAULT 0,
         \`wins\` INT NOT NULL DEFAULT 0,
