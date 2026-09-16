@@ -708,7 +708,10 @@ async function initPdfMaterialBrowser() {
     return;
   }
 
-  let level = null, subject = null, subchapter = null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramLevel = urlParams.get('level');
+  
+  let level = paramLevel || null, subject = null, subchapter = null;
 
   const getSubjectIcon = (name) => {
     if (/fisika/i.test(name)) return 'science';
@@ -726,12 +729,56 @@ async function initPdfMaterialBrowser() {
     return 'bg-surface-container-high text-on-surface';
   };
 
+  const formatRichMaterialContent = (rawText) => {
+    if (!rawText) return '<p class="text-outline">Konten materi belum tersedia.</p>';
+    
+    const lines = rawText.split('\n');
+    let html = '';
+    let inList = false;
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (inList) { html += '</ul>'; inList = false; }
+        return;
+      }
+
+      // Check if line is a major heading (e.g. 1. , Bab , Pengertian, Rumus)
+      if (/^([0-9]+\.|BAB|RUMUS|CONTOH|PENGERTIAN|TEOREMA)/i.test(trimmed)) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `
+          <div class="mt-6 mb-3 flex items-center gap-2">
+            <span class="w-2.5 h-6 rounded-full bg-primary block"></span>
+            <h3 class="font-headline-sm text-headline-sm font-extrabold text-on-surface">${escapeHtml(trimmed)}</h3>
+          </div>
+        `;
+      } else if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+        if (!inList) { html += '<ul class="space-y-2 my-3 pl-4 list-disc marker:text-primary">'; inList = true; }
+        html += `<li class="font-body-md text-on-surface leading-relaxed">${escapeHtml(trimmed.replace(/^[-•*]\s*/, ''))}</li>`;
+      } else if (/^(=|>|RUMUS KUNCI:|FORMULA:)/i.test(trimmed)) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `
+          <div class="my-4 p-4 rounded-2xl bg-secondary/10 border-l-4 border-secondary text-on-surface font-mono text-sm leading-relaxed shadow-sm">
+            <span class="font-bold text-secondary uppercase font-sans text-xs tracking-wider block mb-1">📐 Formula & Persamaan Kunci</span>
+            ${escapeHtml(trimmed.replace(/^(=|>|RUMUS KUNCI:|FORMULA:)\s*/i, ''))}
+          </div>
+        `;
+      } else {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `<p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-4">${escapeHtml(trimmed)}</p>`;
+      }
+    });
+
+    if (inList) html += '</ul>';
+    return html;
+  };
+
   const render = async (materialId) => {
     if (materialId) {
       host.innerHTML = `
-        <div class="p-12 text-center text-on-surface-variant">
-          <span class="material-symbols-outlined text-4xl text-primary animate-spin mb-2">hourglass_empty</span>
-          <p class="font-semibold">Membuka materi...</p>
+        <div class="p-16 text-center text-on-surface-variant flex flex-col items-center justify-center gap-3">
+          <div class="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+          <p class="font-bold text-primary">Memuat Pembahasan Materi...</p>
         </div>
       `;
       try {
@@ -739,36 +786,87 @@ async function initPdfMaterialBrowser() {
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error();
         const m = data.material;
+        
+        const formattedContent = formatRichMaterialContent(m.content);
+
         host.innerHTML = `
-          <section class="space-y-space-lg">
-            <div class="flex items-center justify-between">
-              <button id="material-back" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container-low text-primary font-label-md font-bold hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-[18px]">arrow_back</span> Kembali ke Sub-Bab
+          <section class="max-w-[1000px] mx-auto space-y-space-lg">
+            
+            <!-- Sticky Action Toolbar -->
+            <div class="sticky top-24 z-40 bg-surface-container-lowest/90 backdrop-blur-xl p-4 rounded-2xl shadow-md border border-outline-variant/30 flex items-center justify-between gap-4">
+              <button id="material-back" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-container-low text-primary font-label-lg font-bold hover:bg-primary hover:text-on-primary transition-all">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                <span>Kembali ke Katalog</span>
               </button>
-              <div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
-                <span class="material-symbols-outlined text-primary text-[18px]">description</span>
-                <span>Dokumen ${m.type || 'PDF'}</span>
+
+              <div class="flex items-center gap-3">
+                <span class="px-3 py-1 rounded-full bg-secondary/10 text-secondary font-label-sm font-bold uppercase tracking-wider">
+                  Kelas ${m.classLevel} • ${escapeHtml(m.subject)}
+                </span>
+                <button id="btn-mark-complete" type="button" class="px-4 py-2 rounded-xl bg-tertiary-container hover:bg-tertiary text-on-tertiary font-label-md font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                  <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                  <span>Tandai Selesai (+30 XP)</span>
+                </button>
               </div>
             </div>
-            <article class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 space-y-4">
-              <div class="border-b border-outline-variant/20 pb-4">
-                <span class="text-secondary font-label-md font-bold uppercase tracking-wider">KELAS ${m.classLevel} • ${escapeHtml(m.subject)}</span>
-                <h1 class="mt-1 font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">${escapeHtml(m.title)}</h1>
-                <p class="mt-1 font-body-md text-on-surface-variant">${escapeHtml(m.subchapter)}</p>
+
+            <!-- Main Reading Article -->
+            <article class="bg-surface-container-lowest p-space-xl md:p-10 rounded-3xl shadow-lg border border-outline-variant/30 space-y- space-lg relative overflow-hidden">
+              <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+              
+              <!-- Document Header Banner -->
+              <div class="border-b border-outline-variant/20 pb-space-lg">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                  <span class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-sm font-bold uppercase">${escapeHtml(m.type || 'Dokumen Standar')}</span>
+                  <span class="font-label-sm text-outline font-semibold">Sub-Bab: ${escapeHtml(m.subchapter)}</span>
+                </div>
+                <h1 class="font-headline-xl text-headline-xl font-black text-on-surface tracking-tight leading-tight">${escapeHtml(m.title)}</h1>
+                <p class="mt-2 font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                  Modul Pembahasan Terstruktur Kurikulum Merdeka - Diperbarui Real-Time oleh EduRank Indonesia.
+                </p>
               </div>
-              <div class="pt-2 whitespace-pre-wrap leading-relaxed font-body-md text-on-surface max-w-none">
-                ${escapeHtml(m.content)}
+
+              <!-- Styled Scrollable Content Viewer -->
+              <div class="pt-4 max-h-[70vh] overflow-y-auto pr-3 space-y-4 custom-materi-scroll">
+                ${formattedContent}
               </div>
+
+              <!-- Bottom Footer Action Card -->
+              <div class="mt-8 pt-6 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container-low/60 p-6 rounded-2xl">
+                <div>
+                  <h4 class="font-title-md font-bold text-on-surface">Sudah Paham Pembahasan Ini?</h4>
+                  <p class="font-body-sm text-on-surface-variant">Uji wawasanmu langsung di Battle Arena lawan pemain lain!</p>
+                </div>
+                <a href="battle.html" class="px-6 py-3 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg font-bold transition-all shadow-md flex items-center justify-center gap-2 whitespace-nowrap">
+                  <span class="material-symbols-outlined">swords</span>
+                  <span>Tanding di Battle Arena</span>
+                </a>
+              </div>
+
             </article>
+
           </section>
         `;
+
         document.getElementById('material-back').onclick = () => render();
+        
+        const btnComplete = document.getElementById('btn-mark-complete');
+        if (btnComplete) {
+          btnComplete.onclick = () => {
+            btnComplete.disabled = true;
+            btnComplete.className = 'px-4 py-2 rounded-xl bg-surface-container text-tertiary font-label-md font-bold flex items-center gap-1.5 opacity-80';
+            btnComplete.innerHTML = `<span class="material-symbols-outlined text-[18px]">verified</span> <span>Selesai Dibaca!</span>`;
+            alert('Selamat! Kamu mendapatkan +30 XP atas pembelajaran materi ini.');
+          };
+        }
+
       } catch {
         host.innerHTML = `
-          <div class="p-12 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
-            <span class="material-symbols-outlined text-4xl text-error mb-2">error</span>
-            <p class="font-semibold text-on-surface">Materi belum dapat dibuka.</p>
-            <button id="material-error-back" class="mt-4 px-4 py-2 rounded-xl bg-surface-container-low text-primary font-label-md font-bold">Kembali</button>
+          <div class="p-12 text-center text-on-surface-variant bg-surface-container-lowest rounded-3xl border border-outline-variant/30 shadow-sm max-w-md mx-auto">
+            <span class="material-symbols-outlined text-5xl text-error mb-2">error</span>
+            <p class="font-bold text-on-surface text-headline-sm">Materi Belum Dapat Dibuka</p>
+            <p class="text-body-sm text-outline mt-1 mb-6">Dokumen materi tidak tersedia atau mengalami gangguan koneksi.</p>
+            <button id="material-error-back" class="w-full py-3 rounded-xl bg-primary text-on-primary font-label-lg font-bold">Kembali ke Katalog</button>
           </div>
         `;
         document.getElementById('material-error-back').onclick = () => render();
@@ -777,7 +875,7 @@ async function initPdfMaterialBrowser() {
     }
 
     let heading = 'Pilih Kelas';
-    let description = 'Pilih tingkat kelas untuk melihat mata pelajaran dan materi Kurikulum Merdeka yang tersedia.';
+    let description = 'Pilih tingkat kelas Kurikulum Merdeka untuk mempelajari materi terstandar dan menguji kemampuan.';
     let items = Object.keys(catalog).sort();
 
     if (level && !subject) {
@@ -809,32 +907,32 @@ async function initPdfMaterialBrowser() {
           const icon = getSubjectIcon(item);
           const iconBg = getCardColor(item);
           return `
-            <button type="button" data-choice="${escapeHtml(item)}" class="text-left bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
+            <button type="button" data-choice="${escapeHtml(item)}" class="text-left bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
               <div>
-                <div class="w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                <div class="w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
                   <span class="material-symbols-outlined text-[24px]">${icon}</span>
                 </div>
                 <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors">${escapeHtml(item)}</h3>
-                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Klik untuk membuka silabus dan dokumen materi</p>
+                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Klik untuk membuka silabus dan modul dokumen materi</p>
               </div>
               <div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md font-bold">
-                <span>Pilih</span>
+                <span>Pilih Modul</span>
                 <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </div>
             </button>
           `;
         } else {
           return `
-            <button type="button" data-material="${item.id}" class="text-left bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
+            <button type="button" data-material="${item.id}" class="text-left bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
               <div>
                 <div class="flex items-center gap-2 mb-2">
-                  <span class="px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm font-bold uppercase">${escapeHtml(item.type || 'PDF')}</span>
-                  <span class="font-label-sm text-on-surface-variant">Dokumen Resmi</span>
+                  <span class="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm font-bold uppercase">${escapeHtml(item.type || 'Dokumen')}</span>
+                  <span class="font-label-sm text-on-surface-variant">Kurikulum Resmi</span>
                 </div>
                 <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${escapeHtml(item.title)}</h3>
               </div>
               <div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md font-bold">
-                <span>Baca Materi</span>
+                <span>Baca Pembahasan</span>
                 <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </div>
             </button>
@@ -845,7 +943,7 @@ async function initPdfMaterialBrowser() {
 
     host.innerHTML = `
       <section class="space-y-space-lg">
-        <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 space-y-2">
+        <div class="bg-surface-container-lowest p-space-xl rounded-3xl shadow-sm border border-outline-variant/20 space-y-2">
           <div class="flex items-center gap-2 text-body-sm font-body-sm mb-1">
             ${breadcrumbs.join(' ')}
           </div>
@@ -1043,6 +1141,10 @@ function processBattleResults() {
 }
 
 function initGameInteractions() {
+  // Never hijack buttons on battle.html or materi.html
+  const path = window.location.pathname.toLowerCase();
+  if (path.includes('battle.html') || path.includes('materi.html')) return;
+
   document.querySelectorAll('button, a').forEach((element) => {
     if (element.dataset.routeBound === 'true') return;
     const label = element.textContent.trim().toLowerCase();
@@ -1054,22 +1156,16 @@ function initGameInteractions() {
       route = 'learning-style.html';
     } else if (/masuk.*login|sudah punya akun|login di sini/.test(label)) {
       route = 'login.html';
-    } else if (/buat room|custom scrim|custom room/.test(label)) {
-      route = 'custom_lobby.html';
-    } else if (/quick match|mulai match|cari lawan|mulai mode ranked|classic mode/.test(label)) {
-      route = 'classic_lobby.html';
+    } else if (/buat room|custom scrim|custom room|quick match|mulai match|cari lawan|mulai mode ranked|classic mode/.test(label)) {
+      route = 'battle.html';
     } else if (/kembali ke home|dashboard/.test(label)) {
       route = 'home.html';
-    } else if (/kembali ke classic|kembali ke custom/.test(label)) {
-      route = label.includes('custom') ? 'custom_lobby.html' : 'classic_lobby.html';
-    } else if (/main lagi|coba lagi/.test(label)) {
-      route = window.location.pathname.toLowerCase().includes('custom') ? 'custom_battle.html' : 'classic_battle.html';
     }
 
     if (route) {
       element.dataset.routeBound = 'true';
       element.addEventListener('click', (event) => {
-        if (element.tagName === 'A' && element.getAttribute('href') && element.getAttribute('href') !== '#') return;
+        if (element.tagName === 'A' && element.getAttribute('href') && element.getAttribute('href') !== '#' && !element.getAttribute('href').startsWith('javascript')) return;
         event.preventDefault();
         window.location.href = route;
       });

@@ -212,47 +212,58 @@ function renderBattles(battles) {
   });
 }
 
-function renderSubjects(subjectsData) {
+function renderSubjects() {
   const container = document.getElementById('subjects-grid-container');
   if (!container) return;
 
-  const defaultSubjects = [
-    { subjectName: 'Matematika', icon: 'calculate', color: 'bg-primary text-on-primary', desc: 'Aljabar, Matriks, Fungsi, Trigonometri & Kalkulus' },
-    { subjectName: 'Fisika', icon: 'science', color: 'bg-tertiary-container text-on-tertiary', desc: 'Mekanika, Dinamika Gerak, Termodinamika & Magnet' },
-    { subjectName: 'Bahasa Inggris', icon: 'translate', color: 'bg-primary-fixed text-primary', desc: 'Reading Comprehension, Grammar & Academic Structure' },
-    { subjectName: 'Informatika', icon: 'code', color: 'bg-secondary-container text-on-secondary-container', desc: 'Algoritma, Pemrograman, Struktur Data & Komputasi' }
+  const classesToDisplay = [
+    {
+      level: '10',
+      title: 'Kelas 10 (Fase E)',
+      badge: 'Fase E',
+      icon: 'school',
+      iconBg: 'bg-primary/10 text-primary',
+      badgeBg: 'bg-primary/10 text-primary',
+      desc: 'Fondasi utama Kurikulum Merdeka: Aljabar Dasar, Vektor, Fisika Dasar, Bahasa Inggris & Pengenalan Informatika.'
+    },
+    {
+      level: '11',
+      title: 'Kelas 11 (Fase F)',
+      badge: 'Fase F',
+      icon: 'menu_book',
+      iconBg: 'bg-secondary/10 text-secondary',
+      badgeBg: 'bg-secondary/10 text-secondary',
+      desc: 'Pendalaman Kompetensi: Matriks, Fungsi Kuadrat, Dinamika Gerak, Grammar Lanjut & Pemrograman Algoritma.'
+    },
+    {
+      level: '12',
+      title: 'Kelas 12 (Fase F Lanjut)',
+      badge: 'Fase F Lanjut',
+      icon: 'workspace_premium',
+      iconBg: 'bg-tertiary-container/15 text-tertiary-container',
+      badgeBg: 'bg-tertiary-container/15 text-tertiary-container',
+      desc: 'Persiapan Ujian & SNBT: Kalkulus, Trigonometri, Termodinamika, Academic Writing & Struktur Data Komputasi.'
+    }
   ];
 
-  const subjectsToDisplay = defaultSubjects.map(def => {
-    const real = (subjectsData || []).find(s => s.subjectName && s.subjectName.toLowerCase() === def.subjectName.toLowerCase());
-    return {
-      name: def.subjectName,
-      icon: def.icon,
-      color: def.color,
-      desc: def.desc,
-      elo: real ? (real.elo || 0) : 100,
-      rank: real ? (real.rank || 'Bronze') : 'Bronze'
-    };
-  });
-
-  container.innerHTML = subjectsToDisplay.map(sub => `
-    <div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/30 transition-all flex flex-col justify-between group">
+  container.innerHTML = classesToDisplay.map(cls => `
+    <div class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group relative overflow-hidden">
       <div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 rounded-xl ${sub.color} flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-            <span class="material-symbols-outlined text-[22px]">${sub.icon}</span>
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-2xl ${cls.iconBg} flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <span class="material-symbols-outlined text-[26px]">${cls.icon}</span>
           </div>
-          <span class="font-label-sm text-label-sm font-bold px-2.5 py-0.5 rounded-full bg-secondary/10 text-secondary">
-            ${sub.elo} ELO
+          <span class="font-label-sm text-label-sm font-extrabold px-3 py-1 rounded-full ${cls.badgeBg}">
+            ${cls.badge}
           </span>
         </div>
-        <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${sub.name}</h3>
-        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mt-1 mb-4">${sub.desc}</p>
+        <h3 class="font-headline-sm text-headline-sm font-extrabold text-on-surface group-hover:text-primary transition-colors">${cls.title}</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mt-2 mb-4">${cls.desc}</p>
       </div>
-      <div class="pt-3 border-t border-outline-variant/20 flex items-center justify-between">
-        <a href="materi.html" class="inline-flex items-center gap-1 text-primary font-label-md font-bold hover:underline">
-          <span>Pelajari Materi</span>
-          <span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+      <div class="pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+        <a href="materi.html?level=Kelas%20${cls.level}" class="w-full py-2.5 rounded-xl bg-surface-container-low hover:bg-primary hover:text-on-primary text-primary font-label-md text-label-md font-bold transition-all flex items-center justify-center gap-2 group-hover:shadow-sm">
+          <span>Jelajahi Materi Kelas ${cls.level}</span>
+          <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
         </a>
       </div>
     </div>
