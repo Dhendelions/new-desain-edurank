@@ -1,398 +1,515 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><title>EduRank - Feedback &amp; Masukan</title><link href="https://fonts.googleapis.com" rel="preconnect"><link href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface": "#faf8ff", "on-primary": "#ffffff", "outline-variant": "#c7c4d8", "on-background": "#131b2e", "secondary": "#0058be", "on-error": "#ffffff", "on-error-container": "#93000a", "secondary-container": "#2170e4", "primary-fixed": "#e2dfff", "outline": "#777587", "background": "#faf8ff", "error": "#ba1a1a", "surface-container-low": "#f2f3ff", "surface-container-highest": "#dae2fd", "surface-container-lowest": "#ffffff", "error-container": "#ffdad6", "surface-bright": "#faf8ff", "on-secondary": "#ffffff", "on-tertiary": "#ffffff", "surface-variant": "#dae2fd", "primary": "#3525cd", "tertiary": "#005338", "primary-container": "#4f46e5", "on-surface": "#131b2e", "surface-container-high": "#e2e7ff", "on-surface-variant": "#464555", "surface-container": "#eaedff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2.5rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "margin": "2.5rem", "gutter": "1.5rem", "space-md": "1rem", "space-xs": "0.25rem" }, "fontFamily": { "label-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased">
-<header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-  <div class="h-20 max-w-[1360px] mx-auto px-margin flex items-center justify-between gap-gutter">
-    <div class="flex items-center gap-space-md">
-      <a class="flex items-center gap-space-sm group" href="home.html">
-        <div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
-          <span class="material-symbols-outlined text-headline-sm">school</span>
-        </div>
-        <div class="flex flex-col">
-          <span class="font-headline-sm text-headline-sm tracking-tight text-on-surface group-hover:text-primary transition-colors">EduRank</span>
-          <span class="font-label-sm text-label-sm text-outline tracking-wider uppercase -mt-1">Indonesia</span>
-        </div>
-      </a>
-      <div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full">
-        <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
-        <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Real-Time PvP</span>
-      </div>
-    </div>
-    <nav class="hidden md:flex items-center gap-space-xs bg-surface-container-low/70 p-1 rounded-xl">
-      <!-- Navigation will be populated by header.js -->
-    </nav>
-    <div class="flex items-center gap-space-md">
-      <button id="btn-notifications" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button" aria-label="Notifications" aria-expanded="false">
-        <span class="material-symbols-outlined">notifications</span>
-        <span id="notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error hidden"></span>
-      </button>
-      <div class="flex items-center gap-space-sm pl-space-xs border-l border-outline-variant/30">
-        <div class="flex flex-col text-right hidden sm:flex">
-          <span id="header-user-name" class="font-label-md text-label-md text-on-surface font-bold">Memuat...</span>
-        </div>
-        <a href="profile.html">
-          <img id="header-user-photo" alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-surface-container-highest cursor-pointer" src="https://ui-avatars.com/api/?name=User&background=random">
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
+<!DOCTYPE html>
+<html lang="id">
 
-<main class="w-full pt-20 bg-background min-h-screen">
-  <div class="max-w-6xl mx-auto w-full px-6 py-10 space-y-10">
-<!-- PAGE HEADER -->
-<header class="space-y-3">
-<div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-surface-container border border-surface-variant text-primary font-label-md text-label-md tracking-wider uppercase font-semibold">
-<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
-        PUSAT DUKUNGAN &amp; EVALUASI
-      </div>
-<div class="space-y-1.5">
-<h1 class="font-display-lg text-display-lg text-on-surface font-bold tracking-tight">
-          Feedback
-        </h1>
-<p class="font-headline-md text-headline-md text-on-surface-variant font-medium">
-          Bagikan pendapatmu untuk membantu kami membuat EduRank menjadi lebih baik.
-        </p>
-</div>
-<p class="font-body-md text-body-md text-outline max-w-2xl">
-        Temukan masalah, punya saran, atau ingin memberikan masukan? Ceritakan kepada kami. Setiap respons dianalisis untuk meningkatkan kualitas belajar dan keadilan kompetisi.
-      </p>
-</header>
-<!-- SUCCESS ALERT NOTIFICATION (TOGGLEABLE) -->
-<div class="hidden flex items-start justify-between gap-4 p-4 rounded-lg bg-surface-container border border-primary-fixed-dim shadow-sm" id="feedback-alert">
-<div class="flex items-start gap-3">
-<span class="material-symbols-outlined text-primary text-[22px] mt-0.5">check_circle</span>
-<div>
-<h2 class="font-title-md text-title-md text-on-surface font-semibold">Feedback berhasil dikirim!</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-            Terima kasih sudah membantu kami mengembangkan EduRank. Laporanmu telah terdistribusi ke kurator materi dan tim teknis.
-          </p>
-</div>
-</div>
-<button class="text-outline hover:text-on-surface p-1" onclick="document.getElementById('feedback-alert').classList.add('hidden')">
-<span class="material-symbols-outlined text-[18px]">close</span>
-</button>
-</div>
-<!-- MAIN TWO-COLUMN FEEDBACK SECTION -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-<!-- LEFT SIDE (lg:col-span-5): Context, Points, SLA -->
-<aside class="lg:col-span-5 space-y-6">
-<div class="space-y-3">
-<h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">
-            Suaramu Berarti
-          </h2>
-<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-            Setiap evaluasi dan gagasan yang kamu kirimkan bermuara langsung pada pembaruan algoritma matchmaking, kurasi soal latihan, stabilitas arena tanding, serta transparansi peringkat akademik nasional.
-          </p>
-</div>
-<!-- 4 Supporting structured feature points -->
-<div class="space-y-3">
-<div class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
-<div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-<path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</div>
-<div class="space-y-0.5 min-w-0">
-<h3 class="font-title-md text-title-md text-on-surface font-semibold">Laporkan masalah yang kamu temukan</h3>
-<p class="font-body-sm text-body-sm text-outline">Kendala teknis, bug kalkulasi ELO, rendering rumus LaTeX, atau lag arena pertarungan.</p>
-</div>
-</div>
-<div class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
-<div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-<path d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.516 0c.85.493 1.508 1.333 1.508 2.316V18" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</div>
-<div class="space-y-0.5 min-w-0">
-<h3 class="font-title-md text-title-md text-on-surface font-semibold">Berikan saran untuk fitur baru</h3>
-<p class="font-body-sm text-body-sm text-outline">Gagasan modul latihan berjangka, mode sparring tim sekolah, atau integrasi silabus baru.</p>
-</div>
-</div>
-<div class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
-<div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-<path d="M4.26 10.147a60.438 60.438 0 0 1-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-5.25 6.557c0 1.558.847 2.923 2.126 3.634" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</div>
-<div class="space-y-0.5 min-w-0">
-<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tingkatkan pengalaman belajar</h3>
-<p class="font-body-sm text-body-sm text-outline">Kesesuaian taraf kesulitan soal matematika penalaran, fisika kuantum, dan biologi analitis.</p>
-</div>
-</div>
-<div class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
-<div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-<path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</div>
-<div class="space-y-0.5 min-w-0">
-<h3 class="font-title-md text-title-md text-on-surface font-semibold">Sampaikan pengalaman menggunakan EduRank</h3>
-<p class="font-body-sm text-body-sm text-outline">Kenyamanan repetisi harian, dinamika duel 1v1, dan kejelasan visual metrik performa.</p>
-</div>
-</div>
-</div>
-<!-- Verified Delivery & SLA Info Card -->
-<div class="p-4 rounded-lg bg-surface-container-low border border-surface-variant space-y-3">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Tujuan Pengiriman Resmi</span>
-<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container border border-surface-variant text-on-surface font-medium">
-<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
-              SLA 1x24 Jam
-            </span>
-</div>
-<div class="flex items-center gap-2.5 text-on-surface font-tabular-num text-tabular-num bg-surface-container-lowest p-2.5 rounded border border-surface-variant">
-<span class="material-symbols-outlined text-primary text-[18px]">mark_email_read</span>
-<span class="font-medium text-body-sm select-all">yudimade979@gmail.com</span>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
-            Terkoneksi langsung ke kurator konten dan developer inti EduRank. Setiap tiket terverifikasi dan mendapat tindak lanjut terukur.
-          </p>
-</div>
-<!-- Academic Integrity Note -->
-<div class="flex items-start gap-2.5 text-outline pt-1">
-<span class="material-symbols-outlined text-[18px] text-primary flex-shrink-0 mt-0.5">verified_user</span>
-<p class="font-body-sm text-body-sm leading-relaxed">
-            Feedback dari siswa aktif membantu standardisasi capaian BSKAP Kurikulum Merdeka &amp; pembobotan UTBK-SNBT.
-          </p>
-</div>
-</aside>
-<!-- RIGHT SIDE (lg:col-span-7): Feedback Form Card -->
-<section class="lg:col-span-7">
-<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
-<div class="border-b border-surface-variant pb-4 flex items-center justify-between">
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">Formulir Evaluasi &amp; Masukan</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Lengkapi rincian di bawah ini dengan jelas dan objektif.</p>
-</div>
-</div>
-<form class="space-y-5" id="feedback-form">
-<input type="hidden" id="priority" name="priority" value="biasa">
-<!-- Field 1: Nama -->
-<div class="space-y-1.5">
-<div class="flex items-center justify-between">
-<label class="font-label-md text-label-md text-on-surface font-semibold" for="nama">
-                  Nama Lengkap <span class="text-error">*</span>
-</label>
-</div>
-<div class="relative">
-<input class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" id="nama" name="nama" required="" type="text" placeholder="Masukkan nama lengkap Anda">
-</div>
-</div>
-<!-- Field 2: Email -->
-<div class="space-y-1.5">
-<label class="font-label-md text-label-md text-on-surface font-semibold" for="email">
-                Alamat Email <span class="text-error">*</span>
-</label>
-<input class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" id="email" name="email" required="" type="email" placeholder="contoh@email.com">
-<p class="font-body-sm text-body-sm text-outline">
-                Gunakan email yang aktif agar kami dapat menghubungimu jika diperlukan investigasi tambahan.
-              </p>
-</div>
-<!-- Field 3: Nomor WhatsApp -->
-<div class="space-y-1.5">
-<div class="flex items-center justify-between">
-<label class="font-label-md text-label-md text-on-surface font-semibold" for="whatsapp">
-                  Nomor WhatsApp
-                </label>
-<span class="font-label-sm text-label-sm text-outline">Opsional</span>
-</div>
-<input class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" id="whatsapp" name="whatsapp" placeholder="08xxxxxxxxxx" type="tel">
-<p class="font-body-sm text-body-sm text-outline">
-                Opsional — digunakan hanya jika kami perlu menghubungi kamu terkait feedback atau replikasi kendala.
-              </p>
-</div>
-<!-- Field 4: Jenis Feedback -->
-<div class="space-y-1.5">
-<label class="font-label-md text-label-md text-on-surface font-semibold" for="jenis-feedback">
-                Jenis Feedback <span class="text-error">*</span>
-</label>
-<div class="relative">
-<select class="w-full h-10 px-3 pr-10 appearance-none rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer" id="jenis-feedback" name="jenis-feedback" required="">
-<option value="" disabled selected>Pilih jenis feedback</option>
-<option value="saran">Saran Pengembangan</option>
-<option value="bug">Laporan Bug / Kendala Teknis</option>
-<option value="keluhan">Keluhan Layanan</option>
-<option value="fitur">Permintaan Fitur Baru</option>
-<option value="materi">Koreksi Materi / Kunci Jawaban</option>
-<option value="lainnya">Lainnya</option>
-</select>
-<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-[20px]">
-                  keyboard_arrow_down
-                </span>
-</div>
-</div>
-<!-- Field 5: Keluhan / Saran -->
-<div class="space-y-1.5">
-<div class="flex items-center justify-between">
-<label class="font-label-md text-label-md text-on-surface font-semibold" for="deskripsi-feedback">
-                  Keluhan / Saran <span class="text-error">*</span>
-</label>
-<span class="font-label-sm text-label-sm text-outline font-tabular-num">0 / 1.000 karakter</span>
-</div>
-<textarea class="w-full p-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors leading-relaxed" id="deskripsi-feedback" name="deskripsi" placeholder="Ceritakan keluhan, saran, atau pengalamanmu menggunakan EduRank..." required="" rows="5"></textarea>
-</div>
-<!-- Field 6: Prioritas -->
-<div class="space-y-2">
-<label class="font-label-md text-label-md text-on-surface font-semibold block">
-                Tingkat Kepentingan
-              </label>
-<div aria-label="Tingkat Kepentingan Feedback" class="grid grid-cols-3 gap-2.5" role="radiogroup">
-<button class="priority-btn px-3 py-2 text-center rounded border border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:border-outline-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5" onclick="setPriority(this, 'biasa')" type="button">
-<span class="w-2 h-2 rounded-full bg-outline"></span>
-                  Biasa
-                </button>
-<button class="priority-btn px-3 py-2 text-center rounded border border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:border-outline-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5" onclick="setPriority(this, 'penting')" type="button">
-<span class="w-2 h-2 rounded-full bg-primary-container"></span>
-                  Penting
-                </button>
-<button class="priority-btn px-3 py-2 text-center rounded border border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:border-outline-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5" onclick="setPriority(this, 'mendesak')" type="button">
-<span class="w-2 h-2 rounded-full bg-error"></span>
-                  Mendesak
-                </button>
-</div>
-</div>
-<!-- Field 7: Submit Action Button -->
-<div class="pt-2">
-<button class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-title-md text-title-md font-semibold transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2 cursor-pointer" type="submit">
-<span class="">Kirim Feedback</span>
-<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-<path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</button>
-</div>
-<!-- Field 8: Security & Privacy Note -->
-<div class="pt-3 border-t border-surface-variant flex items-center gap-2 text-outline">
-<span class="material-symbols-outlined text-[16px] text-outline flex-shrink-0">lock</span>
-<p class="font-body-sm text-body-sm">
-                Data yang kamu kirim digunakan untuk membantu kami menindaklanjuti feedback dan meningkatkan EduRank. Privasi terlindungi sesuai standar BSKAP.
-              </p>
-</div>
-</form>
-</div>
-</section>
-</div>
-</div>
-</div>
-</main>
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>EduRank - Feedback &amp; Masukan</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet">
+  <style>
+    @layer base {
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Load user data for header
-    const token = localStorage.getItem('edurank-token');
-    if (token) {
-      fetch(getApiUrl('/api/me'), {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.user) {
-          const headerName = document.getElementById('header-user-name');
-          const headerPhoto = document.getElementById('header-user-photo');
-          if (headerName) headerName.textContent = data.user.name;
-          if (headerPhoto) headerPhoto.src = data.user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=random`;
-        }
-      })
-      .catch(err => console.error('Error loading user data:', err));
-    }
-
-    // Initialize character counter
-    const textarea = document.getElementById('deskripsi-feedback');
-    const counter = document.querySelector('.font-tabular-num');
-    if (textarea && counter) {
-      const updateCounter = () => {
-        const length = textarea.value.length;
-        counter.textContent = `${length} / 1.000 karakter`;
-      };
-      
-      textarea.addEventListener('input', updateCounter);
-      updateCounter(); // Initialize counter
-    }
-  });
-
-  function setPriority(button, val) {
-    const buttons = document.querySelectorAll('.priority-btn');
-    buttons.forEach(btn => {
-      btn.classList.remove('border-primary', 'bg-surface-container', 'text-primary', 'font-semibold');
-      btn.classList.add('border-surface-variant', 'bg-surface-container-low', 'text-on-surface-variant');
-    });
-    button.classList.remove('border-surface-variant', 'bg-surface-container-low', 'text-on-surface-variant');
-    button.classList.add('border-primary', 'bg-surface-container', 'text-primary', 'font-semibold');
-    
-    // Update hidden input value
-    const priorityInput = document.getElementById('priority');
-    if (priorityInput) priorityInput.value = val;
-  }
-
-  // Handle form submission
-  document.getElementById('feedback-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const form = e.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Mengirim...';
-    submitBtn.disabled = true;
-
-    try {
-      const formData = {
-        nama: document.getElementById('nama').value,
-        email: document.getElementById('email').value,
-        whatsapp: document.getElementById('whatsapp').value,
-        jenisFeedback: document.getElementById('jenis-feedback').value,
-        deskripsi: document.getElementById('deskripsi-feedback').value,
-        priority: document.getElementById('priority').value || 'biasa'
-      };
-
-      const res = await fetch(getApiUrl('/api/feedback'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        document.getElementById('feedback-alert').classList.remove('hidden');
-        window.scrollTo({top: 0, behavior: 'smooth'});
-        form.reset();
-        setPriority(document.querySelector('.priority-btn'), 'biasa');
-      } else {
-        alert(data.message || 'Gagal mengirim feedback. Silakan coba lagi.');
+      html,
+      body {
+        margin: 0;
+        padding: 0;
       }
-    } catch (err) {
-      console.error('Error submitting feedback:', err);
-      alert('Terjadi kesalahan koneksi. Silakan coba lagi nanti.');
-    } finally {
-      submitBtn.innerHTML = originalBtnText;
-      submitBtn.disabled = false;
-    }
-  });
-</script>
 
-<footer class="w-full bg-surface-container-lowest shadow-[0_-1px_8px_rgba(0,0,0,0.03)]">
-  <div class="max-w-[1360px] mx-auto px-margin py-space-lg">
-    <div class="flex flex-wrap items-center justify-center md:justify-between gap-space-md pb-space-lg border-b border-surface-container-high">
-      <div class="flex items-center gap-space-lg">
-        
-        <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
-          <a href="feedback.html" class="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer mr-4"><span class="material-symbols-outlined text-[16px]">rate_review</span>Feedback</a><span class="material-symbols-outlined text-tertiary-container text-body-lg">verified_user</span>
-          <span>Bebas Malware</span>
+      body {
+        overscroll-behavior: none;
+      }
+
+      main> :first-child {
+        margin-top: 0 !important;
+      }
+
+      main> :last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script
+    id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface": "#faf8ff", "on-primary": "#ffffff", "outline-variant": "#c7c4d8", "on-background": "#131b2e", "secondary": "#0058be", "on-error": "#ffffff", "on-error-container": "#93000a", "secondary-container": "#2170e4", "primary-fixed": "#e2dfff", "outline": "#777587", "background": "#faf8ff", "error": "#ba1a1a", "surface-container-low": "#f2f3ff", "surface-container-highest": "#dae2fd", "surface-container-lowest": "#ffffff", "error-container": "#ffdad6", "surface-bright": "#faf8ff", "on-secondary": "#ffffff", "on-tertiary": "#ffffff", "surface-variant": "#dae2fd", "primary": "#3525cd", "tertiary": "#005338", "primary-container": "#4f46e5", "on-surface": "#131b2e", "surface-container-high": "#e2e7ff", "on-surface-variant": "#464555", "surface-container": "#eaedff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2.5rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "margin": "2.5rem", "gutter": "1.5rem", "space-md": "1rem", "space-xs": "0.25rem" }, "fontFamily": { "label-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"] } } } };</script>
+</head>
+
+<body class="bg-background font-body-md text-on-surface antialiased">
+  <header
+    class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-20 max-w-[1360px] mx-auto px-margin flex items-center justify-between gap-gutter">
+      <div class="flex items-center gap-space-md">
+        <a class="flex items-center gap-space-sm group" href="home.html">
+          <div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-headline-sm">school</span>
+          </div>
+          <div class="flex flex-col">
+            <span
+              class="font-headline-sm text-headline-sm tracking-tight text-on-surface group-hover:text-primary transition-colors">EduRank</span>
+            <span class="font-label-sm text-label-sm text-outline tracking-wider uppercase -mt-1">Indonesia</span>
+          </div>
+        </a>
+        <div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Real-Time PvP</span>
         </div>
       </div>
-      <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
-        <span class="material-symbols-outlined text-secondary text-body-lg">lock</span>
-        <span>100% Bebas Iklan Komersial</span>
+      <nav class="hidden md:flex items-center gap-space-xs bg-surface-container-low/70 p-1 rounded-xl">
+        <!-- Navigation will be populated by header.js -->
+      </nav>
+      <div class="flex items-center gap-space-md">
+        <button id="btn-notifications"
+          class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative"
+          type="button" aria-label="Notifications" aria-expanded="false">
+          <span class="material-symbols-outlined">notifications</span>
+          <span id="notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error hidden"></span>
+        </button>
+        <div class="flex items-center gap-space-sm pl-space-xs border-l border-outline-variant/30">
+          <div class="flex flex-col text-right hidden sm:flex">
+            <span id="header-user-name" class="font-label-md text-label-md text-on-surface font-bold">Memuat...</span>
+          </div>
+          <a href="profile.html">
+            <img id="header-user-photo" alt="Profile"
+              class="w-8 h-8 rounded-full object-cover ring-2 ring-surface-container-highest cursor-pointer"
+              src="https://ui-avatars.com/api/?name=User&background=random">
+          </a>
+        </div>
       </div>
     </div>
-    <div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md">
-      <p class="font-body-sm text-body-sm text-outline text-center md:text-left">© 2026 EduRank. All rights reserved.</p>
-      
-    </div>
-  </div>
-</footer>
+  </header>
 
-<script src="./js/utils.js"></script>
-<script src="./js/header.js"></script>
-<script src="./js/app.js"></script></body></html>
+  <main class="w-full pt-20 bg-background min-h-screen">
+    <div class="max-w-6xl mx-auto w-full px-6 py-10 space-y-10">
+      <!-- PAGE HEADER -->
+      <header class="space-y-3">
+        <div
+          class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-surface-container border border-surface-variant text-primary font-label-md text-label-md tracking-wider uppercase font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+          PUSAT DUKUNGAN &amp; EVALUASI
+        </div>
+        <div class="space-y-1.5">
+          <h1 class="font-display-lg text-display-lg text-on-surface font-bold tracking-tight">
+            Feedback
+          </h1>
+          <p class="font-headline-md text-headline-md text-on-surface-variant font-medium">
+            Bagikan pendapatmu untuk membantu kami membuat EduRank menjadi lebih baik.
+          </p>
+        </div>
+        <p class="font-body-md text-body-md text-outline max-w-2xl">
+          Temukan masalah, punya saran, atau ingin memberikan masukan? Ceritakan kepada kami. Setiap respons dianalisis
+          untuk meningkatkan kualitas belajar dan keadilan kompetisi.
+        </p>
+      </header>
+      <!-- SUCCESS ALERT NOTIFICATION (TOGGLEABLE) -->
+      <div
+        class="hidden flex items-start justify-between gap-4 p-4 rounded-lg bg-surface-container border border-primary-fixed-dim shadow-sm"
+        id="feedback-alert">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary text-[22px] mt-0.5">check_circle</span>
+          <div>
+            <h2 class="font-title-md text-title-md text-on-surface font-semibold">Feedback berhasil dikirim!</h2>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+              Terima kasih sudah membantu kami mengembangkan EduRank. Laporanmu telah terdistribusi ke kurator materi
+              dan tim teknis.
+            </p>
+          </div>
+        </div>
+        <button class="text-outline hover:text-on-surface p-1"
+          onclick="document.getElementById('feedback-alert').classList.add('hidden')">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <!-- MAIN TWO-COLUMN FEEDBACK SECTION -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT SIDE (lg:col-span-5): Context, Points, SLA -->
+        <aside class="lg:col-span-5 space-y-6">
+          <div class="space-y-3">
+            <h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">
+              Suaramu Berarti
+            </h2>
+            <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Setiap evaluasi dan gagasan yang kamu kirimkan bermuara langsung pada pembaruan algoritma matchmaking,
+              kurasi soal latihan, stabilitas arena tanding, serta transparansi peringkat akademik nasional.
+            </p>
+          </div>
+          <!-- 4 Supporting structured feature points -->
+          <div class="space-y-3">
+            <div
+              class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
+              <div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                  <path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <div class="space-y-0.5 min-w-0">
+                <h3 class="font-title-md text-title-md text-on-surface font-semibold">Laporkan masalah yang kamu temukan
+                </h3>
+                <p class="font-body-sm text-body-sm text-outline">Kendala teknis, bug kalkulasi ELO, rendering rumus
+                  LaTeX, atau lag arena pertarungan.</p>
+              </div>
+            </div>
+            <div
+              class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
+              <div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                  <path
+                    d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.516 0c.85.493 1.508 1.333 1.508 2.316V18"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <div class="space-y-0.5 min-w-0">
+                <h3 class="font-title-md text-title-md text-on-surface font-semibold">Berikan saran untuk fitur baru
+                </h3>
+                <p class="font-body-sm text-body-sm text-outline">Gagasan modul latihan berjangka, mode sparring tim
+                  sekolah, atau integrasi silabus baru.</p>
+              </div>
+            </div>
+            <div
+              class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
+              <div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                  <path
+                    d="M4.26 10.147a60.438 60.438 0 0 1-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-5.25 6.557c0 1.558.847 2.923 2.126 3.634"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <div class="space-y-0.5 min-w-0">
+                <h3 class="font-title-md text-title-md text-on-surface font-semibold">Tingkatkan pengalaman belajar</h3>
+                <p class="font-body-sm text-body-sm text-outline">Kesesuaian taraf kesulitan soal matematika penalaran,
+                  fisika kuantum, dan biologi analitis.</p>
+              </div>
+            </div>
+            <div
+              class="flex items-start gap-3.5 p-3.5 rounded-lg bg-surface-container-lowest border border-surface-variant">
+              <div class="p-2 rounded bg-surface-container-low text-primary flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                  <path
+                    d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <div class="space-y-0.5 min-w-0">
+                <h3 class="font-title-md text-title-md text-on-surface font-semibold">Sampaikan pengalaman menggunakan
+                  EduRank</h3>
+                <p class="font-body-sm text-body-sm text-outline">Kenyamanan repetisi harian, dinamika duel 1v1, dan
+                  kejelasan visual metrik performa.</p>
+              </div>
+            </div>
+          </div>
+          <!-- Verified Delivery & SLA Info Card -->
+          <div class="p-4 rounded-lg bg-surface-container-low border border-surface-variant space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Tujuan
+                Pengiriman Resmi</span>
+              <span
+                class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container border border-surface-variant text-on-surface font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                SLA 1x24 Jam
+              </span>
+            </div>
+            <div
+              class="flex items-center gap-2.5 text-on-surface font-tabular-num text-tabular-num bg-surface-container-lowest p-2.5 rounded border border-surface-variant">
+              <span class="material-symbols-outlined text-primary text-[18px]">mark_email_read</span>
+              <span class="font-medium text-body-sm select-all">yudimade979@gmail.com</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+              Feedback akan diterima oleh tim EduRank untuk ditinjau dan ditindaklanjuti sesuai kebutuhan.
+            </p>
+          </div>
+          <!-- Academic Integrity Note -->
+          <div class="flex items-start gap-2.5 text-outline pt-1">
+            <span class="material-symbols-outlined text-[18px] text-primary flex-shrink-0 mt-0.5">verified_user</span>
+            <p class="font-body-sm text-body-sm leading-relaxed">
+              Feedback dari siswa aktif membantu standardisasi capaian BSKAP Kurikulum Merdeka &amp; pembobotan
+              UTBK-SNBT.
+            </p>
+          </div>
+        </aside>
+        <!-- RIGHT SIDE (lg:col-span-7): Feedback Form Card -->
+        <section class="lg:col-span-7">
+          <div
+            class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
+            <div class="border-b border-surface-variant pb-4 flex items-center justify-between">
+              <div>
+                <h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">Formulir Evaluasi
+                  &amp; Masukan</h2>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Lengkapi rincian di bawah ini dengan
+                  jelas dan objektif.</p>
+              </div>
+            </div>
+            <form class="space-y-5" id="feedback-form">
+              <input type="hidden" id="priority" name="priority" value="biasa">
+              <!-- Field 1: Nama -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-label-md text-label-md text-on-surface font-semibold" for="nama">
+                    Nama Lengkap <span class="text-error">*</span>
+                  </label>
+                </div>
+                <div class="relative">
+                  <input
+                    class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    id="nama" name="nama" required="" type="text" placeholder="Masukkan nama lengkap Anda">
+                </div>
+              </div>
+              <!-- Field 2: Email -->
+              <div class="space-y-1.5">
+                <label class="font-label-md text-label-md text-on-surface font-semibold" for="email">
+                  Alamat Email <span class="text-error">*</span>
+                </label>
+                <input
+                  class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                  id="email" name="email" required="" type="email" placeholder="contoh@email.com">
+                <p class="font-body-sm text-body-sm text-outline">
+                  Gunakan email yang aktif agar kami dapat menghubungimu jika diperlukan investigasi tambahan.
+                </p>
+              </div>
+              <!-- Field 3: Nomor WhatsApp -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-label-md text-label-md text-on-surface font-semibold" for="whatsapp">
+                    Nomor WhatsApp
+                  </label>
+                  <span class="font-label-sm text-label-sm text-outline">Opsional</span>
+                </div>
+                <input
+                  class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                  id="whatsapp" name="whatsapp" placeholder="08xxxxxxxxxx" type="tel">
+                <p class="font-body-sm text-body-sm text-outline">
+                  Opsional — digunakan hanya jika kami perlu menghubungi kamu terkait feedback atau replikasi kendala.
+                </p>
+              </div>
+              <!-- Field 4: Jenis Feedback -->
+              <div class="space-y-1.5">
+                <label class="font-label-md text-label-md text-on-surface font-semibold" for="jenis-feedback">
+                  Jenis Feedback <span class="text-error">*</span>
+                </label>
+                <div class="relative">
+                  <select
+                    class="w-full h-10 px-3 pr-10 appearance-none rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+                    id="jenis-feedback" name="jenis-feedback" required="">
+                    <option value="" disabled selected>Pilih jenis feedback</option>
+                    <option value="saran">Saran Pengembangan</option>
+                    <option value="bug">Laporan Bug / Kendala Teknis</option>
+                    <option value="keluhan">Keluhan Layanan</option>
+                    <option value="fitur">Permintaan Fitur Baru</option>
+                    <option value="materi">Koreksi Materi / Kunci Jawaban</option>
+                    <option value="lainnya">Lainnya</option>
+                  </select>
+                  <span
+                    class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-[20px]">
+                    keyboard_arrow_down
+                  </span>
+                </div>
+              </div>
+              <!-- Field 5: Keluhan / Saran -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-label-md text-label-md text-on-surface font-semibold" for="deskripsi-feedback">
+                    Keluhan / Saran <span class="text-error">*</span>
+                  </label>
+                  <span class="font-label-sm text-label-sm text-outline font-tabular-num">0 / 1.000 karakter</span>
+                </div>
+                <textarea
+                  class="w-full p-3 rounded-lg bg-surface-container-lowest border border-surface-variant text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors leading-relaxed"
+                  id="deskripsi-feedback" name="deskripsi"
+                  placeholder="Ceritakan keluhan, saran, atau pengalamanmu menggunakan EduRank..." required=""
+                  rows="5"></textarea>
+              </div>
+              <!-- Field 6: Prioritas -->
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface font-semibold block">
+                  Tingkat Kepentingan
+                </label>
+                <div aria-label="Tingkat Kepentingan Feedback" class="grid grid-cols-3 gap-2.5" role="radiogroup">
+                  <button
+                    class="priority-btn px-3 py-2 text-center rounded border border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:border-outline-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5"
+                    onclick="setPriority(this, 'biasa')" type="button">
+                    <span class="w-2 h-2 rounded-full bg-outline"></span>
+                    Biasa
+                  </button>
+                  <button
+                    class="priority-btn px-3 py-2 text-center rounded border border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:border-outline-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5"
+                    onclick="setPriority(this, 'penting')" type="button">
+                    <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                    Penting
+                  </button>
+                  <button
+                    class="priority-btn px-3 py-2 text-center rounded border border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:border-outline-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5"
+                    onclick="setPriority(this, 'mendesak')" type="button">
+                    <span class="w-2 h-2 rounded-full bg-error"></span>
+                    Mendesak
+                  </button>
+                </div>
+              </div>
+              <!-- Field 7: Submit Action Button -->
+              <div class="pt-2">
+                <button
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-title-md text-title-md font-semibold transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2 cursor-pointer"
+                  type="submit">
+                  <span class="">Kirim Feedback</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path
+                      d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+                      stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </button>
+              </div>
+              <!-- Field 8: Security & Privacy Note -->
+              <div class="pt-3 border-t border-surface-variant flex items-center gap-2 text-outline">
+                <span class="material-symbols-outlined text-[16px] text-outline flex-shrink-0">lock</span>
+                <p class="font-body-sm text-body-sm">
+                  Data yang kamu kirim digunakan untuk membantu kami menindaklanjuti feedback dan meningkatkan EduRank.
+                  Privasi terlindungi sesuai standar BSKAP.
+                </p>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load user data for header
+      const token = localStorage.getItem('edurank-token');
+      if (token) {
+        fetch(getApiUrl('/api/me'), {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.user) {
+              const headerName = document.getElementById('header-user-name');
+              const headerPhoto = document.getElementById('header-user-photo');
+              if (headerName) headerName.textContent = data.user.name;
+              if (headerPhoto) headerPhoto.src = data.user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=random`;
+            }
+          })
+          .catch(err => console.error('Error loading user data:', err));
+      }
+
+      // Initialize character counter
+      const textarea = document.getElementById('deskripsi-feedback');
+      const counter = document.querySelector('.font-tabular-num');
+      if (textarea && counter) {
+        const updateCounter = () => {
+          const length = textarea.value.length;
+          counter.textContent = `${length} / 1.000 karakter`;
+        };
+
+        textarea.addEventListener('input', updateCounter);
+        updateCounter(); // Initialize counter
+      }
+    });
+
+    function setPriority(button, val) {
+      const buttons = document.querySelectorAll('.priority-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('border-primary', 'bg-surface-container', 'text-primary', 'font-semibold');
+        btn.classList.add('border-surface-variant', 'bg-surface-container-low', 'text-on-surface-variant');
+      });
+      button.classList.remove('border-surface-variant', 'bg-surface-container-low', 'text-on-surface-variant');
+      button.classList.add('border-primary', 'bg-surface-container', 'text-primary', 'font-semibold');
+
+      // Update hidden input value
+      const priorityInput = document.getElementById('priority');
+      if (priorityInput) priorityInput.value = val;
+    }
+
+    // Handle form submission
+    document.getElementById('feedback-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+
+      submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Mengirim...';
+      submitBtn.disabled = true;
+
+      try {
+        const formData = {
+          nama: document.getElementById('nama').value,
+          email: document.getElementById('email').value,
+          whatsapp: document.getElementById('whatsapp').value,
+          jenisFeedback: document.getElementById('jenis-feedback').value,
+          deskripsi: document.getElementById('deskripsi-feedback').value,
+          priority: document.getElementById('priority').value || 'biasa'
+        };
+
+        const res = await fetch(getApiUrl('/api/feedback'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('feedback-alert').classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          form.reset();
+          setPriority(document.querySelector('.priority-btn'), 'biasa');
+        } else {
+          alert(data.message || 'Gagal mengirim feedback. Silakan coba lagi.');
+        }
+      } catch (err) {
+        console.error('Error submitting feedback:', err);
+        alert('Terjadi kesalahan koneksi. Silakan coba lagi nanti.');
+      } finally {
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+
+  <footer class="w-full bg-surface-container-lowest shadow-[0_-1px_8px_rgba(0,0,0,0.03)]">
+    <div class="max-w-[1360px] mx-auto px-margin py-space-lg">
+      <div
+        class="flex flex-wrap items-center justify-center md:justify-between gap-space-md pb-space-lg border-b border-surface-container-high">
+        <div class="flex items-center gap-space-lg">
+
+          <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+            <a href="feedback.html"
+              class="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer mr-4"><span
+                class="material-symbols-outlined text-[16px]">rate_review</span>Feedback</a><span
+              class="material-symbols-outlined text-tertiary-container text-body-lg">verified_user</span>
+            <span>Bebas Malware</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant">
+          <span class="material-symbols-outlined text-secondary text-body-lg">lock</span>
+          <span>100% Bebas Iklan Komersial</span>
+        </div>
+      </div>
+      <div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md">
+        <p class="font-body-sm text-body-sm text-outline text-center md:text-left">© 2026 EduRank. All rights reserved.
+        </p>
+
+      </div>
+    </div>
+  </footer>
+
+  <script src="./js/utils.js"></script>
+  <script src="./js/header.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+
+</html>
