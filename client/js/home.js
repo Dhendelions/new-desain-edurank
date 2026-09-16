@@ -174,29 +174,63 @@ function renderMissions(missions) {
 
 
 function renderBattles(battles) {
-  const container = document.getElementById('battle-history-container');
-  if (!battles || battles.length === 0) {
-    container.innerHTML = `<div class="p-10 text-center text-outline">Belum ada riwayat battle terbaru.</div>`;
+  const container = document.getElementById('home-battle-history-container') || document.getElementById('battle-history-container');
+  if (!container) return;
+
+  // Combine DB battles and local history cache fallback
+  let list = Array.isArray(battles) ? battles : [];
+  if (list.length === 0) {
+    try {
+      const localHist = JSON.parse(localStorage.getItem('edurank-battle-history') || '[]');
+      list = localHist;
+    } catch (e) {}
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="p-8 text-center text-on-surface-variant bg-surface-container-low rounded-2xl border border-outline-variant/20 flex flex-col items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-3xl text-outline">sports_esports</span>
+        <p class="font-bold text-on-surface">Belum ada riwayat pertandingan terbaru.</p>
+        <p class="text-body-sm text-outline">Mainkan Ranked, Classic, atau Custom match untuk mencatat riwayat di sini!</p>
+      </div>
+    `;
     return;
   }
 
-  container.innerHTML = battles.map(b => {
+  const modeBadgeMap = {
+    'ranked': { name: 'Ranked', class: 'bg-secondary/10 text-secondary border-secondary/30' },
+    'classic': { name: 'Classic', class: 'bg-primary/10 text-primary border-primary/30' },
+    'custom': { name: 'Custom', class: 'bg-tertiary-container/15 text-tertiary border-tertiary/30' }
+  };
+
+  container.innerHTML = list.map(b => {
     const isWin = b.result === 'win';
-    const bgClass = isWin ? 'bg-tertiary-container/10 text-tertiary-container' : 'bg-error-container text-on-error-container';
-    const sign = isWin ? '+' : '-';
+    const isDraw = b.result === 'draw';
+    const bgClass = isWin 
+      ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30' 
+      : (isDraw ? 'bg-amber-500/10 text-amber-700 border-amber-500/30' : 'bg-rose-500/10 text-rose-700 border-rose-500/30');
+    
+    const sign = isWin ? '+' : (isDraw ? '' : '-');
+    const modeInfo = modeBadgeMap[b.mode] || { name: 'Battle', class: 'bg-surface-container text-on-surface' };
+    const dateStr = b.created_at ? new Date(b.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Baru saja';
+
     return `
-      <div class="p-space-md rounded-xl bg-surface-container-low flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
-        <div class="flex items-center gap-space-md">
-          <div class="px-3 py-1.5 rounded-lg ${bgClass} font-label-md text-label-md font-bold whitespace-nowrap">
-            ${isWin ? 'Menang' : 'Kalah'} (${sign}${Math.abs(b.elo_change)} ELO)
+      <div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-surface-container transition-colors shadow-xs">
+        <div class="flex items-center gap-3">
+          <div class="px-3 py-1.5 rounded-xl border font-label-md text-label-md font-bold whitespace-nowrap ${bgClass}">
+            ${isWin ? 'Menang' : (isDraw ? 'Seri' : 'Kalah')} ${b.mode === 'ranked' ? `(${sign}${Math.abs(b.elo_change || 0)} LP)` : ''}
           </div>
           <div class="flex flex-col">
-            <span class="font-label-md text-label-md text-on-surface font-bold">${b.subject_name || 'Mapel Umum'}</span>
-            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'AI Bot'}</span>
+            <div class="flex items-center gap-2">
+              <span class="font-title-md text-title-md font-bold text-on-surface">${b.subject_name || 'Pertandingan Umum'}</span>
+              <span class="px-2 py-0.5 rounded-full border text-[11px] font-bold ${modeInfo.class}">${modeInfo.name}</span>
+            </div>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'Lawan EduBot'}</span>
           </div>
         </div>
-        <div class="flex items-center gap-space-lg w-full md:w-auto justify-between md:justify-end">
-          <button class="battle-review-btn px-3 py-1.5 rounded-lg bg-surface-container-lowest text-secondary font-label-sm text-label-sm font-semibold shadow-sm hover:bg-surface-container transition-colors" type="button" data-battle-id="${b.id}">
+        <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-outline-variant/10">
+          <span class="font-label-sm text-label-sm text-outline shrink-0">${dateStr}</span>
+          <button class="battle-review-btn px-3 py-1.5 rounded-xl bg-surface-container-lowest text-primary hover:bg-primary hover:text-on-primary font-label-sm font-bold border border-outline-variant/30 transition-all shadow-xs" type="button" data-battle-id="${b.id || ''}">
             Tinjau Pembahasan
           </button>
         </div>
@@ -204,10 +238,9 @@ function renderBattles(battles) {
     `;
   }).join('');
 
-  // Add event listeners to review buttons
   container.querySelectorAll('.battle-review-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      alert('Fitur tinjau pembahasan akan segera tersedia.');
+      alert('Fitur tinjau pembahasan lengkap tersedia saat membuka statistik battle arena.');
     });
   });
 }

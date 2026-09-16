@@ -328,6 +328,43 @@ class BattleEngine {
             window.headerComponent.updateUserInfo();
           }
         }
+
+        // Record battle history in DB
+        const resultType = isWin ? 'win' : (isDraw ? 'draw' : 'loss');
+        fetch('/api/battles/record', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          },
+          body: JSON.stringify({
+            opponentName: this.opponent.name || 'AI Bot',
+            subjectId: 1,
+            result: resultType,
+            eloChange,
+            mode: this.mode
+          })
+        }).catch(err => console.warn('Record battle API error:', err));
+
+        // Save local history fallback
+        try {
+          const rawHist = localStorage.getItem('edurank-battle-history') || '[]';
+          const historyList = JSON.parse(rawHist);
+          historyList.unshift({
+            id: Date.now(),
+            mode: this.mode,
+            result: resultType,
+            elo_change: eloChange,
+            xp_change: xpGained,
+            userScore: this.userScore,
+            opponentScore: this.opponentScore,
+            subject_name: this.subject || 'Fisika',
+            opponent_name: this.opponent.name || 'Lawan EduBot',
+            created_at: new Date().toISOString()
+          });
+          localStorage.setItem('edurank-battle-history', JSON.stringify(historyList.slice(0, 20)));
+        } catch (e) {}
+
       } catch (err) {
         console.error('Failed to save battle results to DB:', err);
       }

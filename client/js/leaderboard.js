@@ -185,15 +185,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
 
-      // Render table for all entries
+      // Wire Rank Tier Modal events
+      const rankModal = document.getElementById('rank-tiers-modal');
+      const btnShowModal = document.getElementById('btn-show-rank-tiers');
+      const btnCloseModal1 = document.getElementById('btn-close-rank-tiers');
+      const btnCloseModal2 = document.getElementById('btn-close-rank-tiers-2');
+
+      if (btnShowModal && rankModal) {
+        btnShowModal.onclick = () => rankModal.classList.remove('hidden');
+      }
+      if (btnCloseModal1 && rankModal) {
+        btnCloseModal1.onclick = () => rankModal.classList.add('hidden');
+      }
+      if (btnCloseModal2 && rankModal) {
+        btnCloseModal2.onclick = () => rankModal.classList.add('hidden');
+      }
+      if (rankModal) {
+        rankModal.onclick = (e) => {
+          if (e.target === rankModal) rankModal.classList.add('hidden');
+        };
+      }
+
+      // Render table for all entries (sorted by ELO LP)
       let tableHtml = `
         <table class="leaderboard-table">
           <thead>
             <tr>
               <th class="text-center" style="width: 60px">#</th>
               <th>Siswa</th>
-              <th>Level</th>
-              <th class="text-right">XP</th>
+              <th>Rank Tier</th>
+              <th class="text-right">Rating ELO (LP)</th>
             </tr>
           </thead>
           <tbody>
@@ -205,6 +226,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (rankNum === 1) rankBadge = `<div class="rank-badge rank-1">1</div>`;
         else if (rankNum === 2) rankBadge = `<div class="rank-badge rank-2">2</div>`;
         else if (rankNum === 3) rankBadge = `<div class="rank-badge rank-3">3</div>`;
+
+        const userElo = Number(u.elo || u.total_elo || 400);
+        const rankTier = u.rank_name || calculateRank(userElo);
+        
+        const rankClassMap = {
+          'Bronze': 'rank-bronze',
+          'Silver': 'rank-silver',
+          'Gold': 'rank-gold',
+          'Diamond': 'rank-diamond',
+          'Master': 'rank-master',
+          'Profesor': 'rank-profesor'
+        };
+        const badgeClass = rankClassMap[rankTier] || 'rank-silver';
 
         const isCurrentUser = currentUser && u.id === currentUser.id;
         const rowClass = isCurrentUser ? 'current-user-row' : '';
@@ -221,8 +255,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
               </div>
             </td>
-            <td><span class="font-body-md text-body-md text-on-surface">${Math.max(1, Number(u.level) || (Math.floor((Number(u.xp) || 0) / 100) + 1))}</span></td>
-            <td class="text-right"><span class="elo-value">${Math.max(0, Number(u.xp) || 0).toLocaleString('id-ID')}</span></td>
+            <td><span class="rank-label ${badgeClass}">${rankTier}</span></td>
+            <td class="text-right"><span class="elo-value">${userElo.toLocaleString('id-ID')} LP</span></td>
           </tr>
         `;
       });
@@ -232,8 +266,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Add user rank position if user is logged in
       let userRankHtml = '';
       if (currentUser) {
-        // Find user's actual rank from the leaderboard data
         const userRankIndex = leaderboard.findIndex(u => u.id === currentUser.id);
+        const totalUserElo = Number(currentUser.elo) || 400;
+        const userRankName = calculateRank(totalUserElo);
+
         if (userRankIndex !== -1) {
           const userRank = userRankIndex + 1;
           const userData = leaderboard[userRankIndex];
@@ -253,19 +289,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                      class="w-10 h-10 rounded-full object-cover border-2 border-surface-container-highest" alt="${userData.name}">
                 <div class="text-right">
                   <div class="font-label-md text-label-md text-on-surface font-bold">${escapeHtml(userData.name)}</div>
-                  <div class="font-body-sm text-body-sm text-on-surface-variant">${Math.max(0, Number(userData.xp) || 0).toLocaleString('id-ID')} XP · Level ${Math.max(1, Number(userData.level) || (Math.floor((Number(userData.xp) || 0) / 100) + 1))}</div>
+                  <div class="font-body-sm text-body-sm text-on-surface-variant font-bold text-primary">${totalUserElo.toLocaleString('id-ID')} LP · Tier ${userRankName}</div>
                 </div>
               </div>
             </div>
           `;
         } else {
           userRankHtml = `
-            <div class="mt-8 p-6 bg-surface-container-low rounded-2xl border border-surface-variant text-center">
-              <div class="flex items-center justify-center gap-2 text-on-surface-variant mb-2">
-                <span class="material-symbols-outlined">help_outline</span>
-                <span class="font-body-md text-body-md">Belum memiliki peringkat</span>
+            <div class="mt-8 p-6 bg-surface-container-low rounded-2xl border border-surface-variant flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined text-2xl">workspace_premium</span>
+                </div>
+                <div>
+                  <h4 class="font-title-md font-bold text-on-surface">Statistik Poin Kamu</h4>
+                  <p class="font-body-sm text-on-surface-variant">${totalUserElo.toLocaleString('id-ID')} LP · Tier ${userRankName}</p>
+                </div>
               </div>
-              <p class="font-body-sm text-body-sm text-outline">Mulai bermain untuk masuk leaderboard!</p>
+              <a href="battle.html" class="px-4 py-2 rounded-xl bg-primary text-on-primary font-bold text-sm">Tanding untuk Naik Rank</a>
             </div>
           `;
         }

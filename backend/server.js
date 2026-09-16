@@ -412,6 +412,59 @@ app.get('/api/notifications', async (req, res) => {
   }
 });
 
+// 6.5. BATTLE HISTORY APIS
+app.post('/api/battles/record', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Sesi tidak valid.' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.id;
+
+    const { opponentName, subjectId, result, eloChange, mode } = req.body;
+
+    await pool.query(
+      `INSERT INTO battles (user_id, opponent_id, subject_id, result, elo_change, mode, created_at)
+       VALUES (?, NULL, ?, ?, ?, ?, NOW())`,
+      [userId, subjectId || 1, result || 'draw', eloChange || 0, mode || 'classic']
+    );
+
+    return res.json({ success: true, message: 'Riwayat pertandingan berhasil dicatat.' });
+  } catch (err) {
+    console.error('API Record Battle Error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal mencatat pertandingan.' });
+  }
+});
+
+app.get('/api/battles', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Sesi tidak valid.' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const [battles] = await pool.query(`
+      SELECT b.id, b.result, b.elo_change, b.mode, b.created_at, 
+             COALESCE(u.name, 'Lawan EduBot') as opponent_name, 
+             COALESCE(s.name, 'Fisika') as subject_name
+      FROM battles b
+      LEFT JOIN users u ON b.opponent_id = u.id
+      LEFT JOIN subjects s ON b.subject_id = s.id
+      WHERE b.user_id = ?
+      ORDER BY b.created_at DESC
+      LIMIT 20
+    `, [decoded.id]);
+
+    return res.json({ success: true, battles });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Gagal mengambil riwayat pertandingan.' });
+  }
+});
+
 // 7. LEADERBOARD API
 app.get('/api/leaderboard', async (req, res) => {
   try {

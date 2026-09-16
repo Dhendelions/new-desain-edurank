@@ -265,12 +265,125 @@
               <h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Leaderboard</h1>
             </div>
             <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
-              Papan peringkat pelajar EduRank Indonesia berdasarkan ELO per mata pelajaran.
+              Papan peringkat resmi pelajar EduRank Indonesia berdasarkan akumulasi Rating ELO / Liga Poin (LP).
             </p>
           </div>
-          <div class="inline-flex items-center gap-space-xs px-3 py-2 rounded-full bg-surface-container-low text-secondary font-label-md font-bold"><span class="material-symbols-outlined text-body-lg">public</span>Lingkup Nasional</div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="btn-show-rank-tiers" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-label-md font-bold transition-all border border-primary/20 shadow-xs">
+              <span class="material-symbols-outlined text-[20px]">military_tech</span>
+              <span>Daftar Rank & Syarat ELO</span>
+            </button>
+            <div class="inline-flex items-center gap-space-xs px-4 py-2.5 rounded-full bg-surface-container-low text-secondary font-label-md font-bold">
+              <span class="material-symbols-outlined text-body-lg">public</span>
+              <span>Lingkup Nasional</span>
+            </div>
+          </div>
         </div>
       </section>
+
+      <!-- MODAL LIST RANK TIERS -->
+      <div id="rank-tiers-modal" class="fixed inset-0 z-[100] hidden bg-on-surface/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-3xl p- space-xl shadow-2xl border border-outline-variant/30 space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div class="flex items-center justify-between border-b border-outline-variant/20 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">workspace_premium</span>
+              </div>
+              <div>
+                <h3 class="font-title-md font-bold text-on-surface">Tingkatan Rank & Syarat ELO</h3>
+                <p class="font-body-sm text-on-surface-variant">Sistem kualifikasi Liga Poin (LP) EduRank Indonesia</p>
+              </div>
+            </div>
+            <button id="btn-close-rank-tiers" class="w-9 h-9 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
+              <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+          </div>
+
+          <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-amber-900/10 border border-amber-800/20">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-700/20 text-amber-800 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined">workspace_premium</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-amber-900">Bronze</h4>
+                  <p class="text-xs text-amber-800/80">Tingkat Pemula & Pelajar Baru</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-amber-800/20 text-amber-900 font-bold text-xs">0 - 200 ELO</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-400/10 border border-slate-500/20">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-500/20 text-slate-700 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined">military_tech</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-800">Silver</h4>
+                  <p class="text-xs text-slate-600">Tingkat Menengah Pertama</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-slate-500/20 text-slate-800 font-bold text-xs">201 - 400 ELO</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-amber-400/15 border border-amber-500/30">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined">stars</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-amber-700">Gold</h4>
+                  <p class="text-xs text-amber-600">Tingkat Mahir Akademik</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-800 font-bold text-xs">401 - 700 ELO</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-sky-400/15 border border-sky-500/30">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-600 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined">diamond</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sky-800">Diamond</h4>
+                  <p class="text-xs text-sky-600">Tingkat Pakar & Teladan</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-sky-500/20 text-sky-800 font-bold text-xs">701 - 1.100 ELO</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-purple-400/15 border border-purple-500/30">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-600 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined">local_fire_department</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-purple-900">Master</h4>
+                  <p class="text-xs text-purple-700">Tingkat Elit Kompetitif</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-900 font-bold text-xs">1.101 - 1.599 ELO</span>
+            </div>
+
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-rose-400/15 border border-rose-500/30">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-600 flex items-center justify-center font-bold">
+                  <span class="material-symbols-outlined">psychology</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-rose-900">Profesor</h4>
+                  <p class="text-xs text-rose-700">Tingkat Tertinggi Nasional</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-900 font-bold text-xs">1.600+ ELO</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-outline-variant/20 flex justify-end">
+            <button id="btn-close-rank-tiers-2" class="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-sm">Tutup Info</button>
+          </div>
+        </div>
+      </div>
 
       <!-- SECTION: SUBJECT FILTER TABS -->
       <section>

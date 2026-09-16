@@ -729,6 +729,28 @@ async function initPdfMaterialBrowser() {
     return 'bg-surface-container-high text-on-surface';
   };
 
+  function cleanLatexString(str) {
+    if (!str) return '';
+    let clean = str;
+    clean = clean.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1 / $2)');
+    clean = clean.replace(/\\text\{([^{}]+)\}/g, '$1');
+    clean = clean.replace(/\\sqrt\{([^{}]+)\}/g, '√($1)');
+    clean = clean.replace(/\\quad/g, ' ');
+    clean = clean.replace(/\\cdot/g, '·');
+    clean = clean.replace(/\\times/g, '×');
+    clean = clean.replace(/\\pm/g, '±');
+    clean = clean.replace(/\\Delta/g, 'Δ');
+    clean = clean.replace(/\\theta/g, 'θ');
+    clean = clean.replace(/\\pi/g, 'π');
+    clean = clean.replace(/\\sigma/g, 'σ');
+    clean = clean.replace(/\\omega/g, 'ω');
+    clean = clean.replace(/\\mu/g, 'μ');
+    clean = clean.replace(/\^\{([^{}]+)\}/g, '^$1');
+    clean = clean.replace(/\$\$|\$/g, '');
+    clean = clean.replace(/\\([a-zA-Z]+)/g, '$1');
+    return clean.trim();
+  }
+
   const formatRichMaterialContent = (rawText) => {
     if (!rawText) return '<p class="text-outline">Konten materi belum tersedia.</p>';
     
@@ -737,35 +759,34 @@ async function initPdfMaterialBrowser() {
     let inList = false;
 
     lines.forEach((line) => {
-      const trimmed = line.trim();
-      if (!trimmed) {
+      const cleaned = cleanLatexString(line);
+      if (!cleaned) {
         if (inList) { html += '</ul>'; inList = false; }
         return;
       }
 
-      // Check if line is a major heading (e.g. 1. , Bab , Pengertian, Rumus)
-      if (/^([0-9]+\.|BAB|RUMUS|CONTOH|PENGERTIAN|TEOREMA)/i.test(trimmed)) {
+      if (/^([0-9]+\.|BAB|RUMUS|CONTOH|PENGERTIAN|TEOREMA)/i.test(cleaned)) {
         if (inList) { html += '</ul>'; inList = false; }
         html += `
           <div class="mt-6 mb-3 flex items-center gap-2">
             <span class="w-2.5 h-6 rounded-full bg-primary block"></span>
-            <h3 class="font-headline-sm text-headline-sm font-extrabold text-on-surface">${escapeHtml(trimmed)}</h3>
+            <h3 class="font-headline-sm text-headline-sm font-extrabold text-on-surface">${escapeHtml(cleaned)}</h3>
           </div>
         `;
-      } else if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+      } else if (cleaned.startsWith('-') || cleaned.startsWith('•') || cleaned.startsWith('*')) {
         if (!inList) { html += '<ul class="space-y-2 my-3 pl-4 list-disc marker:text-primary">'; inList = true; }
-        html += `<li class="font-body-md text-on-surface leading-relaxed">${escapeHtml(trimmed.replace(/^[-•*]\s*/, ''))}</li>`;
-      } else if (/^(=|>|RUMUS KUNCI:|FORMULA:)/i.test(trimmed)) {
+        html += `<li class="font-body-md text-on-surface leading-relaxed">${escapeHtml(cleaned.replace(/^[-•*]\s*/, ''))}</li>`;
+      } else if (/^(=|>|RUMUS KUNCI:|FORMULA:)/i.test(cleaned)) {
         if (inList) { html += '</ul>'; inList = false; }
         html += `
           <div class="my-4 p-4 rounded-2xl bg-secondary/10 border-l-4 border-secondary text-on-surface font-mono text-sm leading-relaxed shadow-sm">
             <span class="font-bold text-secondary uppercase font-sans text-xs tracking-wider block mb-1">📐 Formula & Persamaan Kunci</span>
-            ${escapeHtml(trimmed.replace(/^(=|>|RUMUS KUNCI:|FORMULA:)\s*/i, ''))}
+            ${escapeHtml(cleaned.replace(/^(=|>|RUMUS KUNCI:|FORMULA:)\s*/i, ''))}
           </div>
         `;
       } else {
         if (inList) { html += '</ul>'; inList = false; }
-        html += `<p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-4">${escapeHtml(trimmed)}</p>`;
+        html += `<p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-4">${escapeHtml(cleaned)}</p>`;
       }
     });
 
@@ -789,6 +810,10 @@ async function initPdfMaterialBrowser() {
         
         const formattedContent = formatRichMaterialContent(m.content);
 
+        // Check if material already completed
+        const completedArr = JSON.parse(localStorage.getItem('edurank-completed-materials') || '[]');
+        const isAlreadyDone = completedArr.includes(m.id || m.title);
+
         host.innerHTML = `
           <section class="max-w-[1000px] mx-auto space-y-space-lg">
             
@@ -803,9 +828,9 @@ async function initPdfMaterialBrowser() {
                 <span class="px-3 py-1 rounded-full bg-secondary/10 text-secondary font-label-sm font-bold uppercase tracking-wider">
                   Kelas ${m.classLevel} • ${escapeHtml(m.subject)}
                 </span>
-                <button id="btn-mark-complete" type="button" class="px-4 py-2 rounded-xl bg-tertiary-container hover:bg-tertiary text-on-tertiary font-label-md font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                  <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                  <span>Tandai Selesai (+30 XP)</span>
+                <button id="btn-mark-complete" type="button" ${isAlreadyDone ? 'disabled' : ''} class="px-4 py-2 rounded-xl ${isAlreadyDone ? 'bg-surface-container text-tertiary opacity-80' : 'bg-tertiary-container hover:bg-tertiary text-on-tertiary'} font-label-md font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                  <span class="material-symbols-outlined text-[18px]">${isAlreadyDone ? 'verified' : 'check_circle'}</span>
+                  <span>${isAlreadyDone ? 'Selesai Dibaca!' : 'Tandai Selesai (+30 XP)'}</span>
                 </button>
               </div>
             </div>
@@ -851,12 +876,50 @@ async function initPdfMaterialBrowser() {
         document.getElementById('material-back').onclick = () => render();
         
         const btnComplete = document.getElementById('btn-mark-complete');
-        if (btnComplete) {
-          btnComplete.onclick = () => {
+        if (btnComplete && !isAlreadyDone) {
+          btnComplete.onclick = async () => {
             btnComplete.disabled = true;
             btnComplete.className = 'px-4 py-2 rounded-xl bg-surface-container text-tertiary font-label-md font-bold flex items-center gap-1.5 opacity-80';
             btnComplete.innerHTML = `<span class="material-symbols-outlined text-[18px]">verified</span> <span>Selesai Dibaca!</span>`;
-            alert('Selamat! Kamu mendapatkan +30 XP atas pembelajaran materi ini.');
+
+            // Save completion status
+            const completed = JSON.parse(localStorage.getItem('edurank-completed-materials') || '[]');
+            if (!completed.includes(m.id || m.title)) {
+              completed.push(m.id || m.title);
+              localStorage.setItem('edurank-completed-materials', JSON.stringify(completed));
+            }
+
+            // Sync XP to database
+            const user = getCurrentUser();
+            const token = localStorage.getItem('edurank-token');
+            if (user && user.email && token) {
+              try {
+                const newXp = (Number(user.xp) || 0) + 30;
+                const updateRes = await fetch('/api/user/update', {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    email: user.email,
+                    xp: newXp
+                  })
+                });
+                const data = await updateRes.json();
+                if (data.success && data.user) {
+                  saveUser(data.user);
+                  if (window.headerComponent && typeof window.headerComponent.init === 'function') {
+                    window.headerComponent.user = data.user;
+                    window.headerComponent.updateUserInfo();
+                  }
+                }
+              } catch (e) {
+                console.warn('XP update error:', e);
+              }
+            }
+
+            alert('🎉 Selamat! Kamu mendapatkan +30 XP atas penyelesaian modul pembelajaran ini.');
           };
         }
 

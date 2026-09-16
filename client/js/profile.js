@@ -283,7 +283,14 @@ function renderActivityTimeline(battles) {
   const container = document.getElementById('profile-activity-container');
   if (!container) return;
 
-  const list = Array.isArray(battles) ? battles : [];
+  let list = Array.isArray(battles) ? battles : [];
+  if (list.length === 0) {
+    try {
+      const localHist = JSON.parse(localStorage.getItem('edurank-battle-history') || '[]');
+      list = localHist;
+    } catch (e) {}
+  }
+
   if (list.length === 0) {
     container.innerHTML = `
       <div class="p-6 text-center text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/30 flex flex-col items-center gap-2">
@@ -295,21 +302,35 @@ function renderActivityTimeline(battles) {
     return;
   }
 
+  const modeBadgeMap = {
+    'ranked': { name: 'Ranked', class: 'bg-secondary/10 text-secondary border-secondary/30' },
+    'classic': { name: 'Classic', class: 'bg-primary/10 text-primary border-primary/30' },
+    'custom': { name: 'Custom', class: 'bg-tertiary-container/15 text-tertiary border-tertiary/30' }
+  };
+
   container.innerHTML = list.map(b => {
     const isWin = b.result === 'win';
-    const bgClass = isWin ? 'bg-tertiary-container/15 text-tertiary-container border-tertiary-container/30' : 'bg-error-container/20 text-on-error-container border-error-container/40';
-    const sign = isWin ? '+' : '-';
+    const isDraw = b.result === 'draw';
+    const bgClass = isWin 
+      ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30' 
+      : (isDraw ? 'bg-amber-500/15 text-amber-700 border-amber-500/30' : 'bg-rose-500/15 text-rose-700 border-rose-500/30');
+    
+    const sign = isWin ? '+' : (isDraw ? '' : '-');
+    const modeInfo = modeBadgeMap[b.mode] || { name: 'Battle', class: 'bg-surface-container text-on-surface' };
     const dateStr = b.created_at ? new Date(b.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Baru saja';
 
     return `
-      <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low border border-outline-variant/20 hover:bg-surface-container transition-colors">
+      <div class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/20 hover:bg-surface-container transition-colors">
         <div class="flex items-center gap-3">
           <div class="px-2.5 py-1 rounded-lg border font-label-sm text-label-sm font-bold ${bgClass}">
-            ${isWin ? 'Menang' : 'Kalah'} (${sign}${Math.abs(b.elo_change || 0)} LP)
+            ${isWin ? 'Menang' : (isDraw ? 'Seri' : 'Kalah')} ${b.mode === 'ranked' ? `(${sign}${Math.abs(b.elo_change || 0)} LP)` : ''}
           </div>
           <div class="flex flex-col">
-            <span class="font-title-md text-title-md font-bold text-on-surface">${b.subject_name || 'Pertandingan Umum'}</span>
-            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'AI Bot'}</span>
+            <div class="flex items-center gap-2">
+              <span class="font-title-md text-title-md font-bold text-on-surface">${b.subject_name || 'Pertandingan Umum'}</span>
+              <span class="px-2 py-0.5 rounded-full border text-[10px] font-bold ${modeInfo.class}">${modeInfo.name}</span>
+            </div>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">Lawan: ${b.opponent_name || 'Lawan EduBot'}</span>
           </div>
         </div>
         <span class="font-label-sm text-label-sm text-outline shrink-0">${dateStr}</span>
