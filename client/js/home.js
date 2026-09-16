@@ -32,6 +32,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderBattles(data.battles);
     renderQuickMatch(data.user);
 
+    // Auto-scroll to section if hash is present (e.g., #home-curriculum-section or #home-arena-section)
+    if (window.location.hash) {
+      setTimeout(() => {
+        const target = document.querySelector(window.location.hash);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 200);
+    }
+
   } catch (err) {
     console.error('Error fetching home data:', err);
     showError('Gagal memuat data. Periksa koneksi internet Anda.');

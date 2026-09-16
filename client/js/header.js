@@ -81,10 +81,9 @@ class Header {
     // Direct page navigation items
     const navItems = [
       { path: 'home', label: 'Home', href: 'home.html' },
-      { path: 'materi', label: 'Materi', href: 'materi.html' },
-      { path: 'battle', label: 'Battle', href: 'battle.html' },
-      { path: 'leaderboard', label: 'Leaderboard', href: 'leaderboard.html' },
-      { path: 'feedback', label: 'Feedback', href: 'feedback.html' }
+      { path: 'materi', label: 'Materi', href: 'home.html#home-curriculum-section' },
+      { path: 'battle', label: 'Battle', href: 'home.html#home-arena-section' },
+      { path: 'leaderboard', label: 'Leaderboard', href: 'leaderboard.html' }
     ];
 
     header.innerHTML = navItems.map(item => {
