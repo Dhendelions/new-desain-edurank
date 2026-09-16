@@ -5,11 +5,13 @@ const API_BASE = (function() {
   if (typeof window === 'undefined') return '';
   const port = window.location.port;
   const protocol = window.location.protocol;
-  // If running directly on backend port 3000, use relative paths
-  if (port === '3000') return '';
-  // If opened via Live Server (5500, 5501, 8080, etc) or file://, route to node server on port 3000
-  const hostname = window.location.hostname || 'localhost';
-  return `${protocol === 'https:' ? 'https:' : 'http:'}//${hostname}:3000`;
+  // If file:// or local static dev server ports (5500, 5501, 8080, 5173), target backend port 3000
+  if (protocol === 'file:' || ['5500', '5501', '8080', '5173'].includes(port)) {
+    const hostname = window.location.hostname || 'localhost';
+    return `http://${hostname}:3000`;
+  }
+  // Production VPS (Dokploy / Docker / Reverse Proxy / Same-origin Node server): use relative paths
+  return '';
 })();
 
 function getApiUrl(path) {
@@ -158,6 +160,8 @@ function showEmpty(container, message = 'Tidak ada data tersedia.') {
 // Export functions for use in other files
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    API_BASE,
+    getApiUrl,
     escapeHtml,
     formatNumber,
     calculateWinrate,

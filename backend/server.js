@@ -15,7 +15,10 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || '7f3c9a1e84d62b5f0a7c91e3d8b46f2a6c0e5d9b17a4f8c2e6b93d0a51f7c4e8';
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
