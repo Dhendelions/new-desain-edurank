@@ -13,8 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     const data = await res.json();
     if (!data.success) {
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 404 || !data.user) {
         localStorage.removeItem('edurank-token');
+        localStorage.removeItem('edurank-user');
         window.location.href = 'login.html';
       } else {
         showError('Gagal memuat data. Silakan coba lagi.');

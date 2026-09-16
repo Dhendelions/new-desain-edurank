@@ -20,6 +20,9 @@ class Header {
         const data = await res.json();
         if (data.success) {
           this.user = data.user;
+        } else if (res.status === 401 || res.status === 404) {
+          localStorage.removeItem('edurank-token');
+          localStorage.removeItem('edurank-user');
         }
       } catch (err) {
         console.error('Error loading user for header:', err);

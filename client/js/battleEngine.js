@@ -156,6 +156,11 @@ class BattleEngine {
   }
 
   startQuestion() {
+    if (this.nextQuestionInterval) clearInterval(this.nextQuestionInterval);
+    if (this.nextQuestionTimeout) clearTimeout(this.nextQuestionTimeout);
+    const existingNotice = document.getElementById('battle-delay-notice');
+    if (existingNotice) existingNotice.remove();
+
     if (this.currentQuestionIndex >= this.questions.length) {
       this.finishBattle();
       return;
@@ -244,8 +249,37 @@ class BattleEngine {
       });
     }
 
-    // 5 second delay before next question as requested
-    setTimeout(() => {
+    // 5-second delay before next question with interactive UI countdown notice
+    if (this.nextQuestionInterval) clearInterval(this.nextQuestionInterval);
+    if (this.nextQuestionTimeout) clearTimeout(this.nextQuestionTimeout);
+
+    let delayNotice = document.getElementById('battle-delay-notice');
+    if (!delayNotice) {
+      delayNotice = document.createElement('div');
+      delayNotice.id = 'battle-delay-notice';
+      delayNotice.className = 'w-full mt-4 p-3.5 rounded-2xl bg-primary/10 border border-primary/30 text-primary font-bold text-center flex items-center justify-center gap-2 shadow-sm animate-pulse';
+      if (this.optionsContainerEl && this.optionsContainerEl.parentNode) {
+        this.optionsContainerEl.parentNode.insertBefore(delayNotice, this.optionsContainerEl.nextSibling);
+      }
+    }
+
+    let delaySeconds = 5;
+    delayNotice.innerHTML = `
+      <span class="material-symbols-outlined text-xl animate-spin">hourglass_top</span>
+      <span>Jawaban terdaftar! Menyiapkan soal berikutnya dalam <b id="delay-countdown-val" class="text-secondary underline font-extrabold text-base">${delaySeconds}</b> detik...</span>
+    `;
+
+    this.nextQuestionInterval = setInterval(() => {
+      delaySeconds--;
+      const valEl = document.getElementById('delay-countdown-val');
+      if (valEl) valEl.textContent = Math.max(0, delaySeconds);
+      if (delaySeconds <= 0) {
+        clearInterval(this.nextQuestionInterval);
+      }
+    }, 1000);
+
+    this.nextQuestionTimeout = setTimeout(() => {
+      if (delayNotice) delayNotice.remove();
       this.nextQuestion();
     }, 5000);
   }

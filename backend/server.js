@@ -212,7 +212,7 @@ app.get('/api/me', async (req, res) => {
 
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [decoded.id]);
     if (!rows || rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+      return res.status(401).json({ success: false, message: 'User tidak ditemukan.' });
     }
 
     const user = formatUserResponse(rows[0]);
@@ -284,7 +284,7 @@ app.get('/api/home', async (req, res) => {
 
     // Get User Profile with total ELO
     const [userRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
-    if (!userRows || userRows.length === 0) return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+    if (!userRows || userRows.length === 0) return res.status(401).json({ success: false, message: 'User tidak ditemukan.' });
     const user = formatUserResponse(userRows[0]);
 
     // Calculate total ELO from user_subjects
