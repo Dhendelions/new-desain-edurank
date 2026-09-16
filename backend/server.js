@@ -293,7 +293,7 @@ app.get('/api/home', async (req, res) => {
       SELECT u.id, COALESCE(SUM(us.elo), u.elo, 400) as total_elo
       FROM users u
       LEFT JOIN user_subjects us ON u.id = us.user_id
-      GROUP BY u.id
+      GROUP BY u.id, u.elo, u.created_at
       ORDER BY total_elo DESC, u.created_at ASC
     `);
     const nationalRankPos = allUsersNational.findIndex(r => String(r.id) === String(userId));
@@ -334,12 +334,11 @@ app.get('/api/home', async (req, res) => {
 
     // Get Leaderboard (Top 10)
     const [leaderboard] = await pool.query(`
-      SELECT u.id, u.name, u.photo, u.xp, SUM(us.elo) as total_elo,
-             (SELECT name FROM ranks WHERE min_elo <= SUM(us.elo) AND max_elo >= SUM(us.elo) LIMIT 1) as rank_name,
+      SELECT u.id, u.name, u.photo, u.xp, COALESCE(SUM(us.elo), u.elo, 400) as total_elo,
              u.wins, u.total_battles
       FROM users u
       LEFT JOIN user_subjects us ON u.id = us.user_id
-      GROUP BY u.id
+      GROUP BY u.id, u.name, u.photo, u.xp, u.wins, u.total_battles, u.elo, u.created_at
       ORDER BY total_elo DESC
       LIMIT 10
     `);
@@ -631,7 +630,11 @@ app.post('/api/battles/record', async (req, res) => {
       );
     }
 
-    return res.json({ success: true, message: 'Riwayat & statistik pertandingan berhasil dicatat ke database.' });
+    // 5. Fetch updated user profile to return to client
+    const [updatedUserRows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
+    const updatedUser = updatedUserRows.length > 0 ? formatUserResponse(updatedUserRows[0]) : null;
+
+    return res.json({ success: true, user: updatedUser, message: 'Riwayat & statistik pertandingan berhasil dicatat ke database.' });
   } catch (err) {
     console.error('API Record Battle Error:', err);
     return res.status(500).json({ success: false, message: 'Gagal mencatat pertandingan.' });
@@ -702,12 +705,12 @@ app.get('/api/leaderboard', async (req, res) => {
     } else {
       // Leaderboard semua mapel (total ELO)
       const [rows] = await pool.query(`
-        SELECT u.id, u.name, u.photo, u.xp, COALESCE(SUM(us.elo), 0) as total_elo,
+        SELECT u.id, u.name, u.photo, u.xp, COALESCE(SUM(us.elo), u.elo, 400) as total_elo,
                u.wins, u.total_battles
         FROM users u
         LEFT JOIN user_subjects us ON u.id = us.user_id
-        GROUP BY u.id
-        ORDER BY total_elo DESC
+        GROUP BY u.id, u.name, u.photo, u.xp, u.wins, u.total_battles, u.elo, u.created_at
+        ORDER BY total_elo DESC, u.created_at ASC
         LIMIT 100
       `);
 
@@ -720,7 +723,7 @@ app.get('/api/leaderboard', async (req, res) => {
           name: row.name,
           photo: row.photo,
           xp: Number(row.xp) || 0,
-          level: Math.floor((Number(row.xp) || 0) / 100) + 1,
+          level: Math.floor((Number(row.xp) || 0) / 500) + 1,
           elo: elo,
           rank_name: rankRows.length > 0 ? rankRows[0].name : calculateRank(elo),
           wins: row.wins,

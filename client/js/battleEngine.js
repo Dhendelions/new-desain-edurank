@@ -224,16 +224,15 @@ class BattleEngine {
 
     this.updatePlayerUI();
 
-    // Visual feedback
+    // Smooth visual feedback transitions
     const btns = this.optionsContainerEl.querySelectorAll('.option-btn');
     btns.forEach((btn, idx) => {
       btn.disabled = true;
+      btn.classList.add('transition-all', 'duration-300');
       if (idx === qData.answer) {
-        btn.classList.remove('border-outline-variant/30', 'bg-surface-container-lowest');
-        btn.classList.add('border-emerald-500', 'bg-emerald-500/20', 'text-emerald-700', 'font-bold');
+        btn.className = 'option-btn w-full p-4 rounded-xl border-2 border-emerald-500 bg-emerald-500/20 text-emerald-800 font-bold transition-all duration-300 transform scale-[1.02] shadow-md flex items-center gap-3';
       } else if (idx === selectedIdx && !isCorrect) {
-        btn.classList.remove('border-outline-variant/30', 'bg-surface-container-lowest');
-        btn.classList.add('border-rose-500', 'bg-rose-500/20', 'text-rose-700');
+        btn.className = 'option-btn w-full p-4 rounded-xl border-2 border-rose-500 bg-rose-500/20 text-rose-800 font-bold transition-all duration-300 transform scale-[0.98] shadow-xs flex items-center gap-3';
       }
     });
 
@@ -245,9 +244,10 @@ class BattleEngine {
       });
     }
 
+    // 5 second delay before next question as requested
     setTimeout(() => {
       this.nextQuestion();
-    }, 1200);
+    }, 5000);
   }
 
   scheduleAiAnswer() {
@@ -316,30 +316,27 @@ class BattleEngine {
       xpGained = 0;
     }
 
-    // Persist to MySQL database & update local session
-    if (this.user && this.user.email) {
-      try {
-        const wins = (Number(this.user.wins) || 0) + (isWin ? 1 : 0);
-        const losses = (Number(this.user.losses) || 0) + (!isWin && !isDraw ? 1 : 0);
-        const draws = (Number(this.user.draws) || 0) + (isDraw ? 1 : 0);
-        const currentElo = Number(this.user.elo) || 400;
-        const newElo = Math.max(0, currentElo + eloChange);
-        const currentXp = Number(this.user.xp) || 0;
-        const newXp = currentXp + xpGained;
+    // Record battle history & update stats in MySQL database
+    if (this.token) {
+      const resultType = isWin ? 'win' : (isDraw ? 'draw' : 'loss');
+      const correctCount = this.userAnswersHistory.filter(a => a.isCorrect).length;
+      const incorrectCount = this.userAnswersHistory.filter(a => !a.isCorrect).length;
 
-        const res = await fetch('/api/user/update', {
-          method: 'PUT',
+      try {
+        const res = await fetch('/api/battles/record', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.token}`
           },
           body: JSON.stringify({
-            email: this.user.email,
-            elo: newElo,
-            xp: newXp,
-            wins,
-            losses,
-            draws
+            opponentName: this.opponent.name || 'AI Bot',
+            subjectId: this.subjectId || 1,
+            result: resultType,
+            eloChange,
+            mode: this.mode,
+            correctCount,
+            incorrectCount
           })
         });
 
@@ -352,46 +349,28 @@ class BattleEngine {
             window.headerComponent.updateUserInfo();
           }
         }
-
-        // Record battle history in DB
-        const resultType = isWin ? 'win' : (isDraw ? 'draw' : 'loss');
-        fetch('/api/battles/record', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-          },
-          body: JSON.stringify({
-            opponentName: this.opponent.name || 'AI Bot',
-            subjectId: 1,
-            result: resultType,
-            eloChange,
-            mode: this.mode
-          })
-        }).catch(err => console.warn('Record battle API error:', err));
-
-        // Save local history fallback
-        try {
-          const rawHist = localStorage.getItem('edurank-battle-history') || '[]';
-          const historyList = JSON.parse(rawHist);
-          historyList.unshift({
-            id: Date.now(),
-            mode: this.mode,
-            result: resultType,
-            elo_change: eloChange,
-            xp_change: xpGained,
-            userScore: this.userScore,
-            opponentScore: this.opponentScore,
-            subject_name: this.subject || 'Fisika',
-            opponent_name: this.opponent.name || 'Lawan EduBot',
-            created_at: new Date().toISOString()
-          });
-          localStorage.setItem('edurank-battle-history', JSON.stringify(historyList.slice(0, 20)));
-        } catch (e) {}
-
       } catch (err) {
-        console.error('Failed to save battle results to DB:', err);
+        console.warn('Record battle API error:', err);
       }
+
+      // Save local history fallback
+      try {
+        const rawHist = localStorage.getItem('edurank-battle-history') || '[]';
+        const historyList = JSON.parse(rawHist);
+        historyList.unshift({
+          id: Date.now(),
+          mode: this.mode,
+          result: resultType,
+          elo_change: eloChange,
+          xp_change: xpGained,
+          userScore: this.userScore,
+          opponentScore: this.opponentScore,
+          subject_name: this.subject || 'Fisika',
+          opponent_name: this.opponent.name || 'Lawan EduBot',
+          created_at: new Date().toISOString()
+        });
+        localStorage.setItem('edurank-battle-history', JSON.stringify(historyList.slice(0, 20)));
+      } catch (e) {}
     }
 
     if (typeof window.onBattleFinished === 'function') {
