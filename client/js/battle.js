@@ -35,7 +35,8 @@ class BattlePageManager {
   initSocket(token) {
     if (typeof io === 'undefined') return;
     try {
-      this.socket = io({ auth: { token } });
+      const serverUrl = typeof getApiUrl === 'function' ? getApiUrl('') : undefined;
+      this.socket = io(serverUrl, { auth: { token } });
 
       this.socket.on('connect', () => {
         console.log('✅ Socket connected to Battle server.');
@@ -65,7 +66,7 @@ class BattlePageManager {
 
   async loadSubjects() {
     try {
-      const res = await fetch('/api/subjects');
+      const res = await fetch(getApiUrl('/api/subjects'));
       const data = await res.json();
       if (data.success && data.subjects) {
         this.subjects = data.subjects.filter(s => s.name !== 'Matematika Lanjut' && s.name !== 'Matematika Tingkat Lanjut');

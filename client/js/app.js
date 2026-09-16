@@ -334,7 +334,7 @@ function initAuth() {
         }
 
         try {
-          const response = await fetch('/api/register', {
+          const response = await fetch(getApiUrl('/api/register'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password, phoneNumber })
@@ -441,7 +441,7 @@ function initAuth() {
         }
 
         try {
-          const response = await fetch('/api/login', {
+          const response = await fetch(getApiUrl('/api/login'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -596,7 +596,7 @@ function initLearningStyle() {
     try {
       const email = user ? user.email : '';
       if (email) {
-        await fetch('/api/user/update', {
+        await fetch(getApiUrl('/api/user/update'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, learningStyle: displayStyle })
@@ -693,7 +693,7 @@ async function initPdfMaterialBrowser() {
 
   let catalog;
   try {
-    const response = await fetch('/api/materials');
+    const response = await fetch(getApiUrl('/api/materials'));
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error();
     catalog = data.materials || {};
@@ -825,7 +825,7 @@ async function initPdfMaterialBrowser() {
         </div>
       `;
       try {
-        const response = await fetch(`/api/materials/${encodeURIComponent(materialId)}`);
+        const response = await fetch(getApiUrl(`/api/materials/${encodeURIComponent(materialId)}`));
         const data = await response.json();
         if (!response.ok || !data.success) throw new Error();
         const m = data.material;
@@ -917,7 +917,7 @@ async function initPdfMaterialBrowser() {
             if (user && user.email && token) {
               try {
                 const newXp = (Number(user.xp) || 0) + 30;
-                const updateRes = await fetch('/api/user/update', {
+                const updateRes = await fetch(getApiUrl('/api/user/update'), {
                   method: 'PUT',
                   headers: {
                     'Content-Type': 'application/json',
@@ -1083,7 +1083,8 @@ function initRealtimeBattle() {
   if (!/classic_lobby|custom_lobby/.test(file) || !window.io) return;
   const token = localStorage.getItem('edurank-token');
   if (!token) return;
-  const socket = window.io({ auth: { token }, transports: ['websocket', 'polling'] });
+  const socketUrl = typeof getApiUrl === 'function' ? getApiUrl('') : undefined;
+  const socket = window.io(socketUrl, { auth: { token }, transports: ['websocket', 'polling'] });
   const notice = document.createElement('div'); notice.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-lg bg-surface-container-lowest shadow-lg border border-outline-variant text-on-surface text-sm'; document.body.append(notice);
   const say = (text) => { notice.textContent = text; };
   socket.on('connect', () => say('Terhubung ke Battle.'));
@@ -1183,7 +1184,7 @@ async function loadUserData() {
   if (!token) return null;
 
   try {
-    const response = await fetch('/api/me', {
+    const response = await fetch(getApiUrl('/api/me'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await response.json();

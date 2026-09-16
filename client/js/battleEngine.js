@@ -323,7 +323,7 @@ class BattleEngine {
       const incorrectCount = this.userAnswersHistory.filter(a => !a.isCorrect).length;
 
       try {
-        const res = await fetch('/api/battles/record', {
+        const res = await fetch(getApiUrl('/api/battles/record'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

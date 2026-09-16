@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     // Fetch comprehensive user data from home API (includes subjects, ranks, etc.)
-    const res = await fetch('/api/home', {
+    const res = await fetch(getApiUrl('/api/home'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
@@ -142,7 +142,7 @@ function renderProfile(user, subjectsData, battles) {
         const newPhotoVal = inputPhoto.value.trim();
 
         const token = localStorage.getItem('edurank-token');
-        const res = await fetch('/api/user/update', {
+        const res = await fetch(getApiUrl('/api/user/update'), {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

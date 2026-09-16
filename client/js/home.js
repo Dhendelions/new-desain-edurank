@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const res = await fetch('/api/home', {
+    const res = await fetch(getApiUrl('/api/home'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
@@ -467,7 +467,7 @@ window.showFriendProfileModal = async function(friendId) {
   `;
 
   try {
-    const res = await fetch(`/api/user/profile/${friendId}`);
+    const res = await fetch(getApiUrl(`/api/user/profile/${friendId}`));
     const data = await res.json();
     if (data.success && data.user) {
       const u = data.user;
@@ -500,7 +500,7 @@ window.showFriendProfileModal = async function(friendId) {
 window.inviteFriendDuel = async function(friendId) {
   const token = localStorage.getItem('edurank-token');
   try {
-    const res = await fetch('/api/friends/invite-duel', {
+    const res = await fetch(getApiUrl('/api/friends/invite-duel'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ friendId, mode: 'custom' })
@@ -552,7 +552,7 @@ window.showWhisperModal = function(friendId, encodedName) {
     if (!text) return;
     const token = localStorage.getItem('edurank-token');
     try {
-      const res = await fetch('/api/friends/whisper', {
+      const res = await fetch(getApiUrl('/api/friends/whisper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ friendId, message: text })
@@ -594,7 +594,7 @@ window.unfriendFriend = function(friendId, encodedName) {
   document.getElementById('btn-confirm-unfriend').onclick = async () => {
     const token = localStorage.getItem('edurank-token');
     try {
-      await fetch('/api/friends/unfriend', {
+      await fetch(getApiUrl('/api/friends/unfriend'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ friendId })
@@ -673,7 +673,7 @@ function showSearchFriendModal() {
 
     resultsContainer.innerHTML = '<p class="text-center text-outline py-3 text-[11px] animate-pulse">Mencari...</p>';
     try {
-      const res = await fetch(`/api/friends/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(getApiUrl(`/api/friends/search?q=${encodeURIComponent(q)}`));
       const data = await res.json();
 
       if (!data.users || data.users.length === 0) {
@@ -699,7 +699,7 @@ function showSearchFriendModal() {
         b.addEventListener('click', async () => {
           const receiverId = b.dataset.userId;
           try {
-            const addRes = await fetch('/api/friends/request', {
+            const addRes = await fetch(getApiUrl('/api/friends/request'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

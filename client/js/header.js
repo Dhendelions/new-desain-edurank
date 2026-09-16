@@ -14,7 +14,7 @@ class Header {
     const token = localStorage.getItem('edurank-token');
     if (token) {
       try {
-        const res = await fetch('/api/me', {
+        const res = await fetch(getApiUrl('/api/me'), {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -246,7 +246,7 @@ class Header {
     }
 
     try {
-      const res = await fetch('/api/notifications', {
+      const res = await fetch(getApiUrl('/api/notifications'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -345,7 +345,7 @@ class Header {
   async acceptFriendRequest(senderId, notificationId) {
     const token = localStorage.getItem('edurank-token');
     try {
-      const res = await fetch('/api/friends/accept', {
+      const res = await fetch(getApiUrl('/api/friends/accept'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ senderId, notificationId })
@@ -362,7 +362,7 @@ class Header {
   async declineFriendRequest(notificationId) {
     const token = localStorage.getItem('edurank-token');
     try {
-      await fetch('/api/friends/decline', {
+      await fetch(getApiUrl('/api/friends/decline'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ notificationId })

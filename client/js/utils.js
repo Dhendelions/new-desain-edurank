@@ -1,5 +1,36 @@
 // Shared utility functions for EduRank Indonesia
 
+// Dynamic API Base URL detection
+const API_BASE = (function() {
+  if (typeof window === 'undefined') return '';
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+  // If running directly on backend port 3000, use relative paths
+  if (port === '3000') return '';
+  // If opened via Live Server (5500, 5501, 8080, etc) or file://, route to node server on port 3000
+  const hostname = window.location.hostname || 'localhost';
+  return `${protocol === 'https:' ? 'https:' : 'http:'}//${hostname}:3000`;
+})();
+
+function getApiUrl(path) {
+  if (!path) return API_BASE;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const cleanPath = path.startsWith('/') ? path : '/' + path;
+  return `${API_BASE}${cleanPath}`;
+}
+
+if (typeof window !== 'undefined') {
+  window.API_BASE = API_BASE;
+  window.getApiUrl = getApiUrl;
+
+  // Auto-load Socket.IO client script from backend if not already loaded
+  if (typeof window.io === 'undefined') {
+    const s = document.createElement('script');
+    s.src = getApiUrl('/socket.io/socket.io.js');
+    document.head.appendChild(s);
+  }
+}
+
 // Escape HTML to prevent XSS
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({ 

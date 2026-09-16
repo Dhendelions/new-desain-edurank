@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Get current user info
   let currentUser = null;
   try {
-    const meRes = await fetch('/api/me', {
+    const meRes = await fetch(getApiUrl('/api/me'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const meData = await meRes.json();
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load subjects for filter tabs
   try {
-    const subRes = await fetch('/api/subjects');
+    const subRes = await fetch(getApiUrl('/api/subjects'));
     const subData = await subRes.json();
     if (subData.success) {
       subjectsList = subData.subjects;
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.body.appendChild(panel);
       button.setAttribute('aria-expanded', 'true');
       try {
-        const res = await fetch('/api/notifications', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(getApiUrl('/api/notifications'), { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         const notifications = Array.isArray(data.notifications) ? data.notifications : [];
         panel.innerHTML = notifications.length
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       let url = '/api/leaderboard';
       if (subjectId) url += `?subject=${subjectId}`;
 
-      const res = await fetch(url);
+      const res = await fetch(getApiUrl(url));
       const data = await res.json();
 
       if (!data.success) {
