@@ -765,26 +765,48 @@ async function initPdfMaterialBrowser() {
         return;
       }
 
-      if (/^([0-9]+\.|BAB|RUMUS|CONTOH|PENGERTIAN|TEOREMA)/i.test(cleaned)) {
+      // Check for Major Section Headings (Bab, 1. , Pengertian, Rumus)
+      if (/^([0-9]+\.|BAB|RUMUS|PENGERTIAN|TEOREMA)/i.test(cleaned)) {
         if (inList) { html += '</ul>'; inList = false; }
         html += `
-          <div class="mt-6 mb-3 flex items-center gap-2">
-            <span class="w-2.5 h-6 rounded-full bg-primary block"></span>
-            <h3 class="font-headline-sm text-headline-sm font-extrabold text-on-surface">${escapeHtml(cleaned)}</h3>
+          <div class="mt-8 mb-4 p-3 rounded-2xl bg-gradient-to-r from-primary/10 via-secondary/5 to-transparent border-l-4 border-primary flex items-center gap-3">
+            <span class="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center font-bold shrink-0 shadow-xs">
+              <span class="material-symbols-outlined text-lg">auto_stories</span>
+            </span>
+            <h3 class="font-headline-sm text-headline-sm font-extrabold text-on-surface tracking-tight">${escapeHtml(cleaned)}</h3>
           </div>
         `;
-      } else if (cleaned.startsWith('-') || cleaned.startsWith('•') || cleaned.startsWith('*')) {
-        if (!inList) { html += '<ul class="space-y-2 my-3 pl-4 list-disc marker:text-primary">'; inList = true; }
-        html += `<li class="font-body-md text-on-surface leading-relaxed">${escapeHtml(cleaned.replace(/^[-•*]\s*/, ''))}</li>`;
-      } else if (/^(=|>|RUMUS KUNCI:|FORMULA:)/i.test(cleaned)) {
+      } 
+      // Check for Contoh Soal / Soal Latihan
+      else if (/(CONTOH SOAL|PEMBAHASAN SOAL|SOAL LATIHAN|CONTOH:)/i.test(cleaned)) {
         if (inList) { html += '</ul>'; inList = false; }
         html += `
-          <div class="my-4 p-4 rounded-2xl bg-secondary/10 border-l-4 border-secondary text-on-surface font-mono text-sm leading-relaxed shadow-sm">
+          <div class="my-6 p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-surface-container-lowest border-2 border-amber-500/30 shadow-md">
+            <div class="flex items-center gap-2 mb-3 text-amber-900 font-bold uppercase tracking-wider text-xs font-mono">
+              <span class="material-symbols-outlined text-amber-600 text-lg">psychology</span>
+              <span>💡 Contoh Soal & Pembahasan Terstruktur</span>
+            </div>
+            <p class="font-body-lg font-bold text-on-surface leading-relaxed">${escapeHtml(cleaned.replace(/^(CONTOH SOAL|PEMBAHASAN SOAL|SOAL LATIHAN|CONTOH:)\s*/i, ''))}</p>
+          </div>
+        `;
+      }
+      // Check for Formula / Rumus Kunci
+      else if (/^(=|>|RUMUS KUNCI:|FORMULA:|PERSAMAAN:)/i.test(cleaned)) {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += `
+          <div class="my-5 p-5 rounded-2xl bg-secondary/10 border-l-4 border-secondary text-on-surface font-mono text-sm leading-relaxed shadow-sm">
             <span class="font-bold text-secondary uppercase font-sans text-xs tracking-wider block mb-1">📐 Formula & Persamaan Kunci</span>
-            ${escapeHtml(cleaned.replace(/^(=|>|RUMUS KUNCI:|FORMULA:)\s*/i, ''))}
+            <div class="font-bold text-base text-secondary-container">${escapeHtml(cleaned.replace(/^(=|>|RUMUS KUNCI:|FORMULA:|PERSAMAAN:)\s*/i, ''))}</div>
           </div>
         `;
-      } else {
+      }
+      // Check for List Items
+      else if (cleaned.startsWith('-') || cleaned.startsWith('•') || cleaned.startsWith('*')) {
+        if (!inList) { html += '<ul class="space-y-2.5 my-4 pl-4 list-disc marker:text-primary marker:text-lg">'; inList = true; }
+        html += `<li class="font-body-md text-on-surface leading-relaxed font-medium">${escapeHtml(cleaned.replace(/^[-•*]\s*/, ''))}</li>`;
+      } 
+      // Regular Paragraphs
+      else {
         if (inList) { html += '</ul>'; inList = false; }
         html += `<p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-4">${escapeHtml(cleaned)}</p>`;
       }
@@ -970,13 +992,19 @@ async function initPdfMaterialBrowser() {
           const icon = getSubjectIcon(item);
           const iconBg = getCardColor(item);
           return `
-            <button type="button" data-choice="${escapeHtml(item)}" class="text-left bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
+            <button type="button" data-choice="${escapeHtml(item)}" class="text-left bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group relative overflow-hidden">
               <div>
-                <div class="w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
-                  <span class="material-symbols-outlined text-[24px]">${icon}</span>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    <span class="material-symbols-outlined text-[24px]">${icon}</span>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-label-sm font-bold border border-emerald-500/20 flex items-center gap-1 shadow-xs">
+                    <span class="material-symbols-outlined text-[14px]">bolt</span>
+                    +30 XP per Modul
+                  </span>
                 </div>
                 <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors">${escapeHtml(item)}</h3>
-                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Klik untuk membuka silabus dan modul dokumen materi</p>
+                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Klik untuk membuka silabus dan modul dokumen materi terstruktur</p>
               </div>
               <div class="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-primary font-label-md font-bold">
                 <span>Pilih Modul</span>
@@ -988,9 +1016,12 @@ async function initPdfMaterialBrowser() {
           return `
             <button type="button" data-material="${item.id}" class="text-left bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/30 hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between group">
               <div>
-                <div class="flex items-center gap-2 mb-2">
+                <div class="flex items-center justify-between mb-2">
                   <span class="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm font-bold uppercase">${escapeHtml(item.type || 'Dokumen')}</span>
-                  <span class="font-label-sm text-on-surface-variant">Kurikulum Resmi</span>
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 font-label-sm font-bold border border-emerald-500/20 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[12px]">bolt</span>
+                    +30 XP
+                  </span>
                 </div>
                 <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${escapeHtml(item.title)}</h3>
               </div>

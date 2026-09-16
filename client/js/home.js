@@ -307,12 +307,20 @@ function renderLeaderboardPreview(leaderboard, currentUser) {
   const container = document.getElementById('home-leaderboard-container');
   if (!container) return;
 
-  if (!leaderboard || leaderboard.length === 0) {
-    container.innerHTML = `<div class="p-8 text-center text-on-surface-variant font-body-sm">Belum ada data peringkat nasional.</div>`;
-    return;
+  const rawList = Array.isArray(leaderboard) ? leaderboard : [];
+  const displayRows = [...rawList.slice(0, 10)];
+  while (displayRows.length < 10) {
+    displayRows.push({ isPlaceholder: true });
   }
 
-  const topRankers = leaderboard.slice(0, 5);
+  const rankClassMap = {
+    'Bronze': 'bg-amber-900/10 text-amber-900 border-amber-800/20',
+    'Silver': 'bg-slate-400/15 text-slate-800 border-slate-500/20',
+    'Gold': 'bg-amber-400/15 text-amber-800 border-amber-500/30',
+    'Diamond': 'bg-sky-400/15 text-sky-800 border-sky-500/30',
+    'Master': 'bg-purple-400/15 text-purple-900 border-purple-500/30',
+    'Profesor': 'bg-rose-400/15 text-rose-900 border-rose-500/30'
+  };
 
   container.innerHTML = `
     <div class="overflow-x-auto">
@@ -320,19 +328,34 @@ function renderLeaderboardPreview(leaderboard, currentUser) {
         <thead>
           <tr class="border-b border-outline-variant/20 text-on-surface-variant font-label-sm uppercase tracking-wider">
             <th class="py-3 px-4 text-center w-12">#</th>
-            <th class="py-3 px-4">Pelajar</th>
-            <th class="py-3 px-4 text-center">Rank</th>
-            <th class="py-3 px-4 text-right">Accumulative LP</th>
+            <th class="py-3 px-4">Siswa</th>
+            <th class="py-3 px-4 text-center">Rank Tier</th>
+            <th class="py-3 px-4 text-right">Rating ELO (LP)</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-outline-variant/10">
-          ${topRankers.map((u, i) => {
+          ${displayRows.map((u, i) => {
             const rankNum = i + 1;
-            const isMe = currentUser && u.id === currentUser.id;
             let badge = `<span class="font-bold text-on-surface-variant">#${rankNum}</span>`;
-            if (rankNum === 1) badge = `<span class="w-7 h-7 rounded-full bg-amber-400 text-amber-950 font-extrabold flex items-center justify-center text-xs mx-auto shadow-sm">1</span>`;
-            else if (rankNum === 2) badge = `<span class="w-7 h-7 rounded-full bg-slate-300 text-slate-900 font-extrabold flex items-center justify-center text-xs mx-auto shadow-sm">2</span>`;
-            else if (rankNum === 3) badge = `<span class="w-7 h-7 rounded-full bg-amber-600 text-white font-extrabold flex items-center justify-center text-xs mx-auto shadow-sm">3</span>`;
+            if (rankNum === 1) badge = `<span class="w-7 h-7 rounded-full bg-amber-400 text-amber-950 font-extrabold flex items-center justify-center text-xs mx-auto shadow-xs">1</span>`;
+            else if (rankNum === 2) badge = `<span class="w-7 h-7 rounded-full bg-slate-300 text-slate-900 font-extrabold flex items-center justify-center text-xs mx-auto shadow-xs">2</span>`;
+            else if (rankNum === 3) badge = `<span class="w-7 h-7 rounded-full bg-amber-600 text-white font-extrabold flex items-center justify-center text-xs mx-auto shadow-xs">3</span>`;
+
+            if (u.isPlaceholder) {
+              return `
+                <tr class="opacity-50">
+                  <td class="py-3 px-4 text-center">${badge}</td>
+                  <td class="py-3 px-4"><span class="text-outline font-bold pl-2">-</span></td>
+                  <td class="py-3 px-4 text-center"><span class="text-outline font-bold">-</span></td>
+                  <td class="py-3 px-4 text-right"><span class="text-outline font-bold pr-2">-</span></td>
+                </tr>
+              `;
+            }
+
+            const isMe = currentUser && u.id === currentUser.id;
+            const eloVal = Number(u.total_elo || u.elo || 400);
+            const rankName = u.rank_name || calculateRank(eloVal);
+            const badgeStyle = rankClassMap[rankName] || 'bg-surface-container-low text-on-surface';
 
             return `
               <tr class="${isMe ? 'bg-primary-container/10 font-bold' : 'hover:bg-surface-container-low'} transition-colors">
@@ -340,15 +363,15 @@ function renderLeaderboardPreview(leaderboard, currentUser) {
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
                     <img src="${u.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'User')}&background=random`}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="${u.name}">
-                    <span class="font-title-md text-title-md text-on-surface truncate">${u.name || 'Pelajar EduRank'}</span>
+                    <span class="font-title-md text-title-md text-on-surface truncate">${escapeHtml(u.name || 'Pelajar EduRank')}</span>
                     ${isMe ? '<span class="px-2 py-0.5 text-[10px] bg-primary text-on-primary rounded font-bold">Kamu</span>' : ''}
                   </div>
                 </td>
                 <td class="py-3 px-4 text-center">
-                  <span class="px-2.5 py-0.5 rounded-full bg-surface-container-low text-secondary font-label-sm font-semibold">${u.rank_name || 'Bronze'}</span>
+                  <span class="px-3 py-1 rounded-full border text-xs font-bold ${badgeStyle}">${rankName}</span>
                 </td>
-                <td class="py-3 px-4 text-right font-bold text-secondary">
-                  ${(Number(u.total_elo) || 0).toLocaleString('id-ID')} LP
+                <td class="py-3 px-4 text-right font-bold text-on-surface">
+                  ${eloVal.toLocaleString('id-ID')} LP
                 </td>
               </tr>
             `;

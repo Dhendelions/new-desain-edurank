@@ -90,15 +90,12 @@ async function getDailyMissions(userId) {
   for (const mission of rows) {
     let progress = 0;
     if (mission.mission_type === 'matches') {
-      const [r] = await pool.query('SELECT COUNT(*) count FROM battles WHERE user_id = ? AND DATE(created_at) = CURDATE()', [userId]); progress = r[0].count;
+      const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND mode != 'custom' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
     } else if (mission.mission_type === 'wins') {
-      const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
+      const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND mode != 'custom' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
     } else if (mission.mission_type === 'ranked_wins') {
       const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND mode = 'ranked' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
     }
-    // Answer-level events are not recorded by the existing battle schema. Do
-    // not infer them from lifetime totals: the mission stays at zero until a
-    // real answer event is persisted by the battle service.
     const completed = progress >= mission.target;
     await pool.query('UPDATE user_daily_missions SET progress = ?, completed = ?, completed_at = CASE WHEN ? AND completed_at IS NULL THEN NOW() ELSE completed_at END WHERE id = ?', [progress, completed, completed, mission.id]);
     mission.progress = progress; mission.completed = completed;
@@ -291,6 +288,17 @@ app.get('/api/home', async (req, res) => {
     const [totalEloRow] = await pool.query('SELECT SUM(elo) as totalElo FROM user_subjects WHERE user_id = ?', [userId]);
     user.elo = totalEloRow[0] && totalEloRow[0].totalElo ? Number(totalEloRow[0].totalElo) : 400;
 
+    // Compute National Rank position for user
+    const [allUsersNational] = await pool.query(`
+      SELECT u.id, COALESCE(SUM(us.elo), u.elo, 400) as total_elo
+      FROM users u
+      LEFT JOIN user_subjects us ON u.id = us.user_id
+      GROUP BY u.id
+      ORDER BY total_elo DESC, u.created_at ASC
+    `);
+    const nationalRankPos = allUsersNational.findIndex(r => String(r.id) === String(userId));
+    user.nationalRank = nationalRankPos !== -1 ? (nationalRankPos + 1) : 1;
+
     // Get rank from database or calculateRank helper
     const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [user.elo, user.elo]);
     user.rank = rankRows.length > 0 ? rankRows[0].name : calculateRank(user.elo);
@@ -304,13 +312,23 @@ app.get('/api/home', async (req, res) => {
       ORDER BY s.id
     `, [userId]);
 
-    // Process user subjects with their individual ranks
+    // Process user subjects with their individual ranks and actual rank positions
     const subjectsData = await Promise.all(userSubjects.map(async (sub) => {
-      if (sub.elo === null || sub.elo === undefined) return { ...sub, rank: null };
-      const [r] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [sub.elo, sub.elo]);
+      const eloVal = sub.elo !== null && sub.elo !== undefined ? Number(sub.elo) : 100;
+      const [r] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [eloVal, eloVal]);
+      
+      const [rankPosRows] = await pool.query(`
+        SELECT COUNT(*) + 1 as rank_pos
+        FROM user_subjects us
+        WHERE us.subject_id = ? AND us.elo > ?
+      `, [sub.id, eloVal]);
+      const rankPos = rankPosRows[0] ? rankPosRows[0].rank_pos : 1;
+
       return {
         ...sub,
-        rank: r.length > 0 ? r[0].name : 'Bronze'
+        elo: eloVal,
+        rank: r.length > 0 ? r[0].name : 'Bronze',
+        rankPos: `#${rankPos}`
       };
     }));
 

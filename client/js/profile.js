@@ -55,33 +55,24 @@ function renderProfile(user, subjectsData, battles) {
       ? `Gaya belajar: ${user.learningStyle}. Bergabung sejak ${user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'belum diketahui'}.`
       : 'Belum ada bio. Selesaikan tes gaya belajar untuk melihat informasi gaya belajar kamu.';
   }
-  if (profileId) profileId.textContent = user.id || 'Belum ada ID';
 
-  const progressEl = document.getElementById('profile-xp-level');
-  if (progressEl) {
-    const xp = Math.max(0, Number(user.xp) || 0);
-    const level = Math.floor(xp / 100) + 1;
-    const nextLevelXp = level * 100;
-    const currentLevelXp = (level - 1) * 100;
-    const progress = Math.min(100, Math.max(0, ((xp - currentLevelXp) / 100) * 100));
-    
-    progressEl.innerHTML = `
-      <div class="flex flex-col gap-1 w-full max-w-xs">
-        <div class="flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-1 font-label-sm text-secondary">
-            <span class="material-symbols-outlined text-[15px]">bolt</span>${xp.toLocaleString('id-ID')} XP
-          </span>
-          <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 font-label-sm text-primary">
-            <span class="material-symbols-outlined text-[15px]">workspace_premium</span>Level ${level}
-          </span>
-        </div>
-        <div class="w-full bg-surface-container rounded-full h-2">
-          <div class="bg-secondary rounded-full h-2 transition-all" style="width: ${progress}%"></div>
-        </div>
-        <span class="text-xs text-on-surface-variant">${xp.toLocaleString('id-ID')} / ${nextLevelXp.toLocaleString('id-ID')} XP</span>
-      </div>
-    `;
-  }
+  const xp = Math.max(0, Number(user.xp) || 0);
+  const level = Math.floor(xp / 100) + 1;
+  const nextLevelXp = level * 100;
+  const currentLevelXp = (level - 1) * 100;
+  const progress = Math.min(100, Math.max(0, ((xp - currentLevelXp) / 100) * 100));
+
+  const valXp = document.getElementById('val-user-xp');
+  const valLevel = document.getElementById('val-user-level');
+  const valNationalRank = document.getElementById('val-user-national-rank');
+  const progressBar = document.getElementById('profile-progress-bar');
+  const progressText = document.getElementById('profile-xp-text');
+
+  if (valXp) valXp.textContent = `${xp.toLocaleString('id-ID')} XP`;
+  if (valLevel) valLevel.textContent = `Level ${level}`;
+  if (valNationalRank) valNationalRank.textContent = `#${user.nationalRank || 1} Nasional`;
+  if (progressBar) progressBar.style.width = `${progress}%`;
+  if (progressText) progressText.textContent = `${xp.toLocaleString('id-ID')} / ${nextLevelXp.toLocaleString('id-ID')} XP`;
 
   // Quick Stats Pills
   updateQuickStats(user);
@@ -302,10 +293,13 @@ function renderSubjectRanks(subjectsData) {
           <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/20">
             <div class="flex items-center justify-between">
               <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-outline">Peringkat Subjek</span>
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${cfg.colorBg} ${cfg.colorText} font-label-sm text-label-sm font-bold">
-                <span class="material-symbols-outlined text-[14px]">military_tech</span>
-                ${rankName}
-              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="font-label-sm text-label-sm font-extrabold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md shadow-xs">${sub.rankPos || '#1'}</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${cfg.colorBg} ${cfg.colorText} font-label-sm text-label-sm font-bold">
+                  <span class="material-symbols-outlined text-[14px]">military_tech</span>
+                  ${rankName}
+                </span>
+              </div>
             </div>
 
             <!-- ELO Bar -->

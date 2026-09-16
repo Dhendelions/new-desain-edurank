@@ -104,24 +104,40 @@
               <div class="flex flex-col gap-space-xs">
                 <div class="flex flex-wrap items-center gap-space-sm">
                   <h1 id="profile-name" class="font-headline-lg text-headline-lg font-extrabold text-on-surface tracking-tight">Memuat...</h1>
-                  <span class="bg-primary/10 text-primary font-label-md text-label-md px-3 py-1 rounded-full flex items-center gap-1 font-bold border border-primary/20">
+                  <span class="bg-primary/10 text-primary font-label-md text-label-md px-3 py-1 rounded-full flex items-center gap-1 font-bold border border-primary/20 shadow-xs">
                     <span class="material-symbols-outlined text-[14px]">verified</span>
                     Terverifikasi
                   </span>
+                  <span id="pill-user-xp" class="inline-flex items-center gap-1 rounded-full bg-secondary/10 text-secondary border border-secondary/20 px-3 py-1 font-label-md font-bold shadow-xs">
+                    <span class="material-symbols-outlined text-[16px]">bolt</span><span id="val-user-xp">0 XP</span>
+                  </span>
+                  <span id="pill-user-level" class="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary border border-primary/20 px-3 py-1 font-label-md font-bold shadow-xs">
+                    <span class="material-symbols-outlined text-[16px]">workspace_premium</span><span id="val-user-level">Level 1</span>
+                  </span>
+                  <span id="pill-user-national-rank" class="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 px-3 py-1 font-label-md font-bold shadow-xs">
+                    <span class="material-symbols-outlined text-[16px]">emoji_events</span><span id="val-user-national-rank">#1 Nasional</span>
+                  </span>
                 </div>
-                <div id="profile-xp-level" class="flex flex-wrap items-center gap-2" aria-label="Progress akun"></div>
-                <!-- Metadata ID & Sekolah -->
+                
+                <div id="profile-xp-level" class="w-full max-w-sm mt-1 mb-1">
+                  <div class="w-full bg-surface-container rounded-full h-2">
+                    <div id="profile-progress-bar" class="bg-secondary rounded-full h-2 transition-all" style="width: 0%"></div>
+                  </div>
+                  <div class="flex justify-between items-center text-xs text-on-surface-variant font-semibold mt-1">
+                    <span id="profile-xp-text">0 / 100 XP</span>
+                    <span class="text-primary font-bold">Progress Level</span>
+                  </div>
+                </div>
+
                 <p class="font-label-md text-label-md text-on-surface-variant flex flex-wrap items-center gap-2">
                   <span id="profile-username" class="text-primary font-bold">@username</span>
                   <span>•</span>
-                  <span>ID: <strong id="profile-id" class="text-on-surface font-mono">Memuat...</strong></span>
-                </p>
-                <div class="flex flex-wrap items-center gap-y-1 gap-x-4 font-body-md text-body-md text-on-surface-variant mt-1">
                   <span class="flex items-center gap-1 font-semibold text-secondary">
                     <span class="material-symbols-outlined text-[18px]">school</span>
                     Siswa EduRank Indonesia
                   </span>
-                </div>
+                </p>
+
                 <!-- Bio -->
                 <p id="profile-bio" class="font-body-md text-body-md text-on-surface mt-2 max-w-2xl leading-relaxed bg-surface-container-low/50 p-3 rounded-xl border border-outline-variant/20">
                   Belum ada bio. Selesaikan tes gaya belajar untuk melihat informasi gaya belajar kamu.

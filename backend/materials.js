@@ -14,34 +14,44 @@ function clean(value) {
 function beautifyName(name, subject, classLevel) {
   let str = String(name || '').trim();
 
-  // If text is scrambled cipher (e.g. Cpggxpikt Itmi, Giftuvliv Kvok, Ljxhwnyaj, Rtgtyr, Xqikxllbgz)
-  if (/^[A-Z][a-z]{5,}\s+[A-Z][a-z]{3,}/.test(str) && !/(matematika|fisika|inggris|informatika|aljabar|matriks|vektor|listrik|kinematika|dinamika|optik|termodinamika|gelombang|grammar|reading|struktur|algoritma|pemrograman|database|hukum|teorema|bab|bagian)/i.test(str)) {
-    if (subject === 'Fisika') {
-      return classLevel === 10 ? 'Pengukuran & Besaran Vektor' : (classLevel === 11 ? 'Dinamika Rotasi & Kesetimbangan' : 'Listrik Dinamis & Hukum Ohm');
-    } else if (subject === 'Matematika') {
-      return classLevel === 10 ? 'Eksponen & Logaritma' : (classLevel === 11 ? 'Fungsi Kuadrat & Komposisi' : 'Matriks & Sistem Persamaan');
-    } else if (subject === 'Bahasa Inggris') {
-      return classLevel === 10 ? 'Narrative Text & Simple Present' : (classLevel === 11 ? 'Analytical Exposition & Passive' : 'Academic Writing & Conditionals');
-    } else if (subject === 'Informatika') {
-      return classLevel === 10 ? 'Berpikir Komputasional' : (classLevel === 11 ? 'Struktur Data Stack & Queue' : 'Pemrograman Web & SQL Database');
+  const topicMap = {
+    'Fisika': {
+      10: ['Bab 1: Hakikat Fisika & Besaran Vektor', 'Bab 2: Kinematika & Dinamika Gerak Lurus', 'Bab 3: Usaha, Energi & Daya Mekanik', 'Bab 4: Momentum, Impuls & Tumbukan', 'Bab 5: Pemanasan Global & Energi Terbarukan'],
+      11: ['Bab 1: Dinamika Rotasi & Kesetimbangan Benda', 'Bab 2: Elastisitas & Hukum Hooke', 'Bab 3: Fluida Statis & Fluida Dinamis', 'Bab 4: Termodinamika & Kalor Gas Ideal', 'Bab 5: Gelombang Bunyi & Gelombang Cahaya'],
+      12: ['Bab 1: Listrik Dinamis & Hukum Ohm', 'Bab 2: Listrik Statis & Medan Listrik', 'Bab 3: Medan Magnetik & Induksi Elektromagnetik', 'Bab 4: Rangkaian Arus Bolak-Balik (AC)', 'Bab 5: Gelombang Elektromagnetik & Alat Optik']
+    },
+    'Matematika': {
+      10: ['Bab 1: Eksponen, Bentuk Akar & Logaritma', 'Bab 2: Persamaan & Pertidaksamaan Kuadrat', 'Bab 3: Sistem Persamaan Linier Tiga Variabel (SPLTV)', 'Bab 4: Barisan & Deret Aritmatika-Geometri', 'Bab 5: Trigonometri Dasar & Aturan Sinus-Kosinus'],
+      11: ['Bab 1: Komposisi Fungsi & Fungsi Invers', 'Bab 2: Lingkaran & Persamaan Garis Singgung', 'Bab 3: Matriks, Determinan & Invers Ordo 2x2', 'Bab 4: Vektor pada Dimensi Dua & Tiga', 'Bab 5: Statistika Data Kelompok & Simpangan Baku'],
+      12: ['Bab 1: Matriks Ordo 3x3 & Aplikasi SPL', 'Bab 2: Limit Fungsi Aljabar & Trigonometri', 'Bab 3: Turunan Fungsi & Aplikasi Garis Singgung', 'Bab 4: Integral Tentu-Tak Tentu & Luas Daerah', 'Bab 5: Peluang Kejadian Majemuk & Kombinatorika']
+    },
+    'Bahasa Inggris': {
+      10: ['Bab 1: Narrative Text & Simple Past Tenses', 'Bab 2: Descriptive Text & Adjective Phrases', 'Bab 3: Announcement & Procedure Text', 'Bab 4: Recount Text & Personal Experience', 'Bab 5: Vocabulary & Basic Listening Comprehension'],
+      11: ['Bab 1: Analytical Exposition Text & Arguments', 'Bab 2: Passive Voice & Academic Grammar', 'Bab 3: Hortatory Exposition Text', 'Bab 4: Personal Letter & Application Email', 'Bab 5: Expression of Opinion & Agreement'],
+      12: ['Bab 1: Academic Reading Comprehension & Tenses', 'Bab 2: Grammar Structure & Passive Voice', 'Bab 3: Academic Essay & Report Text', 'Bab 4: Conditional Sentences & Modal Verbs', 'Bab 5: Discussion Text & Vocabulary Enrichment']
+    },
+    'Informatika': {
+      10: ['Bab 1: Berpikir Komputasional & Dekomposisi', 'Bab 2: Teknologi Informasi & Komunikasi (TIK)', 'Bab 3: Sistem Komputer & Hardware-Software', 'Bab 4: Jaringan Komputer & Internet Dasar', 'Bab 5: Algoritma Pemrograman Block & Python'],
+      11: ['Bab 1: Berpikir Komputasional Lanjut', 'Bab 2: Pemrograman Terstruktur C++/Python', 'Bab 3: Analisis Data & Visualisasi Tabel', 'Bab 4: Algoritma Sorting & Searching Data', 'Bab 5: Dampak Sosial Informatika & Etika Digital'],
+      12: ['Bab 1: Algoritma & Pemrograman Dasar', 'Bab 2: Struktur Data (Stack, Queue & Array)', 'Bab 3: Pemrograman Web & HTML/CSS/JS', 'Bab 4: Jaringan Komputer & Protokol HTTPS', 'Bab 5: Basis Data SQL & Manajemen Server']
     }
+  };
+
+  const subjTopics = topicMap[subject]?.[classLevel || 12] || topicMap['Fisika'][12];
+
+  // Match BAB X or Bagian X
+  const babMatch = str.match(/(?:BAB|Bagian|Bab|Modul)\s*([1-5])/i);
+  if (babMatch) {
+    const idx = parseInt(babMatch[1], 10) - 1;
+    if (subjTopics[idx]) return subjTopics[idx];
   }
 
-  // Replace BAB 1, Bagian 1, etc with descriptive topic titles
-  if (/^BAB\s*1$/i.test(str) || /^Bagian\s*1$/i.test(str)) {
-    return subject === 'Fisika' ? 'Bab 1: Listrik Dinamis & Hukum Ohm' : (subject === 'Matematika' ? 'Bab 1: Matriks & Sistem Persamaan Linier' : (subject === 'Informatika' ? 'Bab 1: Algoritma & Pemrograman Dasar' : 'Bab 1: Reading Comprehension & Tenses'));
-  }
-  if (/^BAB\s*2$/i.test(str) || /^Bagian\s*2$/i.test(str)) {
-    return subject === 'Fisika' ? 'Bab 2: Listrik Statis & Medan Listrik' : (subject === 'Matematika' ? 'Bab 2: Fungsi Kuadrat & Grafiknya' : (subject === 'Informatika' ? 'Bab 2: Struktur Data (Stack, Queue & Array)' : 'Bab 2: Grammar Structure & Passive Voice'));
-  }
-  if (/^BAB\s*3$/i.test(str) || /^Bagian\s*3$/i.test(str)) {
-    return subject === 'Fisika' ? 'Bab 3: Medan Magnetik & Induksi Elektromagnetik' : (subject === 'Matematika' ? 'Bab 3: Trigonometri & Identitas Sudut' : (subject === 'Informatika' ? 'Bab 3: Pemrograman Web & HTML/CSS/JS' : 'Bab 3: Academic Essay & Report Text'));
-  }
-  if (/^BAB\s*4$/i.test(str) || /^Bagian\s*4$/i.test(str)) {
-    return subject === 'Fisika' ? 'Bab 4: Rangkaian Arus Bolak-Balik (AC)' : (subject === 'Matematika' ? 'Bab 4: Statistika & Simpangan Baku' : (subject === 'Informatika' ? 'Bab 4: Jaringan Komputer & Protokol HTTPS' : 'Bab 4: Conditional Sentences & Modal Verbs'));
-  }
-  if (/^BAB\s*5$/i.test(str) || /^Bagian\s*5$/i.test(str)) {
-    return subject === 'Fisika' ? 'Bab 5: Gelombang Elektromagnetik & Alat Optik' : (subject === 'Matematika' ? 'Bab 5: Peluang & Kombinatorika' : (subject === 'Informatika' ? 'Bab 5: Basis Data SQL & Manajemen Server' : 'Bab 5: Discussion Text & Vocabulary Enrichment'));
+  // If text is cipher or random string or generic
+  if (/^([A-Z][a-z]{4,}\s+[A-Z][a-z]{3,}|BAB|Bagian|DOCX|PDF|FISIKA|MATEMATIKA|INGGRIS|INFORMATIKA)/i.test(str) && !str.includes(':')) {
+    let charSum = 0;
+    for (let i = 0; i < str.length; i++) charSum += str.charCodeAt(i);
+    const idx = charSum % subjTopics.length;
+    return subjTopics[idx];
   }
 
   return str;
