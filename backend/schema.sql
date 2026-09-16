@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `role` VARCHAR(50) NOT NULL DEFAULT 'student',
   `class_level` INT NOT NULL DEFAULT 12,
   `phone_number` VARCHAR(50) DEFAULT NULL,
-  `learning_style` VARCHAR(50) DEFAULT '',
   `elo` INT NOT NULL DEFAULT 400,
   `xp` INT NOT NULL DEFAULT 0,
   `wins` INT NOT NULL DEFAULT 0,
@@ -63,8 +62,14 @@ VALUES (1, 'Fisika', 3),
   (2, 'Matematika', 3),
   (3, 'Bahasa Inggris', 3);
 INSERT INTO `subjects` (`name`, `class_id`)
-SELECT 'Informatika', 3
-WHERE NOT EXISTS (SELECT 1 FROM `subjects` WHERE `name` = 'Informatika' AND `class_id` = 3);
+SELECT 'Informatika',
+  3
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM `subjects`
+    WHERE `name` = 'Informatika'
+      AND `class_id` = 3
+  );
 -- 4. Tabel User Subjects (ELO per mata pelajaran)
 CREATE TABLE IF NOT EXISTS `user_subjects` (
   `user_id` VARCHAR(100) NOT NULL,
@@ -110,7 +115,8 @@ CREATE TABLE IF NOT EXISTS `battles` (
     FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Migration: add opponent_name if it does not exist
-ALTER TABLE `battles` ADD COLUMN IF NOT EXISTS `opponent_name` VARCHAR(255) DEFAULT NULL;
+ALTER TABLE `battles`
+ADD COLUMN IF NOT EXISTS `opponent_name` VARCHAR(255) DEFAULT NULL;
 -- 8. Tabel Missions (Misi Harian)
 CREATE TABLE IF NOT EXISTS `missions` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -134,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `daily_missions` (
   `target` INT NOT NULL,
   `reward_xp` INT NOT NULL DEFAULT 0,
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 CREATE TABLE IF NOT EXISTS `user_daily_missions` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `user_id` VARCHAR(100) NOT NULL,
@@ -143,10 +149,10 @@ CREATE TABLE IF NOT EXISTS `user_daily_missions` (
   `progress` INT NOT NULL DEFAULT 0,
   `completed` BOOLEAN NOT NULL DEFAULT FALSE,
   `completed_at` DATETIME NULL,
-  UNIQUE KEY `uq_user_mission_day` (`user_id`,`mission_id`,`assigned_date`),
-  KEY `idx_udm_user_date` (`user_id`,`assigned_date`),
+  UNIQUE KEY `uq_user_mission_day` (`user_id`, `mission_id`, `assigned_date`),
+  KEY `idx_udm_user_date` (`user_id`, `assigned_date`),
   KEY `idx_udm_mission` (`mission_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 -- 9. Tabel Notifications
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
