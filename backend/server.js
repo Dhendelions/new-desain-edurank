@@ -367,11 +367,17 @@ app.get('/api/home', async (req, res) => {
 
     // Get User Subjects Data (excluding Matematika Lanjut)
     const [userSubjects] = await pool.query(`
-      SELECT s.id, s.name as subjectName, c.level as classLevel, us.elo
-      FROM subjects s JOIN classes c ON s.class_id = c.id
+      SELECT 
+        s.name as subjectName, 
+        MAX(c.level) as classLevel, 
+        MAX(COALESCE(us.elo, 100)) as elo,
+        MAX(s.id) as id
+      FROM subjects s 
+      JOIN classes c ON s.class_id = c.id
       LEFT JOIN user_subjects us ON us.subject_id = s.id AND us.user_id = ?
-      WHERE s.id IN (SELECT MIN(id) FROM subjects WHERE name NOT IN ('Matematika Lanjut', 'Matematika Tingkat Lanjut') GROUP BY name)
-      ORDER BY s.id
+      WHERE s.name NOT IN ('Matematika Lanjut', 'Matematika Tingkat Lanjut')
+      GROUP BY s.name
+      ORDER BY s.name
     `, [userId]);
 
     // Process user subjects with their individual ranks and actual rank positions
@@ -381,9 +387,15 @@ app.get('/api/home', async (req, res) => {
       
       const [rankPosRows] = await pool.query(`
         SELECT COUNT(*) + 1 as rank_pos
-        FROM user_subjects us
-        WHERE us.subject_id = ? AND us.elo > ?
-      `, [sub.id, eloVal]);
+        FROM (
+          SELECT user_id, MAX(elo) as max_elo
+          FROM user_subjects us2
+          JOIN subjects s2 ON us2.subject_id = s2.id
+          WHERE s2.name = ?
+          GROUP BY user_id
+        ) as subq
+        WHERE subq.max_elo > ?
+      `, [sub.subjectName, eloVal]);
       const rankPos = rankPosRows[0] ? rankPosRows[0].rank_pos : 1;
 
       return {
@@ -423,7 +435,9 @@ app.get('/api/home', async (req, res) => {
 
     // Get Battles
     const [battles] = await pool.query(`
-      SELECT b.id, b.result, b.elo_change, b.mode, b.created_at, u.name as opponent_name, s.name as subject_name
+      SELECT b.id, b.result, b.elo_change, b.mode, b.created_at, 
+             COALESCE(u.name, b.opponent_name, 'Lawan') as opponent_name, 
+             COALESCE(s.name, 'Pertandingan Umum') as subject_name
       FROM battles b
       LEFT JOIN users u ON b.opponent_id = u.id
       LEFT JOIN subjects s ON b.subject_id = s.id
@@ -748,16 +762,20 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 
     if (subjectId) {
-      // Leaderboard per mapel (includes all users with default 100 ELO if not in user_subjects)
+      const [subjRows] = await pool.query('SELECT name FROM subjects WHERE id = ? LIMIT 1', [subjectId]);
+      const subjName = subjRows.length > 0 ? subjRows[0].name : '';
+
       const [rows] = await pool.query(`
-        SELECT u.id, u.name, u.photo, u.xp, COALESCE(us.elo, 100) as elo,
+        SELECT u.id, u.name, u.photo, u.xp, COALESCE(MAX(us.elo), 100) as elo,
                u.wins, u.total_battles, u.class_level
         FROM users u
-        LEFT JOIN user_subjects us ON us.user_id = u.id AND us.subject_id = ?
+        LEFT JOIN user_subjects us ON us.user_id = u.id
+        LEFT JOIN subjects s ON us.subject_id = s.id AND s.name = ?
         ${classFilter}
+        GROUP BY u.id, u.name, u.photo, u.xp, u.wins, u.total_battles, u.class_level, u.created_at
         ORDER BY elo DESC, u.created_at ASC
         LIMIT 100
-      `, classLevel ? [subjectId, classLevel] : [subjectId]);
+      `, classLevel ? [subjName, classLevel] : [subjName]);
 
       const leaderboard = await Promise.all(rows.map(async (row, index) => {
         const eloVal = Number(row.elo) || 100;
