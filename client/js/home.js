@@ -11,14 +11,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch(getApiUrl('/api/home'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await res.json();
-    if (!data.success) {
-      if (res.status === 401 || res.status === 404 || !data.user) {
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || !data.success) {
+      if (res.status === 401) {
         localStorage.removeItem('edurank-token');
         localStorage.removeItem('edurank-user');
         window.location.href = 'login.html';
       } else {
-        showError('Gagal memuat data. Silakan coba lagi.');
+        showError('Gagal memuat data dari server. Silakan muat ulang halaman.');
       }
       return;
     }

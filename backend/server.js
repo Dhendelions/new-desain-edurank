@@ -806,6 +806,11 @@ app.get('/api/ranks', async (req, res) => {
   }
 });
 
+// API 404 handler (prevents API requests from returning index.html)
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ success: false, message: 'API Endpoint tidak ditemukan.' });
+});
+
 // Fallback to index.html for client side routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));

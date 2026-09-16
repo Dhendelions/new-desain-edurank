@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EduRank</title>
+    <title>EduRank Indonesia</title>
     <script>
-      window.location.replace('./login.html');
+      const token = localStorage.getItem('edurank-token');
+      if (token) {
+        window.location.replace('./home.html');
+      } else {
+        window.location.replace('./login.html');
+      }
     </script>
   </head>
   <body></body>

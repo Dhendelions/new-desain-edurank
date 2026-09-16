@@ -3,14 +3,19 @@
 // Dynamic API Base URL detection
 const API_BASE = (function() {
   if (typeof window === 'undefined') return '';
-  const port = window.location.port;
-  const protocol = window.location.protocol;
-  // If file:// or local static dev server ports (5500, 5501, 8080, 5173), target backend port 3000
-  if (protocol === 'file:' || ['5500', '5501', '8080', '5173'].includes(port)) {
-    const hostname = window.location.hostname || 'localhost';
-    return `http://${hostname}:3000`;
+  const hostname = window.location.hostname || '';
+  const port = window.location.port || '';
+  const protocol = window.location.protocol || '';
+
+  // Only target http://localhost:3000 if running locally on file:// or local VS Code Live Server (port 5500/5501/5173 on localhost)
+  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '';
+  const isLiveServerPort = ['5500', '5501', '5173'].includes(port);
+
+  if ((protocol === 'file:' || isLiveServerPort) && isLocalHost) {
+    return 'http://localhost:3000';
   }
-  // Production VPS (Dokploy / Docker / Reverse Proxy / Same-origin Node server): use relative paths
+
+  // Production VPS (Dokploy / Docker / Reverse Proxy / Remote Domain or IP): ALWAYS relative paths
   return '';
 })();
 

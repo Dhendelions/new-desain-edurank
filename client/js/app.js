@@ -264,12 +264,15 @@ function setNotice(message, isSuccess = false) {
 function redirectIfLoggedOut() {
   const file = window.location.pathname.split(/[\\/]/).pop() || 'home.html';
   const publicPages = ['index.html', 'login.html', 'register.html'];
+  const hasToken = !!localStorage.getItem('edurank-token');
+  const hasSession = !!getCurrentUser();
+
   if (!publicPages.includes(file.toLowerCase())) {
-    const hasToken = !!localStorage.getItem('edurank-token');
-    const hasSession = !!getCurrentUser();
     if (!hasToken && !hasSession) {
       window.location.href = 'login.html';
     }
+  } else if ((file.toLowerCase() === 'login.html' || file.toLowerCase() === 'register.html') && hasToken) {
+    window.location.href = 'home.html';
   }
 }
 
