@@ -44,41 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initial load — Semua Mapel
   await fetchAndRenderLeaderboard(null);
-  initNotifications();
-
-  // --- RENDER FUNCTIONS ---
-
-  function renderHeader(user) {
-    // Header is now handled by header.js, but we update the notification count if needed
-    if (window.headerComponent && typeof window.headerComponent.setUnreadCount === 'function') {
-      window.headerComponent.setUnreadCount(0); // Leaderboard doesn't have unread count
-    }
-  }
-
-  function initNotifications() {
-    const button = document.getElementById('btn-notifications');
-    if (!button) return;
-    button.addEventListener('click', async () => {
-      const existing = document.getElementById('notifications-panel');
-      if (existing) { existing.remove(); button.setAttribute('aria-expanded', 'false'); return; }
-      const panel = document.createElement('div');
-      panel.id = 'notifications-panel';
-      panel.className = 'fixed right-4 top-20 z-[60] w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-3 shadow-xl';
-      panel.innerHTML = '<div class="px-2 py-6 text-center text-on-surface-variant"><span class="material-symbols-outlined animate-pulse">hourglass_empty</span><p class="mt-2 text-sm">Memuat notifikasi...</p></div>';
-      document.body.appendChild(panel);
-      button.setAttribute('aria-expanded', 'true');
-      try {
-        const res = await fetch(getApiUrl('/api/notifications'), { headers: { Authorization: `Bearer ${token}` } });
-        const data = await res.json();
-        const notifications = Array.isArray(data.notifications) ? data.notifications : [];
-        panel.innerHTML = notifications.length
-          ? `<div class="max-h-80 overflow-y-auto">${notifications.map(n => `<article class="border-b border-outline-variant/20 px-2 py-3 last:border-0"><p class="font-label-md font-bold">${escapeHtml(n.title || 'Notifikasi')}</p><p class="mt-1 text-sm text-on-surface-variant">${escapeHtml(n.message || '')}</p></article>`).join('')}</div>`
-          : '<div class="px-2 py-8 text-center text-on-surface-variant"><span class="material-symbols-outlined text-3xl">notifications_off</span><p class="mt-2 text-sm font-semibold">Belum ada notifikasi</p></div>';
-      } catch (error) {
-        panel.innerHTML = '<div class="px-3 py-6 text-center text-on-surface-variant"><span class="material-symbols-outlined text-3xl">wifi_off</span><p class="mt-2 text-sm">Notifikasi belum dapat dimuat.</p></div>';
-      }
-    });
-  }
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);

@@ -142,8 +142,9 @@ class Header {
 
   updateNotificationBadge() {
     const badge = document.getElementById('notif-badge');
+    const isReadLocal = localStorage.getItem('edurank-notifs-read') === 'true';
     if (badge) {
-      if (this.unreadCount > 0) {
+      if (this.unreadCount > 0 && !isReadLocal) {
         badge.classList.remove('hidden');
       } else {
         badge.classList.add('hidden');
@@ -151,102 +152,44 @@ class Header {
     }
   }
 
-  attachEventListeners() {
-    // Notification button
-    const notifBtn = document.getElementById('btn-notifications');
-    if (notifBtn) {
-      notifBtn.addEventListener('click', () => this.showNotifications());
-    }
-
-    // Profile avatar click
-    const profileLink = document.querySelector('header a[href="profile.html"]');
-    if (profileLink) {
-      profileLink.addEventListener('click', (e) => {
-        window.location.href = 'profile.html';
-      });
-    }
-
-    // Intercept nav links when on Home Page for smooth scrolling
-    const navLinks = document.querySelectorAll('header nav a');
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
-        const path = this.getCurrentPage();
-        const navPath = link.getAttribute('data-path');
-
-        if (path === 'home') {
-          if (navPath === 'materi') {
-            e.preventDefault();
-            const target = document.getElementById('home-curriculum-section') || document.getElementById('materi');
-            if (target) {
-              target.scrollIntoView({ behavior: 'smooth' });
-            }
-          } else if (navPath === 'battle') {
-            e.preventDefault();
-            const target = document.getElementById('home-arena-section') || document.getElementById('battle');
-            if (target) {
-              target.scrollIntoView({ behavior: 'smooth' });
-            }
-          } else if (navPath === 'home') {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }
-      });
-    });
-
-    // Scroll spy active state for Home page sections
-    window.addEventListener('scroll', () => {
-      const page = this.getCurrentPage();
-      if (page !== 'home') return;
-
-      const materiSec = document.getElementById('home-curriculum-section') || document.getElementById('materi');
-      const battleSec = document.getElementById('home-arena-section') || document.getElementById('battle');
-      const scrollY = window.scrollY + 120;
-
-      let activeSection = 'home';
-      if (battleSec && scrollY >= battleSec.offsetTop) {
-        activeSection = 'battle';
-      } else if (materiSec && scrollY >= materiSec.offsetTop) {
-        activeSection = 'materi';
-      }
-
-      const links = document.querySelectorAll('header nav a');
-      links.forEach(l => {
-        const linkPath = l.getAttribute('data-path');
-        if (linkPath === activeSection) {
-          l.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
-          l.classList.remove('text-on-surface-variant', 'hover:text-on-surface');
-        } else {
-          l.classList.remove('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
-          l.classList.add('text-on-surface-variant', 'hover:text-on-surface');
-        }
-      });
-    });
-
-    // Update navigation on popstate (browser back/forward)
-    window.addEventListener('popstate', () => {
-      this.currentPage = this.getCurrentPage();
-      this.updateActiveNavigation();
-    });
-
-    // Update navigation on hash change
-    window.addEventListener('hashchange', () => {
-      this.currentPage = this.getCurrentPage();
-      this.updateActiveNavigation();
-    });
-  }
-
   async showNotifications() {
     const token = localStorage.getItem('edurank-token');
     if (!token) return;
 
-    let modal = document.getElementById('notifications-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'notifications-modal';
-      modal.className = 'fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4';
-      document.body.appendChild(modal);
+    // Toggle dropdown panel if already open
+    let panel = document.getElementById('notifications-dropdown-panel');
+    if (panel) {
+      panel.remove();
+      return;
     }
+
+    // Mark as read locally and remotely
+    localStorage.setItem('edurank-notifs-read', 'true');
+    this.unreadCount = 0;
+    this.updateNotificationBadge();
+
+    // Create dropdown panel under notification icon
+    panel = document.createElement('div');
+    panel.id = 'notifications-dropdown-panel';
+    panel.className = 'fixed right-4 sm:right-12 top-20 z-[100] w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-4 shadow-2xl text-on-surface space-y-3';
+    panel.innerHTML = '<div class="px-2 py-6 text-center text-on-surface-variant"><span class="material-symbols-outlined animate-pulse text-2xl">hourglass_empty</span><p class="mt-2 text-xs">Memuat notifikasi...</p></div>';
+    document.body.appendChild(panel);
+
+    // Close on outside click
+    const handleOutsideClick = (e) => {
+      const btn = document.getElementById('btn-notifications');
+      if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+        panel.remove();
+        document.removeEventListener('click', handleOutsideClick);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', handleOutsideClick), 50);
+
+    // Send mark-read request in background
+    fetch(getApiUrl('/api/notifications/read-all'), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).catch(() => {});
 
     try {
       const res = await fetch(getApiUrl('/api/notifications'), {
@@ -259,6 +202,7 @@ class Header {
         notifHtml = data.notifications.map(n => {
           const isFriendRequest = n.title && n.title.includes('Permintaan Pertemanan') && !n.title.includes('Diterima');
           const isDuelInvite = n.title && n.title.includes('Tantangan Duel');
+          const isMission = n.title && n.title.includes('Misi');
 
           // Extract sender ID if present
           let senderIdMatch = n.message ? n.message.match(/ID:\s*([a-zA-Z0-9_-]+)/) : null;
@@ -287,16 +231,19 @@ class Header {
             `;
           }
 
+          const iconName = isFriendRequest ? 'person_add' : (isDuelInvite ? 'swords' : (isMission ? 'task_alt' : 'notifications'));
+          const iconColor = isFriendRequest ? 'text-primary' : (isDuelInvite ? 'text-amber-600' : (isMission ? 'text-tertiary-container' : 'text-secondary'));
+
           return `
-            <div class="p-3.5 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}">
+            <div class="p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}">
               <div class="flex items-start justify-between">
                 <p class="font-bold text-xs text-on-surface flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm ${isFriendRequest ? 'text-primary' : (isDuelInvite ? 'text-amber-600' : 'text-secondary')}">
-                    ${isFriendRequest ? 'person_add' : (isDuelInvite ? 'swords' : 'notifications')}
+                  <span class="material-symbols-outlined text-sm ${iconColor}">
+                    ${iconName}
                   </span>
                   <span>${n.title}</span>
                 </p>
-                <span class="text-[10px] text-outline">${n.created_at ? new Date(n.created_at).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                <span class="text-[10px] text-outline shrink-0">${n.created_at ? new Date(n.created_at).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
               </div>
               <p class="text-xs text-on-surface-variant mt-1 font-medium leading-relaxed">${n.message}</p>
               ${actionButtons}
@@ -305,41 +252,37 @@ class Header {
         }).join('');
       } else {
         notifHtml = `
-          <div class="p-8 text-center text-on-surface-variant">
-            <span class="material-symbols-outlined text-4xl text-outline mb-2">notifications_off</span>
-            <p class="font-semibold text-xs">Tidak ada notifikasi baru saat ini.</p>
+          <div class="p-6 text-center text-on-surface-variant">
+            <span class="material-symbols-outlined text-3xl text-outline mb-1">notifications_off</span>
+            <p class="font-semibold text-xs">Belum ada notifikasi baru.</p>
           </div>
         `;
       }
 
-      modal.innerHTML = `
-        <div class="w-full max-w-sm bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface space-y-3">
-          <div class="flex items-center justify-between pb-2.5 border-b border-outline-variant/20">
-            <h3 class="font-bold text-sm flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary text-lg">notifications</span> Notifikasi
-            </h3>
-            <button onclick="document.getElementById('notifications-modal').remove()" class="w-7 h-7 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
-              <span class="material-symbols-outlined text-base">close</span>
-            </button>
-          </div>
-          <div class="max-h-80 overflow-y-auto pr-1 space-y-1">
-            ${notifHtml}
-          </div>
+      panel.innerHTML = `
+        <div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-lg">notifications</span> Notifikasi
+          </h3>
+          <button onclick="document.getElementById('notifications-dropdown-panel')?.remove()" class="w-6 h-6 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+        <div class="max-h-80 overflow-y-auto pr-1">
+          ${notifHtml}
         </div>
       `;
     } catch (err) {
-      modal.innerHTML = `
-        <div class="w-full max-w-sm bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant/30 text-on-surface">
-          <div class="flex items-center justify-between pb-3 border-b border-outline-variant/20 mb-3">
-            <h3 class="font-bold text-sm">Notifikasi</h3>
-            <button onclick="document.getElementById('notifications-modal').remove()" class="w-7 h-7 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center">
-              <span class="material-symbols-outlined text-base">close</span>
-            </button>
-          </div>
-          <div class="p-6 text-center text-on-surface-variant text-xs">
-            <span class="material-symbols-outlined text-3xl text-outline mb-2">wifi_off</span>
-            <p class="font-semibold">Gagal memuat notifikasi</p>
-          </div>
+      panel.innerHTML = `
+        <div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+          <h3 class="font-bold text-sm">Notifikasi</h3>
+          <button onclick="document.getElementById('notifications-dropdown-panel')?.remove()" class="w-6 h-6 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+        <div class="p-4 text-center text-on-surface-variant text-xs">
+          <span class="material-symbols-outlined text-2xl text-outline mb-1">wifi_off</span>
+          <p class="font-semibold">Gagal memuat notifikasi</p>
         </div>
       `;
     }
@@ -355,7 +298,7 @@ class Header {
       });
       const data = await res.json();
       if (data.success) {
-        document.getElementById('notifications-modal')?.remove();
+        document.getElementById('notifications-dropdown-panel')?.remove();
         alert('✅ ' + data.message);
         window.location.reload();
       }
@@ -370,12 +313,18 @@ class Header {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ notificationId })
       });
-      document.getElementById('notifications-modal')?.remove();
+      document.getElementById('notifications-dropdown-panel')?.remove();
     } catch (e) {}
   }
 
   setUnreadCount(count) {
-    this.unreadCount = count;
+    // If local notifications have been marked read, don't re-show red dot unless new ones arrive
+    const isReadLocal = localStorage.getItem('edurank-notifs-read') === 'true';
+    if (!isReadLocal) {
+      this.unreadCount = count;
+    } else {
+      this.unreadCount = 0;
+    }
     this.updateNotificationBadge();
   }
 }

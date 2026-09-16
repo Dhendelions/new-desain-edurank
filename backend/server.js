@@ -107,8 +107,20 @@ async function getDailyMissions(userId) {
 
     await pool.query('UPDATE user_daily_missions SET progress = ?, completed = ?, completed_at = CASE WHEN ? AND completed_at IS NULL THEN NOW() ELSE completed_at END WHERE id = ?', [progress, completed, completed, mission.id]);
     
-    if (isNewlyCompleted && mission.reward_xp > 0) {
-      await pool.query('UPDATE users SET xp = xp + ? WHERE id = ?', [mission.reward_xp, userId]);
+    if (isNewlyCompleted) {
+      const rewardXp = Number(mission.reward_xp) || 0;
+      await pool.query(
+        `INSERT INTO notifications (user_id, title, message, is_read, created_at)
+         VALUES (?, ?, ?, FALSE, NOW())`,
+        [
+          userId,
+          'Misi Harian Selesai! 🎉',
+          `Selamat! Kamu telah menyelesaikan misi "${mission.title}" dan mendapatkan +${rewardXp} XP.`
+        ]
+      );
+      if (mission.reward_xp > 0) {
+        await pool.query('UPDATE users SET xp = xp + ? WHERE id = ?', [mission.reward_xp, userId]);
+      }
     }
     
     mission.progress = progress; mission.completed = completed;
@@ -385,23 +397,22 @@ app.get('/api/home', async (req, res) => {
       const eloVal = sub.elo !== null && sub.elo !== undefined ? Number(sub.elo) : 100;
       const [r] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [eloVal, eloVal]);
       
-      const [rankPosRows] = await pool.query(`
-        SELECT COUNT(*) + 1 as rank_pos
-        FROM (
-          SELECT user_id, MAX(elo) as max_elo
-          FROM user_subjects us2
-          JOIN subjects s2 ON us2.subject_id = s2.id
-          WHERE s2.name = ?
-          GROUP BY user_id
-        ) as subq
-        WHERE subq.max_elo > ?
-      `, [sub.subjectName, eloVal]);
-      const rankPos = rankPosRows[0] ? rankPosRows[0].rank_pos : 1;
+      const [allSubjectRanks] = await pool.query(`
+        SELECT u.id, COALESCE(MAX(us.elo), 100) as elo
+        FROM users u
+        LEFT JOIN user_subjects us ON us.user_id = u.id
+        LEFT JOIN subjects s ON us.subject_id = s.id AND s.name = ?
+        GROUP BY u.id, u.created_at
+        ORDER BY elo DESC, u.created_at ASC
+      `, [sub.subjectName]);
+
+      const myPos = allSubjectRanks.findIndex(row => String(row.id) === String(userId));
+      const rankPos = myPos !== -1 ? (myPos + 1) : 1;
 
       return {
         ...sub,
         elo: eloVal,
-        rank: r.length > 0 ? r[0].name : 'Bronze',
+        rank: r.length > 0 ? r[0].name : calculateRank(eloVal),
         rankPos: `#${rankPos}`
       };
     }));
@@ -644,6 +655,18 @@ app.get('/api/notifications', async (req, res) => {
     const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
     const [notifs] = await pool.query('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 15', [decoded.id]);
     res.json({ success: true, notifications: notifs });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post('/api/notifications/read-all', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false });
+    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    await pool.query('UPDATE notifications SET is_read = TRUE WHERE user_id = ?', [decoded.id]);
+    res.json({ success: true, message: 'Semua notifikasi ditandai dibaca.' });
   } catch (err) {
     res.status(500).json({ success: false });
   }

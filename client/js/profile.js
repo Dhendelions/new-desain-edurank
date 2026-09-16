@@ -220,17 +220,11 @@ function renderProfile(user, subjectsData, battles) {
 
 function updateQuickStats(user) {
   // Current Winstreak
-  const streakEl = document.getElementById('stat-learning-style');
+  const streakEl = document.getElementById('stat-current-streak');
   if (streakEl) {
     const streak = Number(user.currentStreak) || 0;
     streakEl.innerHTML = `${streak} 🔥`;
   }
-
-  // Stat label - update parent label text if present
-  const streakLabel = streakEl ? streakEl.closest('.flex.flex-col')?.querySelector('.font-label-sm.text-on-surface-variant') : null;
-  if (streakLabel) streakLabel.textContent = 'Win Streak';
-  const streakIcon = streakEl ? streakEl.closest('.flex.items-center')?.querySelector('.material-symbols-outlined') : null;
-  if (streakIcon) streakIcon.textContent = 'local_fire_department';
 
   // Join Date
   const joinDateEl = document.getElementById('stat-join-date');
@@ -310,7 +304,6 @@ function renderSubjectRanks(subjectsData) {
               </div>
               <div>
                 <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${sub.subjectName}</h3>
-                <span class="font-label-sm text-label-sm text-outline">Kelas ${sub.classLevel || 12}</span>
               </div>
             </div>
             
@@ -349,16 +342,15 @@ function renderWinStreak(user) {
   const currentStreak = Number(user.currentStreak) || 0;
   const longestStreak = Number(user.longestStreak) || 0;
 
-  // Find the LEARNING STYLE section in profile and replace its content with winstreak
-  const section = document.querySelector('section.glass-card');
+  const section = document.getElementById('winstreak-section');
   if (!section) return;
 
   section.innerHTML = `
     <div class="flex items-center gap-space-xs">
       <span class="material-symbols-outlined text-orange-500 text-[22px]">local_fire_department</span>
-      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Win Streak</h3>
+      <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Statistik Win Streak</h3>
     </div>
-    <div class="bg-surface-container-low/70 rounded-2xl p-space-md flex gap-space-md border border-outline-variant/20">
+    <div class="bg-surface-container-low/70 rounded-2xl p-space-md flex flex-col sm:flex-row gap-space-md border border-outline-variant/20">
       <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-xs">
         <span class="text-3xl font-black text-orange-500">${currentStreak} 🔥</span>
         <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Current Streak</span>
