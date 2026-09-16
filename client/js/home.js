@@ -76,6 +76,15 @@ function renderHeader(user, unreadCount) {
 
 function renderHero(user) {
   document.getElementById('hero-greeting').innerHTML = `Halo, ${user.name}! <span class="inline-block animate-bounce">👋</span>`;
+
+  const currentStreak = Math.max(0, Number(user.currentStreak) || 0);
+  const longestStreak = Math.max(0, Number(user.longestStreak) || 0);
+  
+  const currentEl = document.getElementById('hero-current-streak');
+  if (currentEl) currentEl.innerHTML = `${currentStreak} <span class="text-2xl">🔥</span>`;
+  
+  const longestEl = document.getElementById('hero-longest-streak');
+  if (longestEl) longestEl.innerHTML = `${longestStreak} <span class="text-2xl">👑</span>`;
 }
 
 function renderUserStats(user) {
@@ -93,35 +102,25 @@ function renderUserStats(user) {
   const dailyStreak = Math.max(1, Number(user.dailyStreak) || 1);
 
   container.innerHTML = `
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
-      <span class="material-symbols-outlined text-primary text-headline-sm">workspace_premium</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">Level ${level}</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Level Akun</span>
+    <div class="bg-surface-container-low p-6 rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-sm transition-all border border-outline-variant/10">
+      <span class="material-symbols-outlined text-primary text-[32px]">workspace_premium</span>
+      <span class="font-headline-sm text-headline-sm text-on-surface font-extrabold">Level ${level}</span>
+      <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Level Akun</span>
     </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
-      <span class="material-symbols-outlined text-tertiary-container text-headline-sm">military_tech</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${elo.toLocaleString('id-ID')}</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Total ELO</span>
+    <div class="bg-surface-container-low p-6 rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-sm transition-all border border-outline-variant/10">
+      <span class="material-symbols-outlined text-purple-500 text-[32px]">stars</span>
+      <span class="font-headline-sm text-headline-sm text-on-surface font-extrabold">${xp.toLocaleString('id-ID')}</span>
+      <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Total EXP</span>
     </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
-      <span class="material-symbols-outlined text-secondary text-headline-sm">emoji_events</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${winrate}%</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Win Rate</span>
+    <div class="bg-surface-container-low p-6 rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-sm transition-all border border-outline-variant/10">
+      <span class="material-symbols-outlined text-tertiary-container text-[32px]">military_tech</span>
+      <span class="font-headline-sm text-headline-sm text-on-surface font-extrabold">${elo.toLocaleString('id-ID')}</span>
+      <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Total ELO</span>
     </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
-      <span class="material-symbols-outlined text-orange-500 text-headline-sm">local_fire_department</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${currentStreak} 🔥</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Current Streak</span>
-    </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
-      <span class="material-symbols-outlined text-amber-500 text-headline-sm">workspace_premium</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${longestStreak} 🏆</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Longest Streak</span>
-    </div>
-    <div class="bg-surface-container-low p-space-md rounded-xl flex flex-col items-center justify-center gap-1 hover:shadow-sm transition-all">
-      <span class="material-symbols-outlined text-emerald-600 text-headline-sm">calendar_today</span>
-      <span class="font-label-lg text-label-lg text-on-surface font-extrabold">${dailyStreak} 📅</span>
-      <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Daily Streak</span>
+    <div class="bg-surface-container-low p-6 rounded-2xl flex flex-col items-center justify-center gap-2 hover:shadow-sm transition-all border border-outline-variant/10">
+      <span class="material-symbols-outlined text-emerald-600 text-[32px]">calendar_today</span>
+      <span class="font-headline-sm text-headline-sm text-on-surface font-extrabold">${dailyStreak} 📅</span>
+      <span class="font-label-md text-label-md text-on-surface-variant font-bold uppercase tracking-wider">Daily Streak</span>
     </div>
   `;
 }

@@ -120,7 +120,7 @@ async function getDailyMissions(userId) {
     WHERE udm.user_id = ? AND udm.assigned_date = CURDATE() ORDER BY dm.id`, [userId]);
 
   for (const mission of rows) {
-    let progress = 0;
+    let progress = mission.progress;
     if (mission.mission_type === 'matches') {
       const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND mode != 'custom' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
     } else if (mission.mission_type === 'wins') {
@@ -818,6 +818,16 @@ app.post('/api/battles/record', async (req, res) => {
          ON DUPLICATE KEY UPDATE elo = GREATEST(0, elo + ?)`,
         [userId, subjId, eloDelta, eloDelta]
       );
+    }
+
+    // 4.5. Update correct answers missions
+    if (correctAdd > 0) {
+      await pool.query(`
+        UPDATE user_daily_missions udm
+        JOIN daily_missions dm ON udm.mission_id = dm.id
+        SET udm.progress = udm.progress + ?
+        WHERE udm.user_id = ? AND dm.mission_type = 'correct_answers' AND udm.assigned_date = CURDATE() AND udm.completed = FALSE
+      `, [correctAdd, userId]);
     }
 
     // 5. Fetch updated user profile to return to client

@@ -78,7 +78,7 @@ html {
 </header><main class="w-full pt-20 bg-background min-h-screen"><div class="max-w-[1360px] mx-auto px-margin py-space-xl"><div class="flex flex-col w-full gap-space-xl">
 <!-- 1. JUDUL / PEMBUKA -->
 <section id="home-hero-section" class="flex flex-col gap-space-lg">
-  <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20">
+  <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col md:flex-row items-center justify-between gap-space-lg">
     <div class="flex flex-col gap-space-xs max-w-2xl">
       <div class="flex items-center gap-space-xs">
         <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
@@ -88,12 +88,28 @@ html {
           Memuat data...
         </h1>
       </div>
+    </div>
+    
+    <div class="flex items-center gap-space-lg shrink-0 bg-surface-container-low/50 p-space-md rounded-2xl border border-outline-variant/20">
+      <div class="flex flex-col items-center">
+        <span class="font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider mb-1">Current Winstreak</span>
+        <span id="hero-current-streak" class="font-headline-md text-headline-md font-extrabold text-amber-600 flex items-center gap-1">
+          <span class="material-symbols-outlined animate-pulse text-sm">hourglass_empty</span>
+        </span>
+      </div>
+      <div class="w-px h-12 bg-outline-variant/30"></div>
+      <div class="flex flex-col items-center">
+        <span class="font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider mb-1">Longest Winstreak</span>
+        <span id="hero-longest-streak" class="font-headline-md text-headline-md font-extrabold text-secondary flex items-center gap-1">
+           <span class="material-symbols-outlined animate-pulse text-sm">hourglass_empty</span>
+        </span>
       </div>
     </div>
+  </div>
 
   <!-- User Progress Stats -->
-  <div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm border border-outline-variant/20">
-    <div class="flex items-center gap-space-md mb-space-md">
+  <div class="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20">
+    <div class="flex items-center gap-space-md mb-space-lg">
       <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
         <span class="material-symbols-outlined text-headline-sm">trending_up</span>
       </div>
@@ -102,11 +118,11 @@ html {
         <p class="font-body-md text-body-md text-on-surface-variant">Statistik akademik dan performa pertandinganmu.</p>
       </div>
     </div>
-    <div id="user-stats-container" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-space-md">
-      <div class="text-outline py-4 text-center">
+    <div id="user-stats-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+      <div class="text-outline py-6 text-center bg-surface-container-low/30 rounded-2xl border border-outline-variant/20">
         <div class="flex flex-col items-center gap-2">
-          <span class="material-symbols-outlined text-2xl animate-pulse">hourglass_empty</span>
-          <p>Memuat statistik...</p>
+          <span class="material-symbols-outlined text-3xl animate-pulse">hourglass_empty</span>
+          <p class="font-label-lg">Memuat statistik...</p>
         </div>
       </div>
     </div>

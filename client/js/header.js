@@ -234,8 +234,15 @@ class Header {
           const iconName = isFriendRequest ? 'person_add' : (isDuelInvite ? 'swords' : (isMission ? 'task_alt' : 'notifications'));
           const iconColor = isFriendRequest ? 'text-primary' : (isDuelInvite ? 'text-amber-600' : (isMission ? 'text-tertiary-container' : 'text-secondary'));
 
+          let clickAction = '';
+          if (isMission) {
+            clickAction = `onclick="window.location.href='home.html#home-missions-section'" class="cursor-pointer p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}"`;
+          } else {
+            clickAction = `class="p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}"`;
+          }
+
           return `
-            <div class="p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}">
+            <div ${clickAction}>
               <div class="flex items-start justify-between">
                 <p class="font-bold text-xs text-on-surface flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-sm ${iconColor}">
