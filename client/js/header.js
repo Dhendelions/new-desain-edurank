@@ -34,6 +34,16 @@ class Header {
     this.attachEventListeners();
   }
 
+  attachEventListeners() {
+    const notifBtn = document.getElementById('btn-notifications');
+    if (notifBtn) {
+      notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.showNotifications();
+      });
+    }
+  }
+
   getCurrentPage() {
     const path = window.location.pathname;
     const filename = path.split(/[\\/]/).pop() || 'home.html';
