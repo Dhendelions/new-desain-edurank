@@ -353,13 +353,23 @@ function initAuth() {
               window.location.href = 'learning-style.html';
             }, 500);
             return;
-          } else if (response.status === 400 && result && result.message) {
+          } else if (result && result.message) {
             setNotice(result.message);
+            resetFormState();
+            return;
+          } else {
+            setNotice(`Gagal melakukan registrasi (HTTP ${response.status}).`);
             resetFormState();
             return;
           }
         } catch (err) {
-          console.warn('API server connection offline, falling back to local mode:', err);
+          console.warn('API server connection error:', err);
+          if (window.location.protocol !== 'file:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            setNotice('Tidak dapat terhubung ke server. Periksa koneksi Anda.');
+            resetFormState();
+            return;
+          }
+          console.warn('Falling back to local mode...');
         }
 
         const existingUsers = readUsers();
@@ -386,7 +396,7 @@ function initAuth() {
           notifications: []
         });
         setUserSession(newUser);
-        setNotice('Registrasi berhasil! Mengarahkan ke learning style...', true);
+        setNotice('Registrasi berhasil (Local Mode)! Mengarahkan ke learning style...', true);
         shouldRedirect = true;
         setTimeout(() => {
           window.location.href = 'learning-style.html';
@@ -462,26 +472,37 @@ function initAuth() {
               window.location.href = targetPage;
             }, 500);
             return;
-          } else if (response.status === 401 && result && result.message) {
+          } else if (result && result.message) {
             setNotice(result.message);
+            resetFormState();
+            return;
+          } else {
+            setNotice(`Gagal melakukan login (HTTP ${response.status}).`);
             resetFormState();
             return;
           }
         } catch (err) {
-          console.warn('API server connection offline, falling back to local mode:', err);
+          console.warn('API server connection error:', err);
+          if (window.location.protocol !== 'file:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            setNotice('Tidak dapat terhubung ke server. Periksa koneksi Anda.');
+            resetFormState();
+            return;
+          }
+          console.warn('Falling back to local mode...');
         }
 
         const users = readUsers();
         const matchedUser = users.find((user) => String(user.email).toLowerCase() === email && user.password === password);
         if (!matchedUser) {
-          setNotice('Email atau password salah.');
+          setNotice('Email atau password salah (Local Mode).');
           resetFormState();
           return;
         }
         const normalized = normalizeUser(matchedUser);
         saveUser(normalized);
         setUserSession(normalized);
-        setNotice('Login berhasil! Mengarahkan ke dashboard...', true);
+        // Do NOT set a dummy JWT token, local mode doesn't use it
+        setNotice('Login berhasil (Local Mode)! Mengarahkan...', true);
         const targetPage = normalized.learningStyle ? 'home.html' : 'learning-style.html';
         shouldRedirect = true;
         setTimeout(() => {
