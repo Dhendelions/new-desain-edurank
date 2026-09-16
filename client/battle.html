@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle Arena - EduRank Indonesia</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "outline": "#777587",
+            "on-error-container": "#93000a",
+            "surface-bright": "#faf8ff",
+            "secondary": "#0058be",
+            "tertiary-fixed": "#6ffbbe",
+            "on-tertiary-fixed": "#002113",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "outline-variant": "#c7c4d8",
+            "surface-container-lowest": "#ffffff",
+            "secondary-container": "#2170e4",
+            "on-primary": "#ffffff",
+            "on-surface": "#131b2e",
+            "surface-container-high": "#e2e7ff",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-background": "#131b2e",
+            "surface-tint": "#4d44e3",
+            "on-primary-fixed-variant": "#3323cc",
+            "on-secondary-fixed-variant": "#004395",
+            "on-secondary-fixed": "#001a42",
+            "surface-container-highest": "#dae2fd",
+            "on-secondary-container": "#fefcff",
+            "surface-container-low": "#f2f3ff",
+            "error-container": "#ffdad6",
+            "surface-variant": "#dae2fd",
+            "inverse-primary": "#c3c0ff",
+            "on-surface-variant": "#464555",
+            "primary-fixed": "#e2dfff",
+            "primary": "#3525cd",
+            "on-tertiary-container": "#67f4b7",
+            "on-primary-fixed": "#0f0069",
+            "primary-fixed-dim": "#c3c0ff",
+            "secondary-fixed": "#d8e2ff",
+            "surface-container": "#eaedff",
+            "inverse-on-surface": "#eef0ff",
+            "on-tertiary-fixed-variant": "#005236",
+            "tertiary-container": "#006e4b",
+            "surface-dim": "#d2d9f4",
+            "surface": "#faf8ff",
+            "background": "#faf8ff",
+            "primary-container": "#4f46e5",
+            "tertiary": "#005338",
+            "error": "#ba1a1a",
+            "on-tertiary": "#ffffff",
+            "inverse-surface": "#283044",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-primary-container": "#dad7ff"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: { "space-sm": "0.5rem", "space-md": "1rem", "gutter": "1.5rem", "space-lg": "1.5rem", "space-xl": "2.5rem", "space-xs": "0.25rem", "margin": "2.5rem" },
+          fontFamily: {
+            "label-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { display: none; }
+    main { min-height: calc(100vh - 80px); }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(199, 196, 216, 0.4);
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .animate-pulse-subtle { animation: pulse-subtle 2s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+  
+  <!-- Shared Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-20 max-w-[1360px] mx-auto px-margin flex items-center justify-between gap-gutter">
+      <div class="flex items-center gap-space-md">
+        <a class="flex items-center gap-space-sm group" href="home.html">
+          <div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-headline-sm">school</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-headline-sm text-headline-sm tracking-tight text-on-surface group-hover:text-primary transition-colors">EduRank</span>
+            <span class="font-label-sm text-label-sm text-outline tracking-wider uppercase -mt-1">Indonesia</span>
+          </div>
+        </a>
+        <div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Real-Time PvP</span>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-space-xs bg-surface-container-low/70 p-1 rounded-xl" id="main-nav">
+        <!-- populated by header.js -->
+      </nav>
+      <div class="flex items-center gap-space-md">
+        <button id="btn-notifications" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button" aria-label="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+          <span id="notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error hidden"></span>
+        </button>
+        <div class="flex items-center gap-space-sm pl-space-xs border-l border-outline-variant/30">
+          <div class="flex flex-col text-right hidden sm:flex">
+            <span id="header-user-name" class="font-label-md text-label-md text-on-surface font-bold">Memuat...</span>
+            <span id="header-user-rank" class="font-label-sm text-label-sm text-secondary font-bold">Memuat...</span>
+          </div>
+          <a href="profile.html">
+            <img id="header-user-photo" alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-surface-container-highest" src="https://ui-avatars.com/api/?name=User&background=random">
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full pt-24 pb-12 bg-background">
+    <div class="max-w-[1200px] mx-auto px-margin">
+      
+      <!-- VIEW 1: LOBBY SECTION -->
+      <section id="battle-lobby-view" class="flex flex-col gap-space-lg">
+        
+        <!-- Header Mode Tabs -->
+        <div class="glass-panel p-space-lg rounded-3xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md">
+          <div class="flex items-center gap-space-sm">
+            <div class="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary">
+              <span class="material-symbols-outlined text-[28px]">sports_esports</span>
+            </div>
+            <div>
+              <h1 class="font-headline-md text-headline-md font-extrabold text-on-surface">Battle Arena</h1>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Pilih mode pertandingan dan uji kemampuan akademikmu!</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center bg-surface-container-low p-1.5 rounded-2xl w-full md:w-auto overflow-x-auto">
+            <button id="tab-ranked" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl font-label-lg text-label-lg font-bold transition-all bg-secondary text-on-secondary shadow-sm flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">swords</span>
+              <span>Ranked</span>
+            </button>
+            <button id="tab-classic" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl font-label-lg text-label-lg font-bold transition-all text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+              <span>Classic</span>
+            </button>
+            <button id="tab-custom" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl font-label-lg text-label-lg font-bold transition-all text-on-surface-variant hover:text-on-surface flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">key</span>
+              <span>Custom Room</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Lobby Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+          
+          <!-- Left Column: Subject Selection -->
+          <div class="lg:col-span-7 flex flex-col gap-space-md">
+            <div class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-title-md text-title-md font-bold text-on-surface">Pilih Mata Pelajaran</h3>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Pilih mapel yang ingin kamu tandingkan hari ini.</p>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-bold">4 Mapel</span>
+              </div>
+              
+              <div id="subject-list" class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+                <!-- Subject cards injected by battle.js -->
+                <div class="col-span-full py-8 text-center text-outline">
+                  <span class="material-symbols-outlined text-3xl animate-pulse mb-2">hourglass_empty</span>
+                  <p>Memuat mata pelajaran...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Mode Config & Match Launch -->
+          <div class="lg:col-span-5 flex flex-col gap-space-md">
+            
+            <!-- Ranked Config Panel -->
+            <div id="panel-ranked" class="bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+              <div class="flex items-center gap-space-sm">
+                <div class="w-10 h-10 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[22px]">swords</span>
+                </div>
+                <div>
+                  <h3 class="font-title-md text-title-md font-bold text-on-surface">Ranked Match</h3>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Perebutan ELO & Rank Resmi Nasional</p>
+                </div>
+              </div>
+              
+              <div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-col gap-2">
+                <div class="flex justify-between items-center text-body-sm">
+                  <span class="text-on-surface-variant font-medium">Format</span>
+                  <span class="font-bold text-on-surface">1 vs 1 Duel</span>
+                </div>
+                <div class="flex justify-between items-center text-body-sm">
+                  <span class="text-on-surface-variant font-medium">Taruhan</span>
+                  <span class="font-bold text-secondary">±15 ELO Rating</span>
+                </div>
+                <div class="flex justify-between items-center text-body-sm">
+                  <span class="text-on-surface-variant font-medium">Jumlah Soal</span>
+                  <span class="font-bold text-on-surface">10 Soal Berwaktu</span>
+                </div>
+              </div>
+
+              <!-- Matchmaking Status -->
+              <div id="matchmaking-box" class="hidden p-6 rounded-2xl bg-secondary/5 border border-secondary/20 flex flex-col items-center text-center gap-3">
+                <div class="w-12 h-12 rounded-full border-4 border-secondary border-t-transparent animate-spin"></div>
+                <div>
+                  <p class="font-bold text-secondary">Mencari Lawan Standar...</p>
+                  <p class="text-xs text-on-surface-variant mt-0.5">Menyelaraskan ELO & Mapel Terpilih</p>
+                </div>
+                <button id="btn-cancel-matchmaking" type="button" class="mt-1 px-4 py-1.5 rounded-lg bg-error/10 text-error hover:bg-error/20 text-xs font-bold transition-colors">
+                  Batalkan Cari
+                </button>
+              </div>
+
+              <button id="btn-start-ranked" type="button" class="w-full py-3.5 rounded-xl bg-secondary hover:bg-primary text-on-secondary font-label-lg text-label-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Cari Pertandingan Ranked</span>
+              </button>
+            </div>
+
+            <!-- Classic Config Panel -->
+            <div id="panel-classic" class="hidden bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+              <div class="flex items-center gap-space-sm">
+                <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[22px]">smart_toy</span>
+                </div>
+                <div>
+                  <h3 class="font-title-md text-title-md font-bold text-on-surface">Classic Match</h3>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Latihan Santai Tanpa Penalti ELO</p>
+                </div>
+              </div>
+              
+              <div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-col gap-2">
+                <div class="flex justify-between items-center text-body-sm">
+                  <span class="text-on-surface-variant font-medium">Mode Penilaian</span>
+                  <span class="font-bold text-tertiary">Bebas ELO (Latihan)</span>
+                </div>
+                <div class="flex justify-between items-center text-body-sm">
+                  <span class="text-on-surface-variant font-medium">Hadiah</span>
+                  <span class="font-bold text-primary">+XP Pembelajaran</span>
+                </div>
+              </div>
+
+              <button id="btn-start-classic" type="button" class="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Mulai Classic Match</span>
+              </button>
+            </div>
+
+            <!-- Custom Room Panel -->
+            <div id="panel-custom" class="hidden bg-surface-container-lowest p-space-lg rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+              <div class="flex items-center gap-space-sm">
+                <div class="w-10 h-10 rounded-xl bg-tertiary-container text-on-tertiary flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[22px]">key</span>
+                </div>
+                <div>
+                  <h3 class="font-title-md text-title-md font-bold text-on-surface">Custom Room</h3>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Main Lawan Teman atau Komputer AI</p>
+                </div>
+              </div>
+
+              <!-- Options Sub-Tabs -->
+              <div class="grid grid-cols-2 gap-2 p-1 bg-surface-container-low rounded-xl">
+                <button id="custom-sub-room" class="py-2 rounded-lg font-label-md text-label-md font-bold bg-surface-container-lowest text-primary shadow-sm">Room Kode</button>
+                <button id="custom-sub-ai" class="py-2 rounded-lg font-label-md text-label-md font-bold text-on-surface-variant hover:text-on-surface">Lawan AI</button>
+              </div>
+
+              <!-- Room Code Sub-Panel -->
+              <div id="custom-room-section" class="flex flex-col gap-space-sm">
+                <button id="btn-create-custom-room" type="button" class="w-full py-3 rounded-xl bg-tertiary-container hover:bg-tertiary text-on-tertiary font-label-lg text-label-lg font-bold transition-all shadow-sm flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined">add_circle</span>
+                  <span>Buat Room Baru</span>
+                </button>
+                
+                <div class="relative flex items-center my-1">
+                  <div class="flex-grow border-t border-outline-variant/30"></div>
+                  <span class="shrink-0 px-3 text-xs text-outline uppercase font-bold">atau</span>
+                  <div class="flex-grow border-t border-outline-variant/30"></div>
+                </div>
+
+                <div class="flex gap-2">
+                  <input id="input-room-code" type="text" placeholder="Masukkan 6 Digit Kode" maxlength="6" class="flex-1 px-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-lowest font-mono font-bold text-center tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary text-on-surface">
+                  <button id="btn-join-custom-room" type="button" class="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-label-lg text-label-lg font-bold transition-colors">
+                    Gabung
+                  </button>
+                </div>
+              </div>
+
+              <!-- AI Sub-Panel -->
+              <div id="custom-ai-section" class="hidden flex flex-col gap-space-sm">
+                <label class="font-label-md text-label-md font-bold text-on-surface">Tingkat Kesulitan AI</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button data-difficulty="easy" class="ai-diff-btn py-2 px-3 rounded-xl border border-outline-variant/40 font-label-sm text-label-sm font-bold text-on-surface hover:border-primary transition-all">Mudah</button>
+                  <button data-difficulty="medium" class="ai-diff-btn py-2 px-3 rounded-xl border-2 border-primary bg-primary/10 font-label-sm text-label-sm font-bold text-primary transition-all">Sedang</button>
+                  <button data-difficulty="hard" class="ai-diff-btn py-2 px-3 rounded-xl border border-outline-variant/40 font-label-sm text-label-sm font-bold text-on-surface hover:border-primary transition-all">Sulit</button>
+                </div>
+
+                <button id="btn-start-ai" type="button" class="mt-2 w-full py-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined">smart_toy</span>
+                  <span>Mulai Pertandingan VS AI</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- VIEW 2: LIVE BATTLE ARENA (Hidden initially) -->
+      <section id="battle-arena-view" class="hidden flex-col gap-space-md max-w-[900px] mx-auto">
+        
+        <!-- Scoreboard Header -->
+        <div class="glass-panel p-space-md rounded-3xl shadow-md flex items-center justify-between gap-space-md">
+          
+          <!-- Player 1 -->
+          <div class="flex items-center gap-space-sm flex-1">
+            <img id="p1-photo" class="w-12 h-12 rounded-2xl object-cover ring-2 ring-primary" src="https://ui-avatars.com/api/?name=User&background=random" alt="Player 1">
+            <div class="flex flex-col min-w-0">
+              <span id="p1-name" class="font-title-md text-title-md font-bold text-on-surface truncate">Kamu</span>
+              <span id="p1-score" class="font-label-sm text-label-sm text-primary font-extrabold">Skor: 0</span>
+            </div>
+          </div>
+
+          <!-- Timer & VS Badge -->
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-14 h-14 rounded-full bg-surface-container-high flex flex-col items-center justify-center border-2 border-primary shadow-inner">
+              <span id="countdown-timer" class="font-headline-sm text-headline-sm font-black text-primary">30</span>
+            </div>
+            <span id="question-number" class="font-label-sm text-label-sm text-outline font-bold mt-1">Soal 1 / 10</span>
+          </div>
+
+          <!-- Player 2 / Opponent -->
+          <div class="flex items-center gap-space-sm flex-1 justify-end text-right">
+            <div class="flex flex-col min-w-0">
+              <span id="p2-name" class="font-title-md text-title-md font-bold text-on-surface truncate">Lawan</span>
+              <span id="p2-score" class="font-label-sm text-label-sm text-secondary font-extrabold">Skor: 0</span>
+            </div>
+            <img id="p2-photo" class="w-12 h-12 rounded-2xl object-cover ring-2 ring-secondary" src="https://ui-avatars.com/api/?name=Opponent&background=random" alt="Opponent">
+          </div>
+
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-surface-container-lowest p-space-xl rounded-3xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-lg">
+          <div class="flex items-center justify-between pb-3 border-b border-outline-variant/20">
+            <span id="arena-subject-tag" class="px-3 py-1 rounded-full bg-secondary/10 text-secondary font-label-md text-label-md font-bold">
+              Mata Pelajaran: Fisika
+            </span>
+            <span class="font-label-sm text-label-sm text-outline">Waktu per Soal: 30s</span>
+          </div>
+
+          <h2 id="question-text" class="font-headline-sm text-headline-sm font-bold text-on-surface leading-relaxed min-h-[80px]">
+            Memuat pertanyaan...
+          </h2>
+
+          <!-- Options Grid -->
+          <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+            <!-- Dynamic option buttons inserted by engine -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- VIEW 3: MATCH RESULT SCREEN (Hidden initially) -->
+      <section id="battle-result-view" class="hidden flex-col items-center justify-center gap-space-lg max-w-[600px] mx-auto py-8">
+        
+        <div class="w-full glass-panel p-space-xl rounded-3xl shadow-xl flex flex-col items-center text-center gap-space-lg relative overflow-hidden">
+          <div id="result-bg-glow" class="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-tertiary/10 blur-3xl pointer-events-none"></div>
+
+          <!-- Result Icon -->
+          <div id="result-icon-box" class="w-20 h-20 rounded-3xl bg-tertiary-container/20 text-tertiary-container flex items-center justify-center shadow-inner">
+            <span id="result-icon" class="material-symbols-outlined text-[48px]">emoji_events</span>
+          </div>
+
+          <!-- Banner Title -->
+          <div class="flex flex-col gap-1">
+            <h2 id="result-title" class="font-headline-xl text-headline-xl font-black text-on-surface">KEMENANGAN!</h2>
+            <p id="result-subtitle" class="font-body-md text-body-md text-on-surface-variant">Selamat! Kamu tampil luar biasa di pertempuran ini.</p>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-3 gap-space-md w-full bg-surface-container-low/70 p-space-md rounded-2xl border border-outline-variant/20">
+            <div class="flex flex-col items-center">
+              <span class="font-label-sm text-label-sm text-outline font-bold uppercase">Skor Kamu</span>
+              <span id="res-user-score" class="font-headline-md text-headline-md font-extrabold text-on-surface">80</span>
+            </div>
+            <div class="flex flex-col items-center border-x border-outline-variant/30">
+              <span class="font-label-sm text-label-sm text-outline font-bold uppercase">ELO Rating</span>
+              <span id="res-elo-change" class="font-headline-md text-headline-md font-extrabold text-tertiary">+15</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <span class="font-label-sm text-label-sm text-outline font-bold uppercase">Hadiah XP</span>
+              <span id="res-xp-gained" class="font-headline-md text-headline-md font-extrabold text-secondary">+50 XP</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-space-md w-full">
+            <button id="btn-result-play-again" type="button" class="flex-1 py-3.5 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg font-bold hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">replay</span>
+              <span>Main Lagi</span>
+            </button>
+            <button id="btn-result-home" type="button" class="flex-1 py-3.5 rounded-xl bg-surface-container-high text-on-surface font-label-lg text-label-lg font-bold hover:bg-surface-container-highest transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">home</span>
+              <span>Kembali ke Home</span>
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/header.js"></script>
+  <script src="js/battleEngine.js"></script>
+  <script src="js/battle.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      window.headerComponent = new Header();
+    });
+  </script>
+</body>
+</html>

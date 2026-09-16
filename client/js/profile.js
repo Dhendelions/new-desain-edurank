@@ -184,41 +184,71 @@ function renderSubjectRanks(subjectsData) {
     return;
   }
 
-  const icons = {
-    'Fisika': 'science',
-    'Matematika': 'calculate',
-    'Bahasa Inggris': 'public',
-    'Matematika Lanjut': 'functions',
-    'Biologi': 'biotech',
-    'Kimia': 'science',
-    'Informatika': 'code'
+  // Filter out Matematika Lanjut
+  const filtered = subjectsData.filter(s => s.subjectName !== 'Matematika Lanjut' && s.subjectName !== 'Matematika Tingkat Lanjut');
+
+  const subjectConfig = {
+    'Fisika': { icon: 'science', colorBg: 'bg-indigo-500/10', colorText: 'text-indigo-600', badgeBg: 'bg-indigo-500', barColor: 'bg-indigo-500' },
+    'Matematika': { icon: 'calculate', colorBg: 'bg-blue-500/10', colorText: 'text-blue-600', badgeBg: 'bg-blue-500', barColor: 'bg-blue-500' },
+    'Bahasa Inggris': { icon: 'translate', colorBg: 'bg-emerald-500/10', colorText: 'text-emerald-600', badgeBg: 'bg-emerald-500', barColor: 'bg-emerald-500' },
+    'Informatika': { icon: 'code', colorBg: 'bg-amber-500/10', colorText: 'text-amber-600', badgeBg: 'bg-amber-500', barColor: 'bg-amber-500' }
   };
 
-  container.innerHTML = subjectsData.map(sub => {
-    const icon = icons[sub.subjectName] || 'menu_book';
-    const elo = sub.elo || 0;
-    const rank = sub.rank || 'Belum Ada Rank';
+  container.innerHTML = filtered.map(sub => {
+    const cfg = subjectConfig[sub.subjectName] || { icon: 'school', colorBg: 'bg-primary/10', colorText: 'text-primary', badgeBg: 'bg-primary', barColor: 'bg-primary' };
+    const elo = sub.elo !== null && sub.elo !== undefined ? sub.elo : 100;
     
+    let rankName = sub.rank;
+    if (!rankName || rankName === 'Belum Ada Rank') {
+      if (elo >= 1600) rankName = 'Profesor';
+      else if (elo >= 1101) rankName = 'Master';
+      else if (elo >= 701) rankName = 'Diamond';
+      else if (elo >= 401) rankName = 'Gold';
+      else if (elo >= 201) rankName = 'Silver';
+      else rankName = 'Bronze';
+    }
+
+    // ELO progress towards next tier (tier max: 400 for silver, 700 gold, etc.)
+    const progressPercent = Math.min(100, Math.max(15, (elo / 400) * 100));
+
     return `
-      <div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-        <div class="flex flex-col gap-space-sm">
+      <div class="bg-surface-container-lowest rounded-3xl p-space-lg shadow-sm border border-outline-variant/20 flex flex-col justify-between hover:shadow-md transition-all group relative overflow-hidden">
+        <div class="flex flex-col gap-space-md">
+          
+          <!-- Top Row: Name & ELO -->
           <div class="flex items-center justify-between">
-            <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-secondary px-2.5 py-1 bg-secondary/10 rounded-full">
-              ${sub.subjectName}
-            </span>
-            <span class="font-label-md text-label-md text-secondary font-bold">
-              ${elo} ELO
-            </span>
-          </div>
-          <div class="flex items-center gap-space-sm mt-1">
-            <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-secondary shrink-0">
-              <span class="material-symbols-outlined text-[28px]">${icon}</span>
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl ${cfg.colorBg} ${cfg.colorText} flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[22px]">${cfg.icon}</span>
+              </div>
+              <div>
+                <h3 class="font-title-md text-title-md font-bold text-on-surface group-hover:text-primary transition-colors">${sub.subjectName}</h3>
+                <span class="font-label-sm text-label-sm text-outline">Kelas ${sub.classLevel || 12}</span>
+              </div>
             </div>
-            <div class="flex flex-col">
-              <div class="font-headline-sm text-headline-sm text-on-surface">${rank}</div>
-              <span class="font-label-sm text-label-sm text-tertiary font-medium">Kelas ${sub.classLevel || '-'}</span>
+            
+            <div class="flex flex-col items-end">
+              <span class="font-headline-sm text-headline-sm font-black ${cfg.colorText}">${elo}</span>
+              <span class="font-label-sm text-label-sm font-bold text-outline">ELO Rating</span>
             </div>
           </div>
+
+          <!-- Bottom Row: Rank Badge & Progress Bar -->
+          <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/20">
+            <div class="flex items-center justify-between">
+              <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-outline">Peringkat Subjek</span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${cfg.colorBg} ${cfg.colorText} font-label-sm text-label-sm font-bold">
+                <span class="material-symbols-outlined text-[14px]">military_tech</span>
+                ${rankName}
+              </span>
+            </div>
+
+            <!-- ELO Bar -->
+            <div class="w-full bg-surface-container-low rounded-full h-2 overflow-hidden mt-1">
+              <div class="${cfg.barColor} h-2 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+            </div>
+          </div>
+
         </div>
       </div>
     `;

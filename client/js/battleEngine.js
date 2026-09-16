@@ -78,6 +78,18 @@ class BattleEngine {
         { q: 'The sun ___ in the east.', options: ['rises', 'rose', 'rising', 'is rise'], answer: 0 },
         { q: 'Which word is spelled correctly?', options: ['Necessary', 'Neccessary', 'Necesary', 'Nessessary'], answer: 0 },
         { q: 'Could you please ___ me the salt?', options: ['pass', 'passed', 'passing', 'passes'], answer: 0 }
+      ],
+      'Informatika': [
+        { q: 'Struktur data mana yang menggunakan prinsip LIFO (Last In First Out)?', options: ['Stack', 'Queue', 'Array', 'Linked List'], answer: 0 },
+        { q: 'Komponen hardware yang berfungsi sebagai otak utama komputer adalah:', options: ['CPU', 'RAM', 'Harddisk', 'GPU'], answer: 0 },
+        { q: 'Bahasa pemrograman yang sering digunakan untuk pengembangan web frontend adalah:', options: ['JavaScript', 'C++', 'Assembly', 'SQL'], answer: 0 },
+        { q: 'Protokol standar yang digunakan untuk transfer data web yang aman adalah:', options: ['HTTPS', 'HTTP', 'FTP', 'SMTP'], answer: 0 },
+        { q: 'Kompleksitas waktu pencarian (search) pada Binary Search Tree ideal adalah:', options: ['O(log n)', 'O(n)', 'O(n²)', 'O(1)'], answer: 0 },
+        { q: 'Perintah SQL untuk menambahkan data baru ke dalam tabel adalah:', options: ['INSERT INTO', 'UPDATE', 'CREATE TABLE', 'SELECT'], answer: 0 },
+        { q: 'Penulisan alamat IPv4 terdiri dari berapa bit?', options: ['32 bit', '64 bit', '128 bit', '16 bit'], answer: 0 },
+        { q: 'Prinsip OOP di mana satu class mewarisi sifat dari class lain disebut:', options: ['Inheritance', 'Encapsulation', 'Polymorphism', 'Abstraction'], answer: 0 },
+        { q: 'Perangkat keras penukar sinyal digital ke analog dan sebaliknya adalah:', options: ['Modem', 'Router', 'Switch', 'Hub'], answer: 0 },
+        { q: 'Istilah untuk kesalahan logika atau sintaks pada program adalah:', options: ['Bug', 'Glitch', 'Virus', 'Malware'], answer: 0 }
       ]
     };
 
@@ -86,9 +98,9 @@ class BattleEngine {
 
   setupAiOpponent() {
     const difficulties = {
-      easy: { name: 'AI Novice (Mudah)', accuracy: 0.5, delayRange: [4000, 12000] },
-      medium: { name: 'AI Pro (Sedang)', accuracy: 0.75, delayRange: [3000, 8000] },
-      hard: { name: 'AI Master (Sulit)', accuracy: 0.92, delayRange: [1500, 5000] }
+      easy: { name: 'AI Novice (Mudah)', accuracy: 0.4, delayRange: [4000, 10000] },
+      medium: { name: 'AI Pro (Sedang)', accuracy: 0.65, delayRange: [3000, 7000] },
+      hard: { name: 'AI Master (Sulit)', accuracy: 0.88, delayRange: [1500, 4500] }
     };
     const config = difficulties[this.difficulty] || difficulties.medium;
     this.opponent = {
@@ -120,10 +132,10 @@ class BattleEngine {
 
   updatePlayerUI() {
     if (this.p1NameEl) this.p1NameEl.textContent = this.user.name || 'Kamu';
-    if (this.p1ScoreEl) this.p1ScoreEl.textContent = `Score: ${this.userScore}`;
+    if (this.p1ScoreEl) this.p1ScoreEl.textContent = `Skor: ${this.userScore}`;
     
     if (this.p2NameEl) this.p2NameEl.textContent = this.opponent.name;
-    if (this.p2ScoreEl) this.p2ScoreEl.textContent = `Score: ${this.opponentScore}`;
+    if (this.p2ScoreEl) this.p2ScoreEl.textContent = `Skor: ${this.opponentScore}`;
   }
 
   startQuestion() {
@@ -144,7 +156,6 @@ class BattleEngine {
     }
 
     this.renderOptions(qData.options);
-    this.updateStepperMatrix();
     this.startTimer();
 
     if (this.opponent.isAi) {
@@ -164,7 +175,7 @@ class BattleEngine {
     `).join('');
 
     this.optionsContainerEl.querySelectorAll('.option-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const selectedIdx = parseInt(btn.dataset.index, 10);
         this.submitAnswer(selectedIdx);
       });
@@ -180,7 +191,7 @@ class BattleEngine {
     const isCorrect = selectedIdx === qData.answer;
 
     if (isCorrect) {
-      this.userScore += 1;
+      this.userScore += 10;
     }
     this.userAnswers.push(isCorrect);
     this.updatePlayerUI();
@@ -191,10 +202,10 @@ class BattleEngine {
       btn.disabled = true;
       if (idx === qData.answer) {
         btn.classList.remove('border-outline-variant/30', 'bg-surface-container-lowest');
-        btn.classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-700');
+        btn.classList.add('border-emerald-500', 'bg-emerald-500/20', 'text-emerald-700', 'font-bold');
       } else if (idx === selectedIdx && !isCorrect) {
         btn.classList.remove('border-outline-variant/30', 'bg-surface-container-lowest');
-        btn.classList.add('border-rose-500', 'bg-rose-500/10', 'text-rose-700');
+        btn.classList.add('border-rose-500', 'bg-rose-500/20', 'text-rose-700');
       }
     });
 
@@ -204,10 +215,10 @@ class BattleEngine {
 
     setTimeout(() => {
       this.nextQuestion();
-    }, 1500);
+    }, 1200);
   }
 
-  scheduleAiAnswer(qData) {
+  scheduleAiAnswer() {
     const [minDelay, maxDelay] = this.opponent.delayRange;
     const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
@@ -215,7 +226,7 @@ class BattleEngine {
       if (this.currentQuestionIndex >= this.questions.length) return;
       const isCorrect = Math.random() < this.opponent.accuracy;
       if (isCorrect) {
-        this.opponentScore += 1;
+        this.opponentScore += 10;
       }
       this.opponentAnswers.push(isCorrect);
       this.updatePlayerUI();
@@ -247,22 +258,63 @@ class BattleEngine {
 
   updateTimerDisplay() {
     if (!this.timerEl) return;
-    const formatted = this.secondsLeft < 10 ? `0${this.secondsLeft}` : `${this.secondsLeft}`;
-    this.timerEl.textContent = `00:${formatted}`;
+    this.timerEl.textContent = `${this.secondsLeft}`;
   }
 
-  updateStepperMatrix() {
-    // Optional stepper visual sync
-  }
-
-  finishBattle() {
+  async finishBattle() {
     clearInterval(this.timer);
-    const isWin = this.userScore >= this.opponentScore;
-    const modePrefix = this.mode === 'ranked' ? 'ranked' : (this.mode === 'custom' ? 'custom' : 'classic');
-    const resultPage = isWin ? `${modePrefix}_menang.html` : `${modePrefix}_kalah.html`;
+    const isWin = this.userScore > this.opponentScore;
+    const isDraw = this.userScore === this.opponentScore;
+    
+    let eloChange = 0;
+    if (this.mode === 'ranked') {
+      eloChange = isWin ? 15 : (isDraw ? 0 : -10);
+    }
+    const xpGained = isWin ? 50 : (isDraw ? 25 : 10);
 
-    const query = `?userScore=${this.userScore}&oppScore=${this.opponentScore}&subject=${encodeURIComponent(this.subject)}&opponent=${encodeURIComponent(this.opponent.name)}`;
-    window.location.href = `${resultPage}${query}`;
+    // Save battle stats to user profile if user email exists
+    if (this.user && this.user.email) {
+      try {
+        const wins = (Number(this.user.wins) || 0) + (isWin ? 1 : 0);
+        const losses = (Number(this.user.losses) || 0) + (!isWin && !isDraw ? 1 : 0);
+        const draws = (Number(this.user.draws) || 0) + (isDraw ? 1 : 0);
+        const currentElo = Number(this.user.elo) || 400;
+        const newElo = Math.max(0, currentElo + eloChange);
+        const currentXp = Number(this.user.xp) || 0;
+
+        await fetch('/api/user/update', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          },
+          body: JSON.stringify({
+            email: this.user.email,
+            elo: newElo,
+            xp: currentXp + xpGained,
+            wins,
+            losses,
+            draws
+          })
+        });
+      } catch (err) {
+        console.error('Failed to update user stats post battle:', err);
+      }
+    }
+
+    if (typeof window.onBattleFinished === 'function') {
+      window.onBattleFinished({
+        mode: this.mode,
+        subject: this.subject,
+        userScore: this.userScore,
+        opponentScore: this.opponentScore,
+        opponentName: this.opponent.name,
+        isWin,
+        isDraw,
+        eloChange,
+        xpGained
+      });
+    }
   }
 
   initSocket() {
@@ -271,7 +323,8 @@ class BattleEngine {
 
     this.socket.on('battle_update', (data) => {
       if (data.score) {
-        // Sync score for opponent
+        this.opponentScore = data.score;
+        this.updatePlayerUI();
       }
     });
 

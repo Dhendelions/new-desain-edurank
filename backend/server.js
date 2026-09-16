@@ -136,15 +136,15 @@ app.post('/api/register', async (req, res) => {
 
     await pool.query(
       `INSERT INTO users (id, name, email, password, role, phone_number, learning_style, elo, xp, wins, losses, draws, total_battles, correct_answers, incorrect_answers)
-       VALUES (?, ?, ?, ?, 'student', ?, '', 100, 0, 0, 0, 0, 0, 0, 0)`,
+       VALUES (?, ?, ?, ?, 'student', ?, '', 400, 0, 0, 0, 0, 0, 0, 0)`,
       [userId, name, email, hashedPassword, phoneNumber]
     );
 
     const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
     const user = formatUserResponse(rows[0]);
 
-    // Insert default subjects
-    const [subjectsRows] = await pool.query('SELECT id FROM subjects');
+    // Insert default subjects (excluding Matematika Lanjut)
+    const [subjectsRows] = await pool.query("SELECT id FROM subjects WHERE name NOT IN ('Matematika Lanjut', 'Matematika Tingkat Lanjut')");
     if (subjectsRows.length > 0) {
       const insertData = subjectsRows.map(sub => [userId, sub.id, 100]);
       await pool.query('INSERT IGNORE INTO user_subjects (user_id, subject_id, elo) VALUES ?', [insertData]);
@@ -215,7 +215,14 @@ app.get('/api/me', async (req, res) => {
       return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
     }
 
-    return res.json({ success: true, user: formatUserResponse(rows[0]) });
+    const user = formatUserResponse(rows[0]);
+    // Compute user total ELO from user_subjects
+    const [totalEloRow] = await pool.query('SELECT SUM(elo) as totalElo FROM user_subjects WHERE user_id = ?', [decoded.id]);
+    const computedElo = totalEloRow[0] && totalEloRow[0].totalElo ? Number(totalEloRow[0].totalElo) : (user.elo || 400);
+    user.elo = computedElo;
+    user.rank = calculateRank(computedElo);
+
+    return res.json({ success: true, user });
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Sesi telah kadaluarsa.' });
   }
@@ -278,20 +285,18 @@ app.get('/api/home', async (req, res) => {
 
     // Calculate total ELO from user_subjects
     const [totalEloRow] = await pool.query('SELECT SUM(elo) as totalElo FROM user_subjects WHERE user_id = ?', [userId]);
-    user.elo = totalEloRow[0].totalElo || 0;
+    user.elo = totalEloRow[0] && totalEloRow[0].totalElo ? Number(totalEloRow[0].totalElo) : 400;
 
-    // Get rank from database
+    // Get rank from database or calculateRank helper
     const [rankRows] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [user.elo, user.elo]);
-    user.rank = rankRows.length > 0 ? rankRows[0].name : 'Bronze';
+    user.rank = rankRows.length > 0 ? rankRows[0].name : calculateRank(user.elo);
 
-    // Get User Subjects Data
-    // One card per subject name. The historical schema has Fisika for several
-    // classes; the earliest configured subject is the canonical home rank.
+    // Get User Subjects Data (excluding Matematika Lanjut)
     const [userSubjects] = await pool.query(`
       SELECT s.id, s.name as subjectName, c.level as classLevel, us.elo
       FROM subjects s JOIN classes c ON s.class_id = c.id
       LEFT JOIN user_subjects us ON us.subject_id = s.id AND us.user_id = ?
-      WHERE s.id IN (SELECT MIN(id) FROM subjects GROUP BY name)
+      WHERE s.id IN (SELECT MIN(id) FROM subjects WHERE name NOT IN ('Matematika Lanjut', 'Matematika Tingkat Lanjut') GROUP BY name)
       ORDER BY s.id
     `, [userId]);
 

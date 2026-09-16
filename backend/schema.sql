@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `role` VARCHAR(50) NOT NULL DEFAULT 'student',
   `phone_number` VARCHAR(50) DEFAULT NULL,
   `learning_style` VARCHAR(50) DEFAULT '',
-  `elo` INT NOT NULL DEFAULT 100,
+  `elo` INT NOT NULL DEFAULT 400,
   `xp` INT NOT NULL DEFAULT 0,
   `wins` INT NOT NULL DEFAULT 0,
   `losses` INT NOT NULL DEFAULT 0,
@@ -60,10 +60,7 @@ CREATE TABLE IF NOT EXISTS `subjects` (
 INSERT IGNORE INTO `subjects` (`id`, `name`, `class_id`)
 VALUES (1, 'Fisika', 3),
   (2, 'Matematika', 3),
-  (3, 'Bahasa Inggris', 3),
-  (4, 'Matematika Lanjut', 3),
-  (5, 'Fisika', 1),
-  (6, 'Fisika', 2);
+  (3, 'Bahasa Inggris', 3);
 INSERT INTO `subjects` (`name`, `class_id`)
 SELECT 'Informatika', 3
 WHERE NOT EXISTS (SELECT 1 FROM `subjects` WHERE `name` = 'Informatika' AND `class_id` = 3);

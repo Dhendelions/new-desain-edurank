@@ -1,7 +1,7 @@
 const APP_STORAGE_KEY = 'edurank-session';
 const USERS_STORAGE_KEY = 'edurank-users';
 const LEARNING_KEY = 'edurank-learning-style';
-const DEFAULT_ELO = 100;
+const DEFAULT_ELO = 400;
 
 const PAGE_ROUTES = {
   home: 'home.html',
@@ -61,35 +61,6 @@ const MATERI_DATA = [
           { title: '1. Pengertian & Konsep Utama', content: 'Peluang menyatakan tingkat kepastian terjadinya suatu hasil/kejadian dalam percobaan acak.' },
           { title: '2. Rumus & Persamaan Kunci', content: 'P(A) = n(A) / n(S). Permutasi P(n,r) = n! / (n-r)!. Kombinasi C(n,r) = n! / (r! (n-r)!).' },
           { title: '3. Contoh Soal Sederhana', content: 'Peluang melempar 1 dadu bermata 6 dan muncul angka genap (2,4,6) adalah P(A) = 3/6 = 1/2.' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'matematika-lanjut',
-    name: 'Matematika Tingkat Lanjut',
-    icon: 'functions',
-    color: 'bg-secondary text-on-secondary',
-    desc: 'Kalkulus Tingkat Lanjut, Vektor, Geometri Analitik & Polinomial',
-    subchapters: [
-      {
-        id: 'polinomial',
-        name: 'Suku Banyak (Polinomial)',
-        desc: 'Teorema Sisa, Teorema Faktor & Pembagian Polinomial',
-        topics: [
-          { title: '1. Pengertian & Konsep Utama', content: 'Polinomial adalah pernyataan matematika yang melibatkan penjumlahan perkalian pangkat dalam satu atau lebih variabel dengan koefisien.' },
-          { title: '2. Rumus & Persamaan Kunci', content: 'F(x) = P(x) · H(x) + S(x). Teorema Sisa: Sisa pembagian F(x) oleh (x - a) adalah F(a).' },
-          { title: '3. Contoh Soal Sederhana', content: 'Sisa F(x) = x³ - 2x + 4 dibagi (x - 2) adalah F(2) = 2³ - 2(2) + 4 = 8 - 4 + 4 = 8.' }
-        ]
-      },
-      {
-        id: 'vektor',
-        name: 'Vektor di R² & R³',
-        desc: 'Operasi Vektor, Panjang Vektor, Perkalian Titik (Dot Product)',
-        topics: [
-          { title: '1. Pengertian & Konsep Utama', content: 'Vektor adalah besaran geometri yang memiliki besar (panjang) dan arah.' },
-          { title: '2. Rumus & Persamaan Kunci', content: 'Panjang vektor |u| = √(x² + y²). Dot Product u · v = |u||v| cos θ = u₁v₁ + u₂v₂.' },
-          { title: '3. Contoh Soal Sederhana', content: 'Panjang vektor u = (3, 4) adalah |u| = √(3² + 4²) = √25 = 5.' }
         ]
       }
     ]

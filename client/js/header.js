@@ -112,15 +112,28 @@ class Header {
   updateUserInfo() {
     const userNameEl = document.getElementById('header-user-name');
     const userPhotoEl = document.getElementById('header-user-photo');
-    const userRankEl = document.getElementById('header-user-rank');
+    let userRankEl = document.getElementById('header-user-rank');
 
     if (this.user) {
-      if (userNameEl) userNameEl.textContent = this.user.name || 'Memuat...';
+      if (userNameEl) {
+        userNameEl.textContent = this.user.name || 'User';
+        // Auto-inject rank span if missing under name
+        if (!userRankEl && userNameEl.parentElement) {
+          userRankEl = document.createElement('span');
+          userRankEl.id = 'header-user-rank';
+          userRankEl.className = 'font-label-sm text-label-sm text-secondary font-bold';
+          userNameEl.parentElement.appendChild(userRankEl);
+        }
+      }
       if (userPhotoEl) {
         userPhotoEl.src = this.user.photo || 
           `https://ui-avatars.com/api/?name=${encodeURIComponent(this.user.name || 'User')}&background=random`;
       }
-      if (userRankEl) userRankEl.textContent = this.user.rank || '-';
+      if (userRankEl) {
+        const rankName = this.user.rank || 'Silver';
+        const elo = this.user.elo !== undefined ? this.user.elo : 400;
+        userRankEl.textContent = `${rankName} • ${elo} ELO`;
+      }
     }
   }
 
