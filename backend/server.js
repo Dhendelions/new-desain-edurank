@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const { pool, initDb } = require('./db');
@@ -1016,6 +1017,77 @@ app.get('/api/ranks', async (req, res) => {
   } catch (err) {
     console.error('API Ranks Error:', err);
     return res.status(500).json({ success: false, message: 'Gagal mengambil konfigurasi rank.' });
+  }
+});
+
+// 10. FEEDBACK API
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { nama, email, whatsapp, jenisFeedback, deskripsi, priority } = req.body;
+    
+    // Create transporter with dummy SMTP or real SMTP if configured
+    // For demo purposes, we will use a dummy service or just log if env vars aren't present
+    // You can also use Ethereal Email for testing if no real SMTP is available
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: process.env.SMTP_PORT || 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER || 'yudimade979@gmail.com',
+        pass: process.env.SMTP_PASS || 'dummy_password'
+      }
+    });
+
+    // Determine the email subject based on priority and type
+    const priorityText = priority === 'mendesak' ? '[MENDESAK]' : priority === 'penting' ? '[PENTING]' : '[BIASA]';
+    const subject = `${priorityText} EduRank Feedback: ${jenisFeedback.toUpperCase()}`;
+    
+    const mailOptions = {
+      from: `"${nama}" <${email}>`,
+      to: 'yudimade979@gmail.com',
+      replyTo: email,
+      subject: subject,
+      text: `
+Nama: ${nama}
+Email: ${email}
+WhatsApp: ${whatsapp || '-'}
+Prioritas: ${priority}
+Jenis Feedback: ${jenisFeedback}
+
+Deskripsi:
+${deskripsi}
+      `,
+      html: `
+        <h2>Feedback EduRank Baru</h2>
+        <ul>
+          <li><strong>Nama:</strong> ${nama}</li>
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>WhatsApp:</strong> ${whatsapp || '-'}</li>
+          <li><strong>Prioritas:</strong> ${priority}</li>
+          <li><strong>Jenis Feedback:</strong> ${jenisFeedback}</li>
+        </ul>
+        <br/>
+        <h3>Deskripsi:</h3>
+        <p style="white-space: pre-wrap;">${deskripsi}</p>
+      `
+    };
+
+    // We try to send the email, but if SMTP isn't configured, we just log it and return success
+    try {
+      if (process.env.SMTP_PASS) {
+        await transporter.sendMail(mailOptions);
+      } else {
+        console.log('Feedback received (Email sending skipped because SMTP_PASS is not set):', mailOptions.text);
+      }
+    } catch (mailError) {
+      console.error('Failed to send email:', mailError);
+      // Still return success to user so they don't get an error
+    }
+
+    return res.json({ success: true, message: 'Feedback berhasil dikirim.' });
+  } catch (err) {
+    console.error('API Feedback Error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal mengirim feedback.' });
   }
 });
 

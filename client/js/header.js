@@ -234,15 +234,20 @@ class Header {
           const iconName = isFriendRequest ? 'person_add' : (isDuelInvite ? 'swords' : (isMission ? 'task_alt' : 'notifications'));
           const iconColor = isFriendRequest ? 'text-primary' : (isDuelInvite ? 'text-amber-600' : (isMission ? 'text-tertiary-container' : 'text-secondary'));
 
-          let clickAction = '';
+          const readClass = n.is_read ? 'opacity-70' : 'bg-primary/5';
+          let clickTarget = '';
           if (isMission) {
-            clickAction = `onclick="window.location.href='home.html#home-missions-section'" class="cursor-pointer p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}"`;
+            clickTarget = 'home.html#home-missions-section';
+          } else if (isDuelInvite) {
+            clickTarget = 'battle.html?mode=custom';
+          } else if (isFriendRequest) {
+            clickTarget = '';
           } else {
-            clickAction = `class="p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${n.is_read ? 'opacity-70' : 'bg-primary/5'}"`;
+            clickTarget = 'home.html';
           }
 
           return `
-            <div ${clickAction}>
+            <div class="p-3 border-b border-outline-variant/15 text-left hover:bg-surface-container-low transition-colors rounded-xl mb-1 ${readClass} ${clickTarget ? 'cursor-pointer' : ''}" ${clickTarget ? `data-notif-link="${clickTarget}"` : ''}>
               <div class="flex items-start justify-between">
                 <p class="font-bold text-xs text-on-surface flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-sm ${iconColor}">
@@ -279,6 +284,16 @@ class Header {
           ${notifHtml}
         </div>
       `;
+
+      // Attach click handlers for notification items with links
+      panel.querySelectorAll('[data-notif-link]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          // Don't navigate if user clicked a button inside
+          if (e.target.closest('button')) return;
+          const link = el.getAttribute('data-notif-link');
+          if (link) window.location.href = link;
+        });
+      });
     } catch (err) {
       panel.innerHTML = `
         <div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
