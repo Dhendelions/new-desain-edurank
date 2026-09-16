@@ -32,6 +32,7 @@ class Header {
     // Render header
     this.render();
     this.attachEventListeners();
+    this.setupScrollSpy();
   }
 
   attachEventListeners() {
@@ -66,14 +67,14 @@ class Header {
     return page;
   }
 
-  updateActiveNavigation() {
-    const currentPage = this.getCurrentPage();
+  updateActiveNavigation(overridePath = null) {
+    const activePath = overridePath || this.getCurrentPage();
     const navLinks = document.querySelectorAll('header nav a');
     
     navLinks.forEach(link => {
       const linkPath = link.getAttribute('data-path');
       if (linkPath) {
-        const isActive = currentPage === linkPath;
+        const isActive = activePath === linkPath;
         if (isActive) {
           link.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-sm');
           link.classList.remove('text-on-surface-variant', 'hover:text-on-surface');
@@ -84,6 +85,40 @@ class Header {
           link.removeAttribute('aria-current');
         }
       }
+    });
+  }
+
+  setupScrollSpy() {
+    const isHomePage = this.currentPage === 'home' || this.currentPage === 'materi' || this.currentPage === 'battle';
+    const isHomeFile = window.location.pathname.endsWith('home.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
+    if (!isHomePage || !isHomeFile) return;
+
+    const sections = [
+      { path: 'home', el: document.getElementById('home-hero-section') },
+      { path: 'materi', el: document.getElementById('home-curriculum-section') },
+      { path: 'battle', el: document.getElementById('home-arena-section') }
+    ];
+
+    const onScroll = () => {
+      const scrollPos = window.scrollY + 120; // 120px offset for header
+      let currentSection = 'home';
+
+      sections.forEach(sec => {
+        if (sec.el) {
+          const top = sec.el.offsetTop;
+          const height = sec.el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            currentSection = sec.path;
+          }
+        }
+      });
+
+      this.updateActiveNavigation(currentSection);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('hashchange', () => {
+      this.updateActiveNavigation(this.getCurrentPage());
     });
   }
 

@@ -128,6 +128,9 @@ async function getDailyMissions(userId) {
       const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND mode != 'custom' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
     } else if (mission.mission_type === 'ranked_wins') {
       const [r] = await pool.query("SELECT COUNT(*) count FROM battles WHERE user_id = ? AND result = 'win' AND mode = 'ranked' AND DATE(created_at) = CURDATE()", [userId]); progress = r[0].count;
+    } else if (mission.mission_type === 'correct_answers') {
+      // Keep user_daily_missions progress if already accumulated via /api/battles/record
+      progress = mission.progress;
     }
     const completed = progress >= mission.target;
     const isNewlyCompleted = !mission.completed && completed;
@@ -478,6 +481,7 @@ app.get('/api/home', async (req, res) => {
     `, [userId]);
 
     // Process user subjects with their individual ranks and actual rank positions
+    const userClassLevel = user.class_level || 12;
     const subjectsData = await Promise.all(userSubjects.map(async (sub) => {
       const eloVal = sub.elo !== null && sub.elo !== undefined ? Number(sub.elo) : 100;
       const [r] = await pool.query('SELECT name FROM ranks WHERE min_elo <= ? AND max_elo >= ? LIMIT 1', [eloVal, eloVal]);
@@ -487,10 +491,10 @@ app.get('/api/home', async (req, res) => {
         FROM users u
         INNER JOIN user_subjects us ON us.user_id = u.id
         INNER JOIN subjects s ON us.subject_id = s.id
-        WHERE s.name = ?
+        WHERE s.name = ? AND u.class_level = ?
         GROUP BY u.id, u.created_at
         ORDER BY elo DESC, u.created_at ASC
-      `, [sub.subjectName]);
+      `, [sub.subjectName, userClassLevel]);
 
       const myPos = allSubjectRanks.findIndex(row => String(row.id) === String(userId));
       const rankPos = myPos !== -1 ? `#${myPos + 1}` : 'N/A';
